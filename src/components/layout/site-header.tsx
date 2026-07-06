@@ -1,5 +1,5 @@
+import type { Route } from "next";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
@@ -9,12 +9,17 @@ export function SiteHeader() {
           Aggarha
         </Link>
         <nav className="hidden gap-6 text-sm text-slate-600 md:flex">
-          <a href="#categories" className="transition-colors hover:text-ink">Categories</a>
-          <a href="#featured" className="transition-colors hover:text-ink">Featured</a>
-          <a href="#trust" className="transition-colors hover:text-ink">Trust</a>
-          <a href="#safety" className="transition-colors hover:text-ink">Safety</a>
+          <Link href={"/marketplace" as Route} className="transition-colors hover:text-ink">Browse</Link>
+          <Link href={"/#categories" as Route} className="transition-colors hover:text-ink">Categories</Link>
+          <Link href={"/#featured" as Route} className="transition-colors hover:text-ink">Featured</Link>
+          <Link href={"/#trust" as Route} className="transition-colors hover:text-ink">Trust</Link>
         </nav>
-        <Button variant="secondary">Early Access</Button>
+        <Link
+          href={"/marketplace" as Route}
+          className="inline-flex items-center justify-center rounded-xl2 bg-sand px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-amber-100"
+        >
+          Start Exploring
+        </Link>
       </div>
     </header>
   );

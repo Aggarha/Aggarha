@@ -19,6 +19,8 @@ enum VerificationLevel {
   PHONE_VERIFIED
   EMAIL_VERIFIED
   ID_VERIFIED
+  BUSINESS_VERIFIED
+  PROFESSIONAL_SELLER
 }
 
 enum ListingMode {
@@ -29,10 +31,23 @@ enum ListingMode {
 
 enum ListingStatus {
   DRAFT
-  ACTIVE
-  PAUSED
+  PENDING_REVIEW
+  PUBLISHED
+  RESERVED
+  RENTED
+  SWAPPED
+  COMPLETED
+  EXPIRED
   ARCHIVED
-  FLAGGED
+  REJECTED
+}
+
+enum ListingVisibility {
+  PUBLIC
+  PRIVATE
+  HIDDEN
+  FEATURED
+  BOOSTED
 }
 
 enum DealStatus {
@@ -43,33 +58,73 @@ enum DealStatus {
   CANCELED
 }
 
-model User {
-  id                 String            @id @default(cuid())
-  email              String?           @unique
-  phone              String?           @unique
-  passwordHash       String?
-  role               UserRole          @default(USER)
-  verificationLevel  VerificationLevel @default(UNVERIFIED)
-  emailVerifiedAt    DateTime?
-  phoneVerifiedAt    DateTime?
-  idVerifiedAt       DateTime?
-  trustScore         Decimal           @db.Decimal(5, 2) @default(50)
-  trustTier          Int               @default(0)
-  xp                 Int               @default(0)
-  level              Int               @default(1)
-  isBanned           Boolean           @default(false)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+enum BookingStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  CANCELED
+  COMPLETED
+  EXPIRED
+}
 
-  profile            Profile?
-  ownedListings      Listing[]         @relation("ListingOwner")
-  initiatedDeals     Deal[]            @relation("DealInitiator")
-  dealsAsOwner       Deal[]            @relation("DealOwner")
-  dealsAsRenter      Deal[]            @relation("DealRenter")
-  writtenReviews     Review[]          @relation("ReviewAuthor")
-  receivedReviews    Review[]          @relation("ReviewTarget")
-  accounts           Account[]
-  sessions           Session[]
+enum AvailabilityDateStatus {
+  AVAILABLE
+  BLOCKED
+  RESERVED
+}
+
+enum FraudReportStatus {
+  OPEN
+  UNDER_REVIEW
+  CONFIRMED
+  DISMISSED
+}
+
+model User {
+  id                          String            @id @default(cuid())
+  email                       String?           @unique
+  phone                       String?           @unique
+  passwordHash                String?
+  role                        UserRole          @default(USER)
+  verificationLevel           VerificationLevel @default(UNVERIFIED)
+  emailVerifiedAt             DateTime?
+  phoneVerifiedAt             DateTime?
+  idVerifiedAt                DateTime?
+  businessVerifiedAt          DateTime?
+  professionalSellerVerifiedAt DateTime?
+  trustScore                  Decimal           @db.Decimal(5, 2) @default(50)
+  trustTier                   Int               @default(0)
+  xp                          Int               @default(0)
+  level                       Int               @default(1)
+  responseRate                Decimal           @db.Decimal(5, 2) @default(0)
+  responseSpeedMinutes        Int               @default(0)
+  cancellationRate            Decimal           @db.Decimal(5, 2) @default(0)
+  accountAgeDays              Int               @default(0)
+  fraudReportsCount           Int               @default(0)
+  aiFraudScore                Decimal?          @db.Decimal(5, 2)
+  isBanned                    Boolean           @default(false)
+  createdAt                   DateTime          @default(now())
+  updatedAt                   DateTime          @updatedAt
+
+  profile                     Profile?
+  ownedListings               Listing[]         @relation("ListingOwner")
+  initiatedDeals              Deal[]            @relation("DealInitiator")
+  dealsAsOwner                Deal[]            @relation("DealOwner")
+  dealsAsRenter               Deal[]            @relation("DealRenter")
+  writtenReviews              Review[]          @relation("ReviewAuthor")
+  receivedReviews             Review[]          @relation("ReviewTarget")
+  accounts                    Account[]
+  sessions                    Session[]
+  favorites                   Favorite[]
+  savedListings               SavedListing[]
+  savedSearches               SavedSearch[]
+  recentlyViewed              RecentlyViewed[]
+  bookingsAsRequester         Booking[]         @relation("BookingRequester")
+  bookingsAsOwner             Booking[]         @relation("BookingOwner")
+  fraudReportsCreated         FraudReport[]     @relation("FraudReporter")
+  fraudReportsAgainst         FraudReport[]     @relation("FraudTarget")
+  suspiciousSignals           SuspiciousUserSignal[] @relation("SuspiciousTarget")
+  rateLimitEvents             RateLimitEvent[]
 
   @@index([role])
   @@index([trustScore])
@@ -114,53 +169,135 @@ model Category {
 }
 
 model Location {
-  id               String    @id @default(cuid())
-  city             String
-  state            String?
-  country          String
-  latitude         Decimal?  @db.Decimal(10, 7)
-  longitude        Decimal?  @db.Decimal(10, 7)
-  postalCode       String?
-  formattedAddress String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  country            String
+  governorate        String
+  city               String
+  district           String?
+  latitude           Decimal?  @db.Decimal(10, 7)
+  longitude          Decimal?  @db.Decimal(10, 7)
+  searchRadiusKm     Int?      @default(10)
+  postalCode         String?
+  formattedAddress   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  listings         Listing[]
+  listings           Listing[]
 
-  @@index([city, country])
+  @@index([country, governorate, city])
 }
 
 model Listing {
-  id                String        @id @default(cuid())
-  ownerId           String
-  categoryId        String
-  locationId        String?
-  title             String
-  description       String
-  mode              ListingMode
-  status            ListingStatus @default(DRAFT)
-  quantity          Int           @default(1)
-  priceAmount       Decimal?      @db.Decimal(12, 2)
-  currencyCode      String?       @db.VarChar(3)
-  trustScoreSnapshot Decimal?     @db.Decimal(5, 2)
-  ownerLevelSnapshot Int?
-  featuredUntil     DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id                  String             @id @default(cuid())
+  ownerId             String
+  categoryId          String
+  locationId          String?
+  title               String
+  description         String
+  mode                ListingMode
+  status              ListingStatus      @default(DRAFT)
+  visibility          ListingVisibility  @default(PUBLIC)
+  quantity            Int                @default(1)
+  priceAmount         Decimal?           @db.Decimal(12, 2)
+  currencyCode        String?            @db.VarChar(3)
+  minRentalDays       Int?               @default(1)
+  maxRentalDays       Int?               @default(30)
+  preparationDays     Int?               @default(0)
+  cooldownDays        Int?               @default(0)
+  trustScoreSnapshot  Decimal?           @db.Decimal(5, 2)
+  ownerLevelSnapshot  Int?
+  featuredUntil       DateTime?
+  boostedUntil        DateTime?
+  publishedAt         DateTime?
+  expiresAt           DateTime?
+  viewCount           Int                @default(0)
+  imageUrl            String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  owner             User          @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  category          Category      @relation(fields: [categoryId], references: [id])
-  location          Location?     @relation(fields: [locationId], references: [id])
-  deals             Deal[]
+  owner               User               @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  category            Category           @relation(fields: [categoryId], references: [id])
+  location            Location?          @relation(fields: [locationId], references: [id])
+  deals               Deal[]
+  reviews             Review[]
+  availabilityRules   AvailabilityRule[]
+  availabilityDates   AvailabilityDate[]
+  bookings            Booking[]
+  favorites           Favorite[]
+  savedListings       SavedListing[]
+  recentlyViewed      RecentlyViewed[]
+  duplicateSignalsAsPrimary DuplicateListingSignal[] @relation("PrimaryListing")
+  duplicateSignalsAsSuspected DuplicateListingSignal[] @relation("SuspectedListing")
+  fraudReports        FraudReport[]
 
   @@index([ownerId])
   @@index([categoryId])
   @@index([locationId])
-  @@index([status, mode])
+  @@index([status, mode, visibility])
+  @@index([viewCount])
+}
+
+model AvailabilityRule {
+  id              String   @id @default(cuid())
+  listingId       String
+  dayOfWeek       Int
+  startHour       Int
+  endHour         Int
+  isAvailable     Boolean  @default(true)
+  isRecurring     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  listing         Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, dayOfWeek])
+}
+
+model AvailabilityDate {
+  id              String                 @id @default(cuid())
+  listingId       String
+  date            DateTime
+  status          AvailabilityDateStatus @default(AVAILABLE)
+  notes           String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  listing         Listing                @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
+  @@index([listingId, status])
+}
+
+model Booking {
+  id                 String        @id @default(cuid())
+  listingId          String
+  requesterId        String
+  ownerId            String
+  status             BookingStatus @default(REQUESTED)
+  startDate          DateTime
+  endDate            DateTime
+  totalDays          Int
+  requestedAt        DateTime      @default(now())
+  approvedAt         DateTime?
+  rejectedAt         DateTime?
+  canceledAt         DateTime?
+  completedAt        DateTime?
+  ownerMessage       String?
+  requesterMessage   String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  listing            Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  requester          User          @relation("BookingRequester", fields: [requesterId], references: [id])
+  owner              User          @relation("BookingOwner", fields: [ownerId], references: [id])
+
+  @@index([listingId, status])
+  @@index([requesterId, startDate])
+  @@index([ownerId, startDate])
 }
 
 model Deal {
-  id                String     @id @default(cuid())
+  id                String      @id @default(cuid())
   listingId         String
   initiatorId       String
   ownerId           String
@@ -191,6 +328,7 @@ model Deal {
 model Review {
   id               String    @id @default(cuid())
   dealId           String
+  listingId        String
   reviewerId       String
   revieweeId       String
   rating           Int
@@ -202,11 +340,140 @@ model Review {
   updatedAt        DateTime  @updatedAt
 
   deal             Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  listing          Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
   reviewer         User      @relation("ReviewAuthor", fields: [reviewerId], references: [id])
   reviewee         User      @relation("ReviewTarget", fields: [revieweeId], references: [id])
 
   @@unique([dealId, reviewerId])
   @@index([revieweeId])
+  @@index([listingId])
+}
+
+model Favorite {
+  id          String   @id @default(cuid())
+  userId      String
+  listingId   String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+}
+
+model SavedListing {
+  id          String   @id @default(cuid())
+  userId      String
+  listingId   String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+}
+
+model SavedSearch {
+  id               String   @id @default(cuid())
+  userId           String
+  name             String
+  keyword          String?
+  categorySlug     String?
+  governorate      String?
+  city             String?
+  district         String?
+  radiusKm         Int?
+  minPrice         Decimal? @db.Decimal(12, 2)
+  maxPrice         Decimal? @db.Decimal(12, 2)
+  mode             ListingMode?
+  verifiedOnly     Boolean  @default(false)
+  minTrustScore    Decimal? @db.Decimal(5, 2)
+  minLevel         Int?
+  sortBy           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RecentlyViewed {
+  id          String   @id @default(cuid())
+  userId      String
+  listingId   String
+  viewedAt    DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([viewedAt])
+}
+
+model FraudReport {
+  id              String            @id @default(cuid())
+  reporterId      String
+  targetUserId    String?
+  listingId       String?
+  reason          String
+  details         String?
+  status          FraudReportStatus @default(OPEN)
+  aiScore         Decimal?          @db.Decimal(5, 2)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  reporter        User              @relation("FraudReporter", fields: [reporterId], references: [id])
+  targetUser      User?             @relation("FraudTarget", fields: [targetUserId], references: [id])
+  listing         Listing?          @relation(fields: [listingId], references: [id])
+
+  @@index([status])
+  @@index([targetUserId])
+  @@index([listingId])
+}
+
+model DuplicateListingSignal {
+  id                  String   @id @default(cuid())
+  primaryListingId    String
+  suspectedListingId  String
+  similarityScore     Decimal  @db.Decimal(5, 2)
+  createdAt           DateTime @default(now())
+
+  primaryListing      Listing  @relation("PrimaryListing", fields: [primaryListingId], references: [id], onDelete: Cascade)
+  suspectedListing    Listing  @relation("SuspectedListing", fields: [suspectedListingId], references: [id], onDelete: Cascade)
+
+  @@unique([primaryListingId, suspectedListingId])
+}
+
+model SuspiciousUserSignal {
+  id              String   @id @default(cuid())
+  userId          String
+  signalType      String
+  severity        Int      @default(1)
+  score           Decimal? @db.Decimal(5, 2)
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  user            User     @relation("SuspiciousTarget", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([signalType])
+}
+
+model RateLimitEvent {
+  id              String   @id @default(cuid())
+  userId          String?
+  ipAddress       String
+  route           String
+  action          String
+  createdAt       DateTime @default(now())
+
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([ipAddress, route])
+  @@index([createdAt])
 }
 
 model Account {
