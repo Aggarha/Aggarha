@@ -9,9 +9,10 @@ export function SiteHeader() {
           Aggarha
         </Link>
         <nav className="hidden gap-6 text-sm text-slate-600 md:flex">
-          <a href="#platform" className="transition-colors hover:text-ink">Platform</a>
-          <a href="#pwa" className="transition-colors hover:text-ink">PWA</a>
-          <a href="#foundation" className="transition-colors hover:text-ink">Foundation</a>
+          <a href="#categories" className="transition-colors hover:text-ink">Categories</a>
+          <a href="#featured" className="transition-colors hover:text-ink">Featured</a>
+          <a href="#trust" className="transition-colors hover:text-ink">Trust</a>
+          <a href="#safety" className="transition-colors hover:text-ink">Safety</a>
         </nav>
         <Button variant="secondary">Early Access</Button>
       </div>
