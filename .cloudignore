@@ -1,0 +1,13 @@
+.git
+.github
+.next
+node_modules
+coverage
+dist
+build
+.env
+.env.*
+*.log
+tsconfig.tsbuildinfo
+public/sw.js
+public/workbox-*.js
