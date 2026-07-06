@@ -1,3 +1,5 @@
-# Architecture
+# Architecture Index
 
-Initial architecture document placeholder for system design, boundaries, and data flow.
+Primary architecture source of truth lives in the `/docs` folder.
+
+Phase A2 implementation is intentionally limited to platform foundation and shared UI primitives.

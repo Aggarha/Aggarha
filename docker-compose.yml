@@ -1,0 +1,11 @@
+services:
+  aggarha-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aggarha-web:latest
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

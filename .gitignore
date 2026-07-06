@@ -1,8 +1,15 @@
 .env
 .env.*
+.next/
+out/
+coverage/
+public/sw.js
+public/workbox-*.js
+public/swe-worker-*.js
 node_modules/
 venv/
 __pycache__/
 dist/
 build/
+tsconfig.tsbuildinfo
 *.log
