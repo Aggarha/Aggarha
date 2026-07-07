@@ -3,19 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f6f8fb;
-  --fg: #101820;
+  --bg: #050505;
+  --bg-soft: #0f0f10;
+  --fg: #f5f7f1;
+  --lime: #ccff00;
+  --lime-soft: #d9ff4a;
+  --line: rgba(255, 255, 255, 0.12);
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
   background:
-    radial-gradient(circle at top right, rgba(244, 226, 194, 0.62), transparent 42%),
-    radial-gradient(circle at 10% 20%, rgba(191, 244, 238, 0.45), transparent 38%),
+    radial-gradient(circle at 20% 8%, rgba(204, 255, 0, 0.15), transparent 34%),
+    radial-gradient(circle at 88% 20%, rgba(204, 255, 0, 0.08), transparent 26%),
+    linear-gradient(170deg, #080808 0%, #0e0f10 46%, #040404 100%),
     var(--bg);
   color: var(--fg);
+  font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
 }
 
 * {
@@ -28,6 +35,6 @@ a {
 }
 
 ::selection {
-  background: #0f766e;
-  color: #ffffff;
+  background: var(--lime);
+  color: #101010;
 }

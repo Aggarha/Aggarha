@@ -32,67 +32,67 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
-      <section className="space-y-3">
-        <h1 className="text-3xl font-black text-ink sm:text-4xl">Browse marketplace</h1>
-        <p className="text-sm text-slate-600">
+      <section className="space-y-3 rounded-3xl border border-white/10 bg-black/50 p-5 sm:p-6">
+        <h1 className="text-3xl font-black text-white sm:text-4xl">Browse marketplace</h1>
+        <p className="text-sm text-white/70">
           Search by keyword, category, location, trust level, verification, availability, and mode.
         </p>
       </section>
 
-      <form className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <form className="grid gap-3 rounded-2xl border border-white/12 bg-black/45 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <input
           type="text"
           name="keyword"
           defaultValue={filters.keyword ?? ""}
           placeholder="Keyword"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="text"
           name="category"
           defaultValue={filters.category ?? ""}
           placeholder="Category slug"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="text"
           name="governorate"
           defaultValue={filters.governorate ?? ""}
           placeholder="Governorate"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="text"
           name="city"
           defaultValue={filters.city ?? ""}
           placeholder="City"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="number"
           name="radius"
           defaultValue={filters.radius ?? ""}
           placeholder="Radius km"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="number"
           name="minPrice"
           defaultValue={filters.minPrice ?? ""}
           placeholder="Min price"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <input
           type="number"
           name="maxPrice"
           defaultValue={filters.maxPrice ?? ""}
           placeholder="Max price"
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-[#ccff00] focus:outline-none"
         />
         <select
           name="mode"
           defaultValue={filters.mode ?? ""}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-[#ccff00] focus:outline-none"
         >
           <option value="">Any mode</option>
           {modeOptions.map((option) => (
@@ -104,7 +104,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
         <select
           name="sort"
           defaultValue={filters.sort ?? "newest"}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          className="rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white focus:border-[#ccff00] focus:outline-none"
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
@@ -113,51 +113,51 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           ))}
         </select>
 
-        <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white/80">
           <input type="checkbox" name="verifiedOnly" value="true" defaultChecked={filters.verifiedOnly} />
           Verified users only
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white/80">
           <input type="checkbox" name="availability" value="available" defaultChecked={filters.availability === "available"} />
           Available dates only
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 rounded-xl border border-white/20 bg-black/50 px-3 py-2 text-sm text-white/80">
           <input type="checkbox" name="featuredOnly" value="true" defaultChecked={filters.featuredOnly} />
           Featured/Boosted only
         </label>
 
         <button
           type="submit"
-          className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          className="rounded-xl bg-[#ccff00] px-4 py-2 text-sm font-bold text-black hover:bg-[#ddff57]"
         >
           Apply filters
         </button>
       </form>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Results</p>
-          <p className="mt-1 text-2xl font-black text-ink">{results.total}</p>
+        <Card className="border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Results</p>
+          <p className="mt-1 text-2xl font-black text-white">{results.total}</p>
         </Card>
-        <Card>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Current page</p>
-          <p className="mt-1 text-2xl font-black text-ink">{results.page}</p>
+        <Card className="border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Current page</p>
+          <p className="mt-1 text-2xl font-black text-white">{results.page}</p>
         </Card>
-        <Card>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Page size</p>
-          <p className="mt-1 text-2xl font-black text-ink">{results.pageSize}</p>
+        <Card className="border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Page size</p>
+          <p className="mt-1 text-2xl font-black text-white">{results.pageSize}</p>
         </Card>
-        <Card>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Page count</p>
-          <p className="mt-1 text-2xl font-black text-ink">{results.pageCount}</p>
+        <Card className="border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Page count</p>
+          <p className="mt-1 text-2xl font-black text-white">{results.pageCount}</p>
         </Card>
       </section>
 
       {cards.length === 0 ? (
-        <Card>
-          <p className="text-sm text-slate-600">No listings match this filter set yet. Try relaxing the filters.</p>
+        <Card className="border-white/12 bg-black/45">
+          <p className="text-sm text-white/70">No listings match this filter set yet. Try relaxing the filters.</p>
         </Card>
       ) : (
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -167,19 +167,19 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
         </section>
       )}
 
-      <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center justify-between rounded-2xl border border-white/12 bg-black/45 p-4">
         <Link
           href={`/marketplace?page=${Math.max(1, results.page - 1)}` as Route}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300"
+          className="rounded-xl border border-white/20 px-3 py-2 text-sm font-semibold text-white/85 hover:border-[#ccff00]/50"
         >
           Previous
         </Link>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-white/65">
           Page {results.page} of {results.pageCount}
         </p>
         <Link
           href={`/marketplace?page=${Math.min(results.pageCount, results.page + 1)}` as Route}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300"
+          className="rounded-xl border border-white/20 px-3 py-2 text-sm font-semibold text-white/85 hover:border-[#ccff00]/50"
         >
           Next
         </Link>

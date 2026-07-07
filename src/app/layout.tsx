@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.aggarha.com"),
   title: "Aggarha",
-  description: "Aggarha platform foundation",
+  description: "Premium marketplace experience for rentals and exchanges in Egypt",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Aggarha",
-    description: "Aggarha platform foundation",
+    description: "Premium marketplace experience for rentals and exchanges in Egypt",
     url: "https://www.aggarha.com",
     siteName: "Aggarha",
     type: "website"
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#ccff00",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover"
