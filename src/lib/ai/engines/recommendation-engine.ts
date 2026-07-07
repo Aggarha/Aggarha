@@ -91,13 +91,19 @@ export async function buildMatches(listingId: string, userSignals?: UserSignals)
   const compatible = safePool.filter((item) =>
     target ? item.mode === target.mode || item.mode === ListingMode.BOTH || target.mode === ListingMode.BOTH : true
   );
+  const preferredCategories = new Set((userSignals?.favoriteCategorySlugs ?? []).map((slug) => slug.toLowerCase()));
   const nearby = compatible.filter((item) =>
     target?.location ? item.location?.city === target.location.city || item.location?.governorate === target.location.governorate : false
   );
+  const ranked = [...compatible].sort((left, right) => {
+    const leftBoost = preferredCategories.has(left.category.slug.toLowerCase()) ? 1 : 0;
+    const rightBoost = preferredCategories.has(right.category.slug.toLowerCase()) ? 1 : 0;
+    return rightBoost - leftBoost;
+  });
 
   return {
-    listingSuggestions: compatible.slice(0, 8),
-    userSuggestions: compatible.slice(0, 5).map((item) => ({ userId: item.ownerId, reason: `Owner with matching ${item.mode.toLowerCase()} preference` })),
+    listingSuggestions: ranked.slice(0, 8),
+    userSuggestions: ranked.slice(0, 5).map((item) => ({ userId: item.ownerId, reason: `Owner with matching ${item.mode.toLowerCase()} preference` })),
     potentialSwaps: compatible.slice(0, 6).map((item) => ({ listingId: item.id, reason: "Mode and category overlap" })),
     nearbyAlternatives: nearby.slice(0, 6),
     betterDeals: [...compatible].sort((a, b) => Number(a.priceAmount ?? 0) - Number(b.priceAmount ?? 0)).slice(0, 5),

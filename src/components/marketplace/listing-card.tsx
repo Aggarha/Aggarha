@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatPrice, listingStatusLabel, listingVisibilityLabel } from "@/lib/marketplace/format";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { VerificationBadge } from "@/components/marketplace/verification-badge";
+import { PremiumBadge } from "@/components/premium/system";
 
 type ListingCardProps = {
   id: string;
@@ -24,21 +25,22 @@ type ListingCardProps = {
 
 export function ListingCard(props: ListingCardProps) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/10 bg-black/55 shadow-panel transition hover:-translate-y-0.5 hover:border-[#ccff00]/40">
+    <article className="overflow-hidden rounded-3xl border border-white/[0.07] bg-[#171717] shadow-panel transition duration-300 hover:-translate-y-1 hover:border-[#ccff00]/40 hover:bg-[#1b1b1b]">
       <div className="relative h-44 w-full overflow-hidden bg-neutral-900">
         <Image
           src={props.imageUrl ?? "https://picsum.photos/seed/aggarha-fallback/960/640"}
           alt={props.title}
           fill
-          className="object-cover"
+          className="object-cover transition duration-500 hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 25vw"
           unoptimized
         />
-        <div className="absolute left-3 top-3 flex gap-2">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           <ListingModeBadge mode={props.mode} />
           <span className="rounded-full border border-white/20 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
             {listingVisibilityLabel(props.visibility as never)}
           </span>
+          <PremiumBadge>AI Similar Listings</PremiumBadge>
         </div>
       </div>
 
@@ -60,6 +62,12 @@ export function ListingCard(props: ListingCardProps) {
             <p className="text-xs text-white/65">Trust {props.trustScore.toFixed(1)} · Level {props.level}</p>
           </div>
           <VerificationBadge level={props.verificationLevel} />
+        </div>
+
+        <div className="flex flex-wrap gap-2 text-[11px]">
+          <span className="rounded-full border border-[#ccff00]/35 bg-[#ccff00]/10 px-2.5 py-1 text-[#eaff95]">Quick Save</span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">Quick Compare</span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">AI Match</span>
         </div>
 
         <Link

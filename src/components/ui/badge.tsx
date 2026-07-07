@@ -5,7 +5,7 @@ export function Badge({ children, className }: PropsWithChildren<{ className?: s
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600",
+        "inline-flex items-center rounded-full border border-white/12 bg-white/6 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/75",
         className
       )}
     >

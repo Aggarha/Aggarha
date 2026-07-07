@@ -8,7 +8,7 @@ type CardProps = PropsWithChildren<{
 
 export function Card({ className, children, ...props }: CardProps) {
   return (
-    <section className={cn("rounded-xl2 border border-slate-200 bg-white p-6 shadow-panel", className)} {...props}>
+    <section className={cn("rounded-3xl border border-white/[0.06] bg-[#171717] p-6 shadow-panel", className)} {...props}>
       {children}
     </section>
   );

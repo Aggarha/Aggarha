@@ -34,10 +34,10 @@ export function AvailabilityPreview({ dates, className = "" }: { dates: Calendar
       {upcoming.map((item) => {
         const color =
           item.status === "AVAILABLE"
-            ? "bg-emerald-100 text-emerald-900"
+            ? "border border-[#ccff00]/40 bg-[#ccff00]/14 text-[#eaff95]"
             : item.status === "RESERVED"
-              ? "bg-amber-100 text-amber-900"
-              : "bg-slate-200 text-slate-700";
+              ? "border border-amber-300/45 bg-amber-300/16 text-amber-200"
+              : "border border-white/12 bg-white/8 text-white/65";
 
         return (
           <div key={item.day.toISOString()} className={`rounded-xl p-2 text-center text-[11px] font-semibold ${color}`}>

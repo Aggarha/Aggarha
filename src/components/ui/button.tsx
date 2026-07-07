@@ -8,9 +8,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-white hover:bg-teal-700",
-  secondary: "bg-sand text-ink hover:bg-amber-100",
-  ghost: "bg-transparent text-ink hover:bg-white/70"
+  primary: "bg-[#ccff00] text-black hover:bg-[#deff57]",
+  secondary: "bg-[#1b1b1b] text-white hover:bg-[#202020]",
+  ghost: "bg-transparent text-white hover:bg-white/8"
 };
 
 export function Button({ className, variant = "primary", ...props }: ButtonProps) {
@@ -18,7 +18,7 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
     <button
       className={cn(
         "inline-flex items-center justify-center rounded-xl2 px-5 py-3 text-sm font-semibold transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
         "disabled:cursor-not-allowed disabled:opacity-50",
         variantStyles[variant],
         className

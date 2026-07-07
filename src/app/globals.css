@@ -3,12 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg: #050505;
-  --bg-soft: #0f0f10;
-  --fg: #f5f7f1;
+  --bg: #000000;
+  --bg-soft: #171717;
+  --bg-elevated: #1b1b1b;
+  --bg-secondary: #202020;
+  --fg: #f6f7f2;
   --lime: #ccff00;
   --lime-soft: #d9ff4a;
-  --line: rgba(255, 255, 255, 0.12);
+  --line: rgba(255, 255, 255, 0.06);
 }
 
 html,
@@ -17,12 +19,13 @@ body {
   padding: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at 20% 8%, rgba(204, 255, 0, 0.15), transparent 34%),
-    radial-gradient(circle at 88% 20%, rgba(204, 255, 0, 0.08), transparent 26%),
-    linear-gradient(170deg, #080808 0%, #0e0f10 46%, #040404 100%),
+    radial-gradient(circle at 18% 8%, rgba(204, 255, 0, 0.13), transparent 30%),
+    radial-gradient(circle at 90% 22%, rgba(77, 130, 255, 0.12), transparent 24%),
+    linear-gradient(170deg, #050505 0%, #0a0a0a 48%, #000000 100%),
     var(--bg);
   color: var(--fg);
   font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  letter-spacing: 0.01em;
 }
 
 * {
@@ -37,4 +40,54 @@ a {
 ::selection {
   background: var(--lime);
   color: #101010;
+}
+
+@keyframes heroSlide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-66.666%);
+  }
+}
+
+@keyframes counterFade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes discSpin {
+  0% {
+    transform: perspective(800px) rotateX(16deg) rotateZ(0deg);
+  }
+  100% {
+    transform: perspective(800px) rotateX(16deg) rotateZ(360deg);
+  }
+}
+
+@keyframes discFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
