@@ -4,6 +4,14 @@ import { AvailabilityPreview } from "@/components/marketplace/availability-previ
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { VerificationBadge } from "@/components/marketplace/verification-badge";
 import { Card } from "@/components/ui/card";
+import {
+  runCollectiblesIntelligence,
+  runMatchmaking,
+  runNearbyIntelligence,
+  runPlaystationIntelligence,
+  runPricingForListing,
+  runTrustAndFraudForListing
+} from "@/lib/ai";
 import { formatPrice, listingStatusLabel, listingVisibilityLabel } from "@/lib/marketplace/format";
 import { getListingDetails } from "@/lib/marketplace/query";
 import { toNumber } from "@/lib/marketplace/serializers";
@@ -15,6 +23,25 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   if (!listing) {
     notFound();
   }
+
+  const [pricing, trustFraud, matching, nearby, playstation, collectibles] = await Promise.all([
+    runPricingForListing(listing.id),
+    runTrustAndFraudForListing(listing.id),
+    runMatchmaking(listing.id, {
+      location: {
+        governorate: listing.location?.governorate,
+        city: listing.location?.city
+      }
+    }),
+    runNearbyIntelligence({
+      location: {
+        governorate: listing.location?.governorate,
+        city: listing.location?.city
+      }
+    }),
+    runPlaystationIntelligence([listing.title]),
+    runCollectiblesIntelligence()
+  ]);
 
   const gallery = [
     listing.imageUrl ?? "https://picsum.photos/seed/aggarha-detail-main/1200/800",
@@ -151,9 +178,34 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             <div className="grid gap-2 text-sm text-white/70">
               <p>{locationLine}</p>
               <p>Nearby suggestions are ranked by trust score, mode compatibility, and availability.</p>
+              <p>AI nearby pool: {nearby.rentals.length + nearby.swaps.length} candidates in your area context.</p>
             </div>
             <div className="rounded-2xl border border-dashed border-[#ccff00]/45 bg-[#ccff00]/10 p-4 text-sm text-[#eaff95]">
               Map preview placeholder for {listing.location?.city ?? "local area"}.
+            </div>
+          </Card>
+
+          <Card className="space-y-3 border-white/10 bg-black/45">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">AI matching engine</p>
+            <div className="grid gap-2 text-sm text-white/75">
+              <p>Listing matches: {matching.listingSuggestions.length}</p>
+              <p>Nearby alternatives: {matching.nearbyAlternatives.length}</p>
+              <p>Potential swaps: {matching.potentialSwaps.length}</p>
+            </div>
+            <div className="grid gap-2 text-xs text-white/80">
+              {matching.multiWaySwapIdeas.slice(0, 2).map((idea) => (
+                <p key={idea} className="rounded-xl border border-white/15 bg-white/5 px-3 py-2">
+                  {idea}
+                </p>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="space-y-3 border-white/10 bg-black/45">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Domain engines</p>
+            <div className="grid gap-2 text-sm text-white/75">
+              <p>PlayStation swap/rent candidates: {playstation.swapCandidates.length + playstation.rentalCandidates.length}</p>
+              <p>Collectibles trend rows: {collectibles.length}</p>
             </div>
           </Card>
 
@@ -172,13 +224,21 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           <Card className="space-y-4 border-white/15 bg-neutral-950/95">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#ccff00]">Book or Exchange</p>
             <p className="text-3xl font-black text-[#ccff00]">
-              {formatPrice(listing.priceAmount ? toNumber(listing.priceAmount) : null, listing.currencyCode ?? "EGP")}
+              {formatPrice(
+                pricing?.rentalValue ?? (listing.priceAmount ? toNumber(listing.priceAmount) : null),
+                listing.currencyCode ?? "EGP"
+              )}
             </p>
             <p className="text-sm text-white/70">Average review score: {listing.reviews.length === 0 ? "N/A" : (listing.reviews.reduce((acc, item) => acc + item.rating, 0) / listing.reviews.length).toFixed(1)} / 5</p>
             <div className="grid gap-2 text-xs text-white/65">
               <p>Reviews: {listing.reviews.length}</p>
               <p>Visibility: {listingVisibilityLabel(listing.visibility)}</p>
               <p>Status: {listingStatusLabel(listing.status)}</p>
+              <p>AI swap value: {pricing ? formatPrice(pricing.swapValue, listing.currencyCode ?? "EGP") : "N/A"}</p>
+              <p>Price confidence: {pricing ? `${Math.round(pricing.priceConfidence * 100)}%` : "N/A"}</p>
+              <p>Demand signal: {pricing?.demandLevel ?? "N/A"}</p>
+              <p>AI trust score: {trustFraud?.trust.aiTrustScore ?? "N/A"}</p>
+              <p>Fraud probability: {trustFraud ? `${Math.round(trustFraud.fraud.fraudProbability * 100)}%` : "N/A"}</p>
             </div>
             <button type="button" className="w-full rounded-xl bg-[#ccff00] px-4 py-3 text-sm font-bold text-black hover:bg-[#ddff57]">
               Request Booking
@@ -194,10 +254,12 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
         <Card className="border-white/10 bg-black/45">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Nearby in {listing.location?.city ?? "the area"}</p>
           <p className="mt-2 text-sm text-white/70">Explore trusted alternatives in the same city and governorate for faster pickup or swap coordination.</p>
+          <p className="mt-2 text-xs text-white/60">AI suggested nearby listings: {nearby.rentals.length + nearby.swaps.length}</p>
         </Card>
         <Card className="border-white/10 bg-black/45">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Premium listing quality</p>
           <p className="mt-2 text-sm text-white/70">This detail page is optimized for mobile-first browsing with sticky conversion actions on desktop.</p>
+          <p className="mt-2 text-xs text-white/60">Chain swap paths discovered: {matching.chainSwapIdeas.length}</p>
         </Card>
       </section>
     </div>

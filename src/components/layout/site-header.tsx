@@ -14,6 +14,7 @@ export function SiteHeader() {
           <Link href={"/#featured" as Route} className="transition-colors hover:text-[#ccff00]">Featured</Link>
           <Link href={"/#collectibles" as Route} className="transition-colors hover:text-[#ccff00]">Collectibles</Link>
           <Link href={"/#playstation" as Route} className="transition-colors hover:text-[#ccff00]">PlayStation</Link>
+          <Link href={"/ai/dashboard" as Route} className="transition-colors hover:text-[#ccff00]">AI Brain</Link>
         </nav>
         <Link
           href={"/marketplace" as Route}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ListingMode } from "@prisma/client";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { Card } from "@/components/ui/card";
+import { runNearbyIntelligence, runSearchIntelligence } from "@/lib/ai";
 import { parseSearchFilters, searchListings } from "@/lib/marketplace/query";
 import { listingCardData } from "@/lib/marketplace/serializers";
 
@@ -27,8 +28,24 @@ const modeOptions: Array<{ value: ListingMode; label: string }> = [
 export default async function MarketplacePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const filters = parseSearchFilters(params);
-  const results = await searchListings(filters);
+  const [results, searchIntelligence, nearbyIntelligence] = await Promise.all([
+    searchListings(filters),
+    runSearchIntelligence(filters.keyword ?? "", {
+      location: {
+        governorate: filters.governorate,
+        city: filters.city
+      },
+      recentKeywords: filters.keyword ? [filters.keyword] : []
+    }),
+    runNearbyIntelligence({
+      location: {
+        governorate: filters.governorate,
+        city: filters.city
+      }
+    })
+  ]);
   const cards = results.items.map(listingCardData);
+  const nearbyCards = nearbyIntelligence.rentals.slice(0, 4).map(listingCardData);
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
@@ -152,6 +169,42 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
         <Card className="border-white/12 bg-black/45">
           <p className="text-xs uppercase tracking-[0.12em] text-white/60">Page count</p>
           <p className="mt-1 text-2xl font-black text-white">{results.pageCount}</p>
+        </Card>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card className="space-y-3 border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-[#ccff00]">AI Search Signals</p>
+          <h2 className="text-xl font-black text-white">Intent-aware search interpretation</h2>
+          <div className="grid gap-2 text-sm text-white/70">
+            <p>Intent: {searchIntelligence.intent}</p>
+            <p>Corrected query: {searchIntelligence.correctedQuery ?? "No correction"}</p>
+            <p>Predicted category: {searchIntelligence.predictedCategory ?? "General"}</p>
+            <p>Predicted product: {searchIntelligence.predictedProduct ?? "N/A"}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {searchIntelligence.relatedSearches.slice(0, 6).map((item) => (
+              <span key={item} className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-white/80">
+                {item}
+              </span>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="space-y-3 border-white/12 bg-black/45">
+          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Nearby Intelligence</p>
+          <h2 className="text-xl font-black text-white">Recommended nearby alternatives</h2>
+          <div className="grid gap-2 text-sm text-white/75">
+            {(nearbyCards.length > 0 ? nearbyCards : cards.slice(0, 4)).map((listing) => (
+              <Link
+                key={listing.id}
+                href={`/marketplace/${listing.id}` as Route}
+                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 hover:border-[#ccff00]/40"
+              >
+                {listing.title}
+              </Link>
+            ))}
+          </div>
         </Card>
       </section>
 

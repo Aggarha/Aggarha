@@ -4,16 +4,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ListingCard } from "@/components/marketplace/listing-card";
+import { runHomeFeed, runMarketplaceIntelligence, runRecommendations, runSearchIntelligence } from "@/lib/ai";
 import { getCategoryTree, getHomepageShowcase } from "@/lib/marketplace/query";
 import { listingCardData, toNumber } from "@/lib/marketplace/serializers";
 
 export default async function HomePage() {
-  const [showcase, categoryTree] = await Promise.all([getHomepageShowcase(), getCategoryTree()]);
+  const [showcase, categoryTree, homeFeed, recommendations, marketIntelligence, searchIntelligence] = await Promise.all([
+    getHomepageShowcase(),
+    getCategoryTree(),
+    runHomeFeed(),
+    runRecommendations(),
+    runMarketplaceIntelligence(),
+    runSearchIntelligence("playstation swap in cairo", {
+      location: {
+        governorate: "Cairo",
+        city: "Cairo"
+      },
+      favoriteCategorySlugs: ["gaming", "collectibles"],
+      recentKeywords: ["playstation", "collector edition"]
+    })
+  ]);
 
   const featured = showcase.featured.map(listingCardData);
   const newest = showcase.newest.slice(0, 6).map(listingCardData);
   const collectibleShowcase = showcase.newest.filter((listing) => listing.mode !== "RENT").slice(0, 4).map(listingCardData);
   const playstationShowcase = showcase.featured.filter((listing) => listing.mode !== "RENT").slice(0, 4).map(listingCardData);
+  const personalizedFeed = homeFeed.rankedListings.slice(0, 4).map(listingCardData);
+  const recommendedForYou = recommendations.recommendedForYou.slice(0, 4).map(listingCardData);
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
@@ -113,6 +130,86 @@ export default async function HomePage() {
             <ListingCard key={listing.id} {...listing} />
           ))}
         </div>
+      </section>
+
+      <section id="ai-search" className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <Card className="space-y-3 border-white/10 bg-black/45">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#ccff00]">AI Search Intelligence</p>
+          <h3 className="text-2xl font-bold text-white">Natural-language intent detection and predictive suggestions</h3>
+          <div className="grid gap-2 text-sm text-white/75">
+            <p>Intent: {searchIntelligence.intent}</p>
+            <p>Corrected query: {searchIntelligence.correctedQuery ?? "No correction needed"}</p>
+            <p>Predicted category: {searchIntelligence.predictedCategory ?? "General"}</p>
+            <p>Predicted brand: {searchIntelligence.predictedBrand ?? "N/A"}</p>
+          </div>
+        </Card>
+        <Card className="space-y-3 border-white/10 bg-black/45">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Autocomplete & related</p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {searchIntelligence.autocomplete.slice(0, 4).map((item) => (
+              <span key={item} className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/85">
+                {item}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Trending searches</p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {searchIntelligence.trendingSearches.slice(0, 4).map((item) => (
+              <span key={item} className="rounded-full border border-[#ccff00]/45 bg-[#ccff00]/15 px-3 py-1 text-[#eaff95]">
+                {item}
+              </span>
+            ))}
+          </div>
+        </Card>
+      </section>
+
+      <section id="personalized" className="space-y-4">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">AI Home Feed</p>
+            <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">Ranked for interests, location, trust, and behavior</h2>
+          </div>
+          <Link href={"/ai/dashboard" as Route} className="text-sm font-semibold text-[#ccff00] hover:text-[#ddff57]">
+            Open AI dashboard
+          </Link>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {(personalizedFeed.length > 0 ? personalizedFeed : featured.slice(0, 4)).map((listing) => (
+            <ListingCard key={listing.id} {...listing} />
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <Card className="space-y-3 border-white/10 bg-black/45">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Marketplace Brain</p>
+          <h3 className="text-xl font-bold text-white">Demand and timing signals</h3>
+          <div className="grid gap-2 text-sm text-white/75">
+            <p>{marketIntelligence.bestRentalTiming}</p>
+            <p>{marketIntelligence.marketActivity}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {marketIntelligence.trendingCategories.slice(0, 4).map((item) => (
+              <span key={item} className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/85">
+                {item}
+              </span>
+            ))}
+          </div>
+        </Card>
+        <Card className="space-y-3 border-white/10 bg-black/45">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">Recommended for you</p>
+          <div className="grid gap-2">
+            {(recommendedForYou.length > 0 ? recommendedForYou : newest.slice(0, 4)).map((listing) => (
+              <Link
+                key={listing.id}
+                href={`/marketplace/${listing.id}` as Route}
+                className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold text-white/80 hover:border-[#ccff00]/50"
+              >
+                {listing.title}
+              </Link>
+            ))}
+          </div>
+        </Card>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
