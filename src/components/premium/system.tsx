@@ -40,7 +40,7 @@ export function PremiumCard({ className, children, ...props }: PropsWithChildren
   return (
     <section
       className={cn(
-        "rounded-3xl border border-white/[0.06] bg-[#171717] p-5 shadow-[0_20px_40px_rgba(0,0,0,0.35)] sm:p-6",
+        "rounded-3xl border border-white/[0.06] bg-[#151515] p-5 shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition duration-300 motion-safe:hover:-translate-y-0.5 sm:p-6",
         className
       )}
       {...props}
@@ -87,13 +87,14 @@ export function HeroBanner({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[#101010] p-6 sm:p-8 lg:p-10",
+        "relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[linear-gradient(150deg,#090909,#111111,#090909)] p-6 sm:p-8 lg:p-10",
         className
       )}
     >
-      <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-[#ccff00]/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full bg-[#4f85ff]/15 blur-3xl" />
-      <div className="relative space-y-4">
+      <div className="pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full bg-[#ccff00]/12 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full bg-[#4f85ff]/12 blur-3xl" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      <div className="relative space-y-4 [animation:revealUp_.8s_ease_both]">
         <h1 className="max-w-4xl text-balance text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">{title}</h1>
         <p className="max-w-2xl text-base text-white/68 sm:text-lg">{subtitle}</p>
         {children}
@@ -104,7 +105,7 @@ export function HeroBanner({
 
 export function SearchBar({ className, suggestions = [] }: { className?: string; suggestions?: string[] }) {
   return (
-    <div className={cn("space-y-3 rounded-3xl border border-white/[0.08] bg-[#131313] p-3 sm:p-4", className)}>
+    <div className={cn("space-y-3 rounded-3xl border border-white/[0.08] bg-[#0f0f0f]/95 p-3 shadow-[0_20px_30px_rgba(0,0,0,0.35)] backdrop-blur sm:p-4", className)}>
       <div className="grid gap-3 sm:grid-cols-[1.35fr_1fr_auto]">
         <PremiumInput name="keyword" placeholder="AI smart search for rentals, swaps, collectibles, games..." />
         <PremiumInput name="nearby" placeholder="City or district" />
@@ -251,7 +252,7 @@ export function PremiumCalendar({ days }: { days: Array<{ day: string; date: str
 
 export function NearbyCard({ title, distance, mode, trust }: { title: string; distance: string; mode: string; trust: number }) {
   return (
-    <PremiumCard className="space-y-2 bg-[#1a1a1a] p-4">
+    <PremiumCard className="space-y-2 bg-[#141414] p-4">
       <p className="text-sm font-semibold text-white">{title}</p>
       <div className="flex flex-wrap gap-2">
         <Tag>{distance}</Tag>
@@ -264,7 +265,7 @@ export function NearbyCard({ title, distance, mode, trust }: { title: string; di
 
 export function CollectibleCard({ title, value, rarity }: { title: string; value: string; rarity: string }) {
   return (
-    <PremiumCard className="space-y-2 bg-[#191919] p-4">
+    <PremiumCard className="space-y-2 bg-[linear-gradient(155deg,#131313,#1a1a1a)] p-4">
       <p className="text-sm font-semibold text-white">{title}</p>
       <p className="text-xs text-white/55">AI Estimated Value</p>
       <p className="text-lg font-bold text-[#ccff00]">{value}</p>
@@ -275,7 +276,7 @@ export function CollectibleCard({ title, value, rarity }: { title: string; value
 
 export function PlayStationCard({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <PremiumCard className="space-y-2 bg-[linear-gradient(140deg,#121726,#0f1f3b)] p-4">
+    <PremiumCard className="space-y-2 bg-[linear-gradient(140deg,#0d1324,#152a4f,#0c1a34)] p-4">
       <p className="text-sm font-semibold text-white">{title}</p>
       <p className="text-xs text-white/72">{subtitle}</p>
       <PremiumBadge>AI Match Suggestions</PremiumBadge>
@@ -399,9 +400,9 @@ export function MobileBottomNav() {
 
 export function HeroAdsSlider({ slides }: { slides: Array<{ title: string; caption: string }> }) {
   return (
-    <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#111111] p-3">
-      <div className="flex w-[300%] gap-3 [animation:heroSlide_24s_linear_infinite]">
-        {[...slides, ...slides, ...slides].map((slide, idx) => (
+    <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#0f0f0f] p-3">
+      <div className="flex min-w-max gap-3 [animation:heroSlide_26s_linear_infinite] hover:[animation-play-state:paused]">
+        {[...slides, ...slides].map((slide, idx) => (
           <div key={`${slide.title}-${idx}`} className="w-full rounded-2xl border border-white/[0.08] bg-[#191919] p-5">
             <p className="text-xs uppercase tracking-[0.14em] text-[#ccff00]">Campaign</p>
             <p className="mt-2 text-xl font-bold text-white">{slide.title}</p>
