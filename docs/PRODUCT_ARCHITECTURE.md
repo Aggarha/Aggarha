@@ -1,5 +1,7 @@
 # Product Architecture
 
+> **Implementation status: Partial.** Discovery (browse/search/listing detail) and a premium visual design system are implemented, backed by a real PostgreSQL schema and an AI heuristics layer. Chat, deal confirmation, monetization, and moderation — all named in-scope below — are not yet built. See [PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md) for the full cross-domain status table.
+
 ## 1. Product Definition
 Aggarha is a reputation-based rental and swap discovery platform. It helps people find, evaluate, and contact other users to arrange rentals or swaps outside the platform. Aggarha is not a payment processor, not a contractual party, and not a custody layer for goods or funds.
 

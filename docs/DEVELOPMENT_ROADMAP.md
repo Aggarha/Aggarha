@@ -1,5 +1,7 @@
 # Development Roadmap
 
+> **Implementation status:** Phase 1 (architecture docs) — **Done**. Phase 2 (core platform build) — **Partial**: listings + search + database/auth foundation implemented; chat, deal confirmation, and reputation/XP release are not. Phases 3–5 — **Planned**. See [PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md) for the full status table and [ROADMAP.md](ROADMAP.md) for the short-form summary.
+
 ## 1. Roadmap Intent
 This roadmap turns the BRD and PRD into an implementation sequence. It prioritizes product safety, trust integrity, and scalable foundations before feature expansion.
 
@@ -38,13 +40,13 @@ This roadmap turns the BRD and PRD into an implementation sequence. It prioritiz
 - Build trust, reputation, and XP ledgers
 
 ### Critical order
-1. Authentication and verification
-2. Listings
-3. Search indexing
-4. Chat
-5. Deal confirmation
-6. Reputation and XP release
-7. Basic moderation
+1. Authentication and verification — **Partial** (session primitives only; no sign-up/login flow)
+2. Listings — **Implemented** (browse, search, detail; create/edit not yet built)
+3. Search indexing — **Partial** (direct DB query filtering; no indexing pipeline)
+4. Chat — **Planned**
+5. Deal confirmation — **Partial** (data model only, no API/UI)
+6. Reputation and XP release — **Partial** (fields exist, no award logic)
+7. Basic moderation — **Partial** (fraud/signal tables exist, no console)
 
 ## 4. Phase 3: Monetization and Operations
 ### Goals

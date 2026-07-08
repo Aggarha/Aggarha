@@ -1,5 +1,7 @@
 # XP Engine
 
+> **Implementation status: Partial.** `User.xp`/`level` and `Deal.xpReleased`/`Review.xpImpact` exist as scalar fields in the schema. No award/timing logic, level-up computation, unlockables, or anti-gaming rules (§4–§8) are implemented — XP values are currently static/seeded, not earned through any live code path.
+
 ## 1. Purpose
 The XP engine turns trustworthy behavior into visible progression. It should create a sense of achievement without compromising the credibility of the trust system.
 

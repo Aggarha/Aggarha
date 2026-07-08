@@ -1,5 +1,7 @@
 # Reputation System
 
+> **Implementation status: Partial.** The `Review` model (`prisma/schema.prisma`) implements star rating, comment, `trustImpact`, and `xpImpact` fields, and `Profile` carries running aggregates (`completionRate`, `successfulDeals`, `failedDeals`, `reviewCount`, `averageRating`). No API route creates or reads reviews yet, and none of the anti-abuse rules (§5) or moderation interplay (§7) are implemented.
+
 ## 1. Purpose
 Aggarha's reputation system transforms deal outcomes and user feedback into a durable public credibility profile. It should be highly legible to users while remaining resistant to manipulation.
 

@@ -1,5 +1,7 @@
 # Scalability Plan
 
+> **Implementation status: Planned.** The application currently runs as a single Next.js deployment reading/writing PostgreSQL directly via Prisma. No CDN caching layer, Redis/cache, search cluster, queue-based fanout, worker pool, or read-replica setup exists yet — this document describes target-state scaling, not current infrastructure.
+
 ## 1. Scaling Objective
 Aggarha should be able to support millions of users without changing its core architecture. The platform must scale horizontally in read-heavy discovery, messaging, and trust computation workloads while preserving a consistent trust model.
 

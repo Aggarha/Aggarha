@@ -1,5 +1,7 @@
 # User Journeys
 
+> **Implementation status: Partial.** The "browse home/category → search/filter → open listing" portion of the New User Journey (steps 1–3) is implemented. Sign-up/login (step 4), phone verification (step 5), chat (step 6), and deal confirmation (step 7–8) are not implemented, which means the Regular Listing, Reseller, Swap, Deal Confirmation, Verification, and Reporting journeys below are entirely **Planned**.
+
 ## 1. Journey Principles
 Aggarha journeys must feel lightweight and trustworthy. Every path should reduce uncertainty, surface reputation early, and keep the user in control. Because the platform does not handle money, the journey should focus on discovery, communication, and confirmation.
 

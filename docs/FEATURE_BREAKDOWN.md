@@ -1,17 +1,19 @@
 # Feature Breakdown
 
+> **Implementation status legend:** Implemented = live and reachable via the app/API today. Partial = data model and/or backend logic exists but the end-to-end flow does not. Planned = neither exists. Full cross-domain table: [PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md).
+
 ## 1. Platform Layers
-### Discovery
-Search, listing browse, categories, maps/radius, featured placements, trust-aware ranking, saved searches, and recommendations.
+### Discovery — **Partial**
+Search, listing browse, categories, maps/radius, featured placements, trust-aware ranking, saved searches, and recommendations. Implemented: search, browse, categories, saved searches (data model), AI recommendation heuristics. Planned: real map/radius UI, live featured-placement ranking.
 
-### Identity
-Authentication, verification, roles, device trust, session management, and account recovery.
+### Identity — **Partial**
+Authentication, verification, roles, device trust, session management, and account recovery. Implemented: session issuance/lookup/revocation, role/verification-level schema fields. Planned: sign-up/login UI, device trust, account recovery.
 
-### Communication
-One-to-one chat, listing inquiries, offer negotiation, media attachments, and moderation hooks.
+### Communication — **Planned**
+One-to-one chat, listing inquiries, offer negotiation, media attachments, and moderation hooks. Nothing implemented.
 
-### Trust and Progression
-Reputation, trust score, XP, level progression, badges, profile frames, and unlockables.
+### Trust and Progression — **Partial**
+Reputation, trust score, XP, level progression, badges, profile frames, and unlockables. Implemented: trust/XP/level scalar fields, review schema, heuristic trust/fraud scoring (AI Brain). Planned: badges, frames, unlockables, ledger-based XP/trust history.
 
 ### Monetization
 Reseller subscription, boosts, featured trader placement, paid verification, and ad inventory.
@@ -20,65 +22,57 @@ Reseller subscription, boosts, featured trader placement, paid verification, and
 Reports, moderation queue, sanctions, and fraud controls.
 
 ## 2. Core Feature Set
-### Listings
-- Create, edit, pause, archive, and relist
-- Modes: Rent, Swap, Both
-- Media gallery and metadata
-- Location and availability
+### Listings — **Partial**
+- Create, edit, pause, archive, and relist — **Planned** (no write API/UI; seed data only)
+- Modes: Rent, Swap, Both — **Implemented** (`ListingMode` enum, filterable)
+- Media gallery and metadata — **Partial** (single `imageUrl` field, not a gallery)
+- Location and availability — **Implemented** (`Location`, `AvailabilityRule`, `AvailabilityDate`)
 
-### Search
-- Keyword search
-- Category filters
-- Distance radius
-- Trust score sorting
-- Verification filter
-- Level filter
-- Price or value guidance filters if allowed by policy
+### Search — **Partial**
+- Keyword search — **Implemented**
+- Category filters — **Implemented**
+- Distance radius — **Planned** (no geo/radius query yet)
+- Trust score sorting — **Implemented**
+- Verification filter — **Partial** (schema supports it; not confirmed wired into query API)
+- Level filter — **Implemented** (`SavedSearch.minLevel`, query filters)
+- Price or value guidance filters — **Implemented** (min/max price)
 
-### Chat
-- Direct messaging
-- Thread per listing and per user pair
-- Read state and unread counts
-- Report message and block user
+### Chat — **Planned**
+Nothing implemented (no schema, routes, or UI).
 
-### Deal Confirmation
-- Dual confirmation
-- Deal completion timestamp
-- XP and reputation unlock only after consensus
-- Dispute escalation path
+### Deal Confirmation — **Partial**
+- Dual confirmation — **Partial** (`Deal.ownerConfirmedAt`/`renterConfirmedAt` fields exist; no API to set them)
+- Deal completion timestamp — **Partial** (`Deal.completedAt` field exists)
+- XP and reputation unlock only after consensus — **Planned** (no enforcement logic)
+- Dispute escalation path — **Planned**
 
-### Reputation
-- 1–5 star ratings
-- Written reviews
-- Completion rate
-- Response speed
-- Reliability signals
+### Reputation — **Partial**
+- 1–5 star ratings — **Partial** (`Review.rating` field exists; no write API)
+- Written reviews — **Partial** (`Review.comment` field exists; no write API)
+- Completion rate — **Partial** (`Profile.completionRate` field exists; not computed by any job)
+- Response speed — **Partial** (`User.responseSpeedMinutes` field exists; not computed)
+- Reliability signals — **Planned**
 
-### XP and Levels
-- Earn XP from confirmed deals and positive trust behaviors
-- Level unlocks for cosmetics and priority boosts
-- Seasonal achievements and streaks
+### XP and Levels — **Partial**
+- Earn XP from confirmed deals and positive trust behaviors — **Planned** (no award logic)
+- Level unlocks for cosmetics and priority boosts — **Planned**
+- Seasonal achievements and streaks — **Planned**
 
-### Verification
-- Mandatory phone verification
-- Email verification
-- Optional ID verification
-- Verified badge and ranking impact
+### Verification — **Partial**
+- Mandatory phone verification — **Planned** (no verification flow; `phoneVerifiedAt` field only)
+- Email verification — **Planned** (`emailVerifiedAt` field only)
+- Optional ID verification — **Planned** (`idVerifiedAt` field only)
+- Verified badge and ranking impact — **Partial** (`VerificationBadgePill` UI component exists; ranking impact not confirmed)
 
-### Reseller Plan
-- Monthly subscription
-- Higher exposure
-- Featured profile styling
-- Monthly boost credits
-- Analytics dashboard
-- XP multiplier
+### Reseller Plan — **Planned**
+No subscription schema or code exists.
 
-### Moderation
-- Listing review
-- User reports
-- Fraud signals
-- Manual sanctions
-- Appeals handling
+### Moderation — **Partial**
+- Listing review — **Planned**
+- User reports — **Partial** (`FraudReport` model; no UI)
+- Fraud signals — **Implemented** (heuristic scoring in AI risk-engine; see [AI_BRAIN_ARCHITECTURE.md](AI_BRAIN_ARCHITECTURE.md))
+- Manual sanctions — **Planned**
+- Appeals handling — **Planned**
 
 ## 3. Feature Priority
 ### Phase 1

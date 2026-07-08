@@ -1,5 +1,7 @@
 # Trust Score Engine
 
+> **Implementation status: Partial.** `User.trustScore`/`trustTier` and `Listing.trustScoreSnapshot` exist as stored scalar values (seeded, and used for UI sorting/display in `src/app/page.tsx`). A heuristic scorer, `calculateTrustScore` in `src/lib/ai/engines/risk-engine.ts`, computes a score from completed deals, reviews, response rate, cancellation rate, account age, and fraud reports — see [AI_BRAIN_ARCHITECTURE.md](AI_BRAIN_ARCHITECTURE.md). The §4 weighted composition, §5 tiers, and §7 abuse-resistance/audit-trail rules described below are not implemented as the risk-engine's actual formula; treat this document as the target model the heuristic engine should converge toward.
+
 ## 1. Purpose
 The trust score is the platform's primary credibility signal. It should rank users and listings based on a blend of verification, historical deal quality, responsiveness, completion behavior, and fraud risk.
 

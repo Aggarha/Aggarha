@@ -1,5 +1,7 @@
 # Admin Architecture
 
+> **Implementation status: Planned.** No admin application, routes, or roles-based console exist in the codebase (`src/app` has no `admin` directory). `User.role` supports `MODERATOR`/`ADMIN` values at the schema level, but no admin surface reads or acts on them yet.
+
 ## 1. Purpose
 The admin layer exists to maintain platform trust, protect the community, manage monetization, and provide operational control. It should be fully auditable, permissioned, and separated from public product logic.
 

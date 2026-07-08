@@ -1,5 +1,7 @@
 # System Architecture
 
+> **Implementation status: Partial.** The application ships today as a single Next.js (App Router) deployment — the "modular monolith" starting point this document anticipates — not yet the multi-service topology described below. Historical note: this file absorbs the former root-level `ARCHITECTURE.md`, which read: *"Primary architecture source of truth lives in the `/docs` folder. Phase A2 implementation is intentionally limited to platform foundation and shared UI primitives."* That constraint still holds — see the domain-by-domain status in §2 and the master index at [PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md).
+
 ## 1. Architecture Summary
 Aggarha should use a modular service-oriented architecture with a clear separation between the public discovery experience, the trust/reputation domain, communication services, monetization services, moderation, and analytics. The initial deployment can start as a modular monolith, but each module must be designed as if it can later be split into independently deployable services.
 
@@ -10,17 +12,17 @@ Aggarha should use a modular service-oriented architecture with a clear separati
 - Development environment: https://dev.aggarha.com
 
 ## 2. Core Runtime Domains
-- Identity and access
-- Listings and catalog
-- Search and ranking
-- Chat and messaging
-- Deal confirmation
-- Reputation, trust, XP, and levels
-- Verification
-- Subscription and monetization
-- Moderation and fraud detection
-- Notifications
-- Analytics and event processing
+- Identity and access — **Partial** (session issuance/lookup in `src/lib/auth/session.ts`; no sign-up/login routes or UI yet)
+- Listings and catalog — **Implemented** (marketplace browse, detail, and API routes)
+- Search and ranking — **Partial** (query/filter API implemented; no dedicated ranking or indexing pipeline)
+- Chat and messaging — **Planned** (no schema, routes, or UI)
+- Deal confirmation — **Partial** (`Deal` data model exists; no confirmation API/UI)
+- Reputation, trust, XP, and levels — **Partial** (fields and `Review` model exist; no scoring/award engines)
+- Verification — **Partial** (verification fields on `User`; no verification flow)
+- Subscription and monetization — **Planned** (no schema or code)
+- Moderation and fraud detection — **Partial** (`FraudReport`/`SuspiciousUserSignal`/`RateLimitEvent` models exist; no moderation UI/workflow; AI risk-engine heuristics exist, see [AI_BRAIN_ARCHITECTURE.md](AI_BRAIN_ARCHITECTURE.md))
+- Notifications — **Planned**
+- Analytics and event processing — **Partial** (AI dashboard/market-intelligence engines produce derived insight; no event bus or analytics store)
 
 ## 3. Recommended Logical Topology
 ### Client tier

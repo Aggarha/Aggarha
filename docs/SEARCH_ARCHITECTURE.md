@@ -1,5 +1,7 @@
 # Search Architecture
 
+> **Implementation status: Partial.** `src/lib/marketplace/query.ts` and `/api/marketplace/search` implement keyword, category, location, mode, and availability filtering directly against PostgreSQL via Prisma, plus a separate AI-assisted `/api/ai/search` endpoint (see [AI_BRAIN_ARCHITECTURE.md](AI_BRAIN_ARCHITECTURE.md)). There is no dedicated search cluster, no asynchronous indexing pipeline, and no independently scaled ranking model — filtering and sorting run as direct database queries.
+
 ## 1. Purpose
 Search is a core value proposition of Aggarha. Users must be able to quickly find trustworthy rental or swap opportunities by category, geography, credibility, and availability.
 

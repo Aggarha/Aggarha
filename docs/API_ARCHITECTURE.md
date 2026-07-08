@@ -1,5 +1,7 @@
 # API Architecture
 
+> **Implementation status: Partial.** This document describes the target API (versioned, resource-oriented, separate `api.aggarha.com` origin). The current implementation is a set of unversioned Next.js route handlers under `src/app/api/**`, served from the same origin as the web app — see §9 for the as-implemented route list. No authentication/authorization is enforced on any route today, no event bus exists, and no error-envelope convention is applied yet.
+
 ## 1. API Principles
 Aggarha's API should be versioned, resource-oriented, and designed around the platform's domain boundaries. The API must support future split services while keeping current implementation simple.
 
@@ -107,3 +109,22 @@ Errors should be stable and machine-readable. Suggested categories:
 - Search: [SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md)
 - Security: [SECURITY_ARCHITECTURE.md](SECURITY_ARCHITECTURE.md)
 - User flows: [USER_JOURNEYS.md](USER_JOURNEYS.md)
+
+## 9. As-Implemented Routes (current)
+
+All routes below live under `src/app/api/` in the Next.js app, same origin as the web frontend — **Implemented**, none of the target properties in §4–§7 (auth, idempotency, versioning, error envelope) apply yet:
+
+| Route | Method | Purpose |
+|---|---|---|
+| `/api/marketplace/home` | GET | Home feed data for the marketplace landing page |
+| `/api/marketplace/search` | GET | Listing search/filter, backed by `src/lib/marketplace/query.ts` |
+| `/api/marketplace/listings/[id]` | GET | Single listing detail, including availability and bookings |
+| `/api/ai/brain` | GET | Aggregated AI Brain snapshot (feed, recommendations, market, nearby, dashboard) |
+| `/api/ai/dashboard` | GET | AI dashboard insight only |
+| `/api/ai/search` | GET | AI-assisted search intelligence |
+| `/api/ai/listing-assistant` | POST | Generates a listing draft (title/description/pricing suggestions) |
+| `/api/ai/image-analyzer` | POST | Heuristic image caption/quality analysis |
+| `/api/ai/listings/[id]/intelligence` | GET | Trust/fraud/pricing intelligence for one listing |
+| `/api/health/db` | GET | Database connectivity health check |
+
+All AI routes are documented in full in [AI_BRAIN_ARCHITECTURE.md](AI_BRAIN_ARCHITECTURE.md). Identity, chat, deal, reputation, XP, monetization, and moderation resource groups from §3 have **no implemented routes** — **Planned**.

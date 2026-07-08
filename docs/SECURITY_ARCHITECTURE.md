@@ -1,5 +1,7 @@
 # Security Architecture
 
+> **Implementation status: Partial.** Session issuance/lookup/revocation exists (`src/lib/auth/session.ts`, `Session` model with random-token + expiry), and fraud/rate-limit data models exist (`FraudReport`, `SuspiciousUserSignal`, `RateLimitEvent`). No route currently enforces authentication or role-based access control, no rate limiting is wired up, and no verification, encryption-at-rest, or incident-response tooling is implemented — those remain **Planned**.
+
 ## 1. Security Goals
 Aggarha must protect users, listings, conversations, and trust signals while keeping the product simple and legally safe. The platform must assume malicious actors will try to game ranking, impersonate users, manipulate deal confirmations, or abuse messaging.
 
