@@ -4,13 +4,13 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Aggarha",
     short_name: "Aggarha",
-    description: "Aggarha progressive web app foundation",
+    description: "Premium marketplace experience for rentals, swaps, and exchanges in Egypt",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#f6f8fb",
-    theme_color: "#0f766e",
+    background_color: "#050505",
+    theme_color: "#ccff00",
     icons: [
       {
         src: "/icons/icon-192x192.png",

@@ -51,28 +51,44 @@ export function ListingCard(props: ListingCardProps) {
         </div>
 
         <div className="flex flex-wrap gap-2 text-xs text-white/70">
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">{props.city}, {props.governorate}</span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">{listingStatusLabel(props.status as never)}</span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">{props.viewCount} views</span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
+            {props.city}, {props.governorate}
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
+            {listingStatusLabel(props.status as never)}
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
+            {props.viewCount} views
+          </span>
         </div>
 
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-bold text-[#ccff00]">{formatPrice(props.priceAmount, props.currencyCode ?? "EGP")}</p>
-            <p className="text-xs text-white/65">Trust {props.trustScore.toFixed(1)} · Level {props.level}</p>
+            <p className="text-sm font-bold text-[#ccff00]">
+              {formatPrice(props.priceAmount, props.currencyCode ?? "EGP")}
+            </p>
+            <p className="text-xs text-white/65">
+              Trust {props.trustScore.toFixed(1)} · Level {props.level}
+            </p>
           </div>
           <VerificationBadge level={props.verificationLevel} />
         </div>
 
         <div className="flex flex-wrap gap-2 text-[11px]">
-          <span className="rounded-full border border-[#ccff00]/35 bg-[#ccff00]/10 px-2.5 py-1 text-[#eaff95]">Quick Save</span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">Quick Compare</span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">AI Match</span>
+          <span className="rounded-full border border-[#ccff00]/35 bg-[#ccff00]/10 px-2.5 py-1 text-[#eaff95]">
+            Quick Save (Coming soon)
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">
+            Quick Compare (Coming soon)
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">
+            AI Match (Coming soon)
+          </span>
         </div>
 
         <Link
           href={`/marketplace/${props.id}` as import("next").Route}
-          className="inline-flex w-full items-center justify-center rounded-xl bg-[#ccff00] px-4 py-2.5 text-sm font-bold text-black hover:bg-[#ddff57]"
+          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#ccff00] px-4 py-2.5 text-sm font-bold text-black transition duration-300 hover:bg-[#ddff57] active:scale-[0.98]"
         >
           View Listing
         </Link>

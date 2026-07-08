@@ -12,6 +12,7 @@ export default defineConfig([
     "next-env.d.ts",
     "public/swe-worker-*.js",
     "public/sw.js",
-    "public/workbox-*.js"
+    "public/workbox-*.js",
+    "public/fallback-*.js"
   ])
 ]);
