@@ -13,7 +13,7 @@ Aggarha is a reputation-based rental and swap marketplace. This repository curre
 
 ## What's implemented
 - Marketplace discovery: home feed, search/filter, listing detail (`src/app/marketplace`, `src/app/api/marketplace`)
-- Premium design system: 26-component UI library (`src/components/premium/system.tsx`, see [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md))
+- Premium design system: 29-component UI library (`src/components/premium/system.tsx`, see [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md))
 - AI Brain: heuristic pricing/trust/fraud/search/recommendation engines (`src/lib/ai`, see [docs/AI_BRAIN_ARCHITECTURE.md](docs/AI_BRAIN_ARCHITECTURE.md))
 - Database + session primitives: PostgreSQL schema via Prisma, session issuance (`prisma/schema.prisma`, `src/lib/auth/session.ts`)
 

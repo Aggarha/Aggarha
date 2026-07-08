@@ -3,7 +3,7 @@
 > **Implementation status: Implemented** (component library in active use). This document did not exist before this refactor; it documents `src/components/premium/system.tsx`, added/expanded in commits `4ac2c77` ("build premium UX and design system") and `a161c2e` ("polish premium homepage wow pass") with no prior documentation.
 
 ## 1. Purpose
-A single-file component library (`src/components/premium/system.tsx`, ~420 lines, 26 exported components) implementing Aggarha's premium visual language, matching the "Airbnb, Apple, Stripe, Discord, Steam"-inspired experience goal in [PRODUCT_ARCHITECTURE.md](PRODUCT_ARCHITECTURE.md) §2. Built with Tailwind utility classes (via `cn()` from `src/lib/cn.ts`), dark theme, lime accent (`#ccff00`), rounded-2xl surfaces.
+A single-file component library (`src/components/premium/system.tsx`, 416 lines, 29 exported components) implementing Aggarha's premium visual language, matching the "Airbnb, Apple, Stripe, Discord, Steam"-inspired experience goal in [PRODUCT_ARCHITECTURE.md](PRODUCT_ARCHITECTURE.md) §2. Built with Tailwind utility classes (via `cn()` from `src/lib/cn.ts`), dark theme, lime accent (`#ccff00`), rounded-2xl surfaces.
 
 ## 2. Component Inventory
 | Category | Components |

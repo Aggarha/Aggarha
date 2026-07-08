@@ -47,7 +47,7 @@ Legend: **Implemented** = live and reachable today · **Partial** = data model a
 | Domain | Status | Notes |
 |---|---|---|
 | Marketplace discovery (browse/search/detail) | **Implemented** | `src/app/marketplace`, `src/app/api/marketplace/**` |
-| Premium design system | **Implemented** | `src/components/premium/system.tsx`, 26 components |
+| Premium design system | **Implemented** | `src/components/premium/system.tsx`, 29 components |
 | AI Brain (pricing/trust/fraud/search/recommendation heuristics) | **Implemented** | `src/lib/ai/**`, `src/app/api/ai/**`; LLM provider layer is placeholder-only |
 | Database schema (PostgreSQL/Prisma) | **Implemented** | `prisma/schema.prisma`, 21 models |
 | Session management | **Partial** | `src/lib/auth/session.ts` issues/reads/revokes sessions; no sign-up/login route or UI |
