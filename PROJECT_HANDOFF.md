@@ -32,6 +32,7 @@ Every file under `docs/` follows the same convention: an **Implementation status
 - [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) — premium UI component library (new)
 - [SEARCH_ARCHITECTURE.md](docs/SEARCH_ARCHITECTURE.md) — search/ranking design
 - [SCALABILITY_PLAN.md](docs/SCALABILITY_PLAN.md) — scaling strategy
+- [DEPLOYMENT.md](docs/DEPLOYMENT.md) — production topology, deploy/rollback runbook (new)
 
 ### Trust, Reputation & Governance
 - [TRUST_SCORE_ENGINE.md](docs/TRUST_SCORE_ENGINE.md)
