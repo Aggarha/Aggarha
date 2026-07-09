@@ -3,10 +3,14 @@ import { modeLabel } from "@/lib/marketplace/format";
 export function ListingModeBadge({ mode }: { mode: "RENT" | "SWAP" | "BOTH" }) {
   const classes =
     mode === "RENT"
-      ? "bg-teal-700 text-white"
+      ? "border border-[#58f0c6]/40 bg-[#58f0c6]/14 text-[#a3ffe4]"
       : mode === "SWAP"
-        ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300"
-        : "bg-slate-900 text-white";
+        ? "border border-[#ffd27a]/40 bg-[#ffd27a]/14 text-[#ffd27a]"
+        : "border border-white/20 bg-white/10 text-white";
 
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${classes}`}>{modeLabel(mode)}</span>;
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${classes}`}>
+      {modeLabel(mode)}
+    </span>
+  );
 }
