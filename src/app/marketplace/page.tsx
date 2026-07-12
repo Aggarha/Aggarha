@@ -36,6 +36,26 @@ function ChevronIcon({ direction, isRtl }: { direction: "prev" | "next"; isRtl: 
   );
 }
 
+function buildPageList(current: number, total: number): Array<number | "ellipsis"> {
+  const pages = new Set<number>([1, total]);
+  for (let page = current - 1; page <= current + 1; page++) {
+    if (page >= 1 && page <= total) {
+      pages.add(page);
+    }
+  }
+  const sorted = Array.from(pages).sort((a, b) => a - b);
+  const result: Array<number | "ellipsis"> = [];
+  let previous = 0;
+  for (const page of sorted) {
+    if (previous && page - previous > 1) {
+      result.push("ellipsis");
+    }
+    result.push(page);
+    previous = page;
+  }
+  return result;
+}
+
 export default async function MarketplacePage({
   searchParams
 }: {
@@ -196,15 +216,20 @@ export default async function MarketplacePage({
           action={<TextLink href={"/marketplace" as Route}>{t.marketplace.clearFilters}</TextLink>}
         />
       ) : (
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {cards.map((listing) => (
-            <ListingCard key={listing.id} {...listing} lang={locale} />
-          ))}
-        </section>
+        <>
+          <p dir={dir} className={`${isRtl ? "text-right" : "text-left"} text-sm text-white/45`}>
+            {t.marketplace.resultsCount(results.total)}
+          </p>
+          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+            {cards.map((listing) => (
+              <ListingCard key={listing.id} {...listing} lang={locale} />
+            ))}
+          </section>
+        </>
       )}
 
       {results.pageCount > 1 ? (
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-2">
           {results.page <= 1 ? (
             <span className="inline-flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full text-white/25">
               <ChevronIcon direction="prev" isRtl={isRtl} />
@@ -212,15 +237,37 @@ export default async function MarketplacePage({
           ) : (
             <Link
               href={`/marketplace?page=${results.page - 1}` as Route}
-              aria-label="Previous page"
+              aria-label={t.marketplace.previousPage}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/75 transition-all duration-200 ease-[var(--ease-premium)] hover:border-[#ccff00]/50 hover:text-white active:scale-95"
             >
               <ChevronIcon direction="prev" isRtl={isRtl} />
             </Link>
           )}
-          <p className="text-xs font-medium tabular-nums text-white/45">
-            {results.page} / {results.pageCount}
-          </p>
+
+          {buildPageList(results.page, results.pageCount).map((page, index) =>
+            page === "ellipsis" ? (
+              <span key={`ellipsis-${index}`} className="w-4 text-center text-xs text-white/35">
+                &hellip;
+              </span>
+            ) : page === results.page ? (
+              <span
+                key={page}
+                aria-current="page"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#ccff00] text-sm font-bold tabular-nums text-[#ccff00]"
+              >
+                {page}
+              </span>
+            ) : (
+              <Link
+                key={page}
+                href={`/marketplace?page=${page}` as Route}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-sm tabular-nums text-white/70 transition-all duration-200 ease-[var(--ease-premium)] hover:border-[#ccff00]/50 hover:text-white active:scale-95"
+              >
+                {page}
+              </Link>
+            )
+          )}
+
           {results.page >= results.pageCount ? (
             <span className="inline-flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full text-white/25">
               <ChevronIcon direction="next" isRtl={isRtl} />
@@ -228,7 +275,7 @@ export default async function MarketplacePage({
           ) : (
             <Link
               href={`/marketplace?page=${results.page + 1}` as Route}
-              aria-label="Next page"
+              aria-label={t.marketplace.nextPage}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 text-white/75 transition-all duration-200 ease-[var(--ease-premium)] hover:border-[#ccff00]/50 hover:text-white active:scale-95"
             >
               <ChevronIcon direction="next" isRtl={isRtl} />

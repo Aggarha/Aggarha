@@ -59,7 +59,10 @@ const ar: Dictionary = {
     },
     noResultsTitle: "لا توجد إعلانات مطابقة بعد",
     noResultsDescription: "جرّب تخفيف الفلاتر أو تغيير الوضع أو الموقع أو نطاق السعر.",
-    clearFilters: "مسح كل الفلاتر"
+    clearFilters: "مسح كل الفلاتر",
+    resultsCount: (count: number) => `${count} إعلان`,
+    previousPage: "الصفحة السابقة",
+    nextPage: "الصفحة التالية"
   },
   listingDetail: {
     overview: "نظرة عامة",

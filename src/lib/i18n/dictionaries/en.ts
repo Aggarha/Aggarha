@@ -57,7 +57,10 @@ const en = {
     },
     noResultsTitle: "No matching listings yet",
     noResultsDescription: "Try relaxing filters or changing mode, location, and pricing bounds.",
-    clearFilters: "Clear all filters"
+    clearFilters: "Clear all filters",
+    resultsCount: (count: number) => `${count} listings`,
+    previousPage: "Previous page",
+    nextPage: "Next page"
   },
   listingDetail: {
     overview: "Overview",
