@@ -129,68 +129,72 @@ export default async function MarketplacePage({
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
-            <div className="grid gap-3 border-t border-white/[0.06] p-4 sm:grid-cols-2 lg:grid-cols-3">
-              <PremiumInput
-                type="text"
-                name="governorate"
-                aria-label={t.marketplace.governorate}
-                defaultValue={filters.governorate ?? ""}
-                placeholder={t.marketplace.governorate}
-              />
-              <PremiumInput
-                type="number"
-                name="radius"
-                aria-label={t.marketplace.radiusKm}
-                defaultValue={filters.radius ?? ""}
-                placeholder={t.marketplace.radiusKm}
-              />
-              <PremiumSelect name="mode" aria-label={t.marketplace.anyMode} defaultValue={filters.mode ?? ""}>
-                <option value="">{t.marketplace.anyMode}</option>
-                {modeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </PremiumSelect>
-              <PremiumInput
-                type="number"
-                name="minPrice"
-                aria-label={t.marketplace.minPrice}
-                defaultValue={filters.minPrice ?? ""}
-                placeholder={t.marketplace.minPrice}
-              />
-              <PremiumInput
-                type="number"
-                name="maxPrice"
-                aria-label={t.marketplace.maxPrice}
-                defaultValue={filters.maxPrice ?? ""}
-                placeholder={t.marketplace.maxPrice}
-              />
-              <PremiumSelect name="sort" aria-label={t.marketplace.sort.newest} defaultValue={filters.sort ?? "newest"}>
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </PremiumSelect>
+            <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-premium)] group-open:grid-rows-[1fr] group-open:opacity-100">
+              <div className="overflow-hidden">
+                <div className="grid gap-3 border-t border-white/[0.06] p-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <PremiumInput
+                    type="text"
+                    name="governorate"
+                    aria-label={t.marketplace.governorate}
+                    defaultValue={filters.governorate ?? ""}
+                    placeholder={t.marketplace.governorate}
+                  />
+                  <PremiumInput
+                    type="number"
+                    name="radius"
+                    aria-label={t.marketplace.radiusKm}
+                    defaultValue={filters.radius ?? ""}
+                    placeholder={t.marketplace.radiusKm}
+                  />
+                  <PremiumSelect name="mode" aria-label={t.marketplace.anyMode} defaultValue={filters.mode ?? ""}>
+                    <option value="">{t.marketplace.anyMode}</option>
+                    {modeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </PremiumSelect>
+                  <PremiumInput
+                    type="number"
+                    name="minPrice"
+                    aria-label={t.marketplace.minPrice}
+                    defaultValue={filters.minPrice ?? ""}
+                    placeholder={t.marketplace.minPrice}
+                  />
+                  <PremiumInput
+                    type="number"
+                    name="maxPrice"
+                    aria-label={t.marketplace.maxPrice}
+                    defaultValue={filters.maxPrice ?? ""}
+                    placeholder={t.marketplace.maxPrice}
+                  />
+                  <PremiumSelect name="sort" aria-label={t.marketplace.sort.newest} defaultValue={filters.sort ?? "newest"}>
+                    {sortOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </PremiumSelect>
 
-              <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
-                <input type="checkbox" name="verifiedOnly" value="true" defaultChecked={filters.verifiedOnly} />
-                {t.marketplace.verifiedOnly}
-              </label>
-              <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
-                <input
-                  type="checkbox"
-                  name="availability"
-                  value="available"
-                  defaultChecked={filters.availability === "available"}
-                />
-                {t.marketplace.availableOnly}
-              </label>
-              <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
-                <input type="checkbox" name="featuredOnly" value="true" defaultChecked={filters.featuredOnly} />
-                {t.marketplace.featuredOnly}
-              </label>
+                  <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
+                    <input type="checkbox" name="verifiedOnly" value="true" defaultChecked={filters.verifiedOnly} />
+                    {t.marketplace.verifiedOnly}
+                  </label>
+                  <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
+                    <input
+                      type="checkbox"
+                      name="availability"
+                      value="available"
+                      defaultChecked={filters.availability === "available"}
+                    />
+                    {t.marketplace.availableOnly}
+                  </label>
+                  <label className="flex min-h-[44px] items-center gap-2 rounded-2xl border border-white/[0.08] bg-[#171717] px-3 py-2 text-sm text-white/80 transition hover:border-white/20">
+                    <input type="checkbox" name="featuredOnly" value="true" defaultChecked={filters.featuredOnly} />
+                    {t.marketplace.featuredOnly}
+                  </label>
+                </div>
+              </div>
             </div>
           </details>
         </FilterPanel>
