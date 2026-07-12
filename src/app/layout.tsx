@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Manrope, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MobileBottomNav } from "@/components/premium/system";
@@ -10,6 +10,12 @@ import "./globals.css";
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
+  display: "swap"
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
   display: "swap"
 });
 
@@ -50,7 +56,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const { locale, t } = await getLocaleAndDictionary();
 
   return (
-    <html lang={locale} dir={dirFor(locale)} className={spaceGrotesk.variable}>
+    <html lang={locale} dir={dirFor(locale)} className={`${spaceGrotesk.variable} ${manrope.variable}`}>
       <body className="min-h-screen antialiased">
         <SiteHeader locale={locale} t={t} />
         <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>

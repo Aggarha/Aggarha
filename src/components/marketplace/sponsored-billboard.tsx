@@ -111,7 +111,7 @@ export function SponsoredBillboard({ slides, lang = "en" }: { slides: BillboardS
             <div className="absolute inset-x-0 bottom-0 space-y-2 p-6 sm:p-10">
               <p
                 dir={titleIsRtl ? "rtl" : "ltr"}
-                className={`${titleIsRtl ? "text-right" : "text-left"} text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl`}
+                className={`${titleIsRtl ? "text-right" : "text-left"} font-[family-name:var(--font-space-grotesk)] text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl`}
               >
                 {slide.title}
               </p>
