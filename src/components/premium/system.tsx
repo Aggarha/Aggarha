@@ -206,7 +206,9 @@ export function OwnerCard({
   trust,
   stats,
   verificationLevel,
-  lang = "en"
+  lang = "en",
+  messageLabel,
+  comingSoonTitle
 }: {
   name: string;
   level: number;
@@ -214,6 +216,8 @@ export function OwnerCard({
   stats: Array<{ label: string; value: string }>;
   verificationLevel: string;
   lang?: Locale;
+  messageLabel?: string;
+  comingSoonTitle?: string;
 }) {
   return (
     <PremiumCard className="space-y-4 bg-[#191919]">
@@ -233,6 +237,11 @@ export function OwnerCard({
           </div>
         ))}
       </div>
+      {messageLabel ? (
+        <PremiumButton tone="ghost" disabled aria-disabled="true" title={comingSoonTitle} className="w-full">
+          {messageLabel}
+        </PremiumButton>
+      ) : null}
     </PremiumCard>
   );
 }

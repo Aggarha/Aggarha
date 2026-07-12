@@ -5,7 +5,7 @@ import { ConditionDamageReport } from "@/components/marketplace/condition-report
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
-import { OwnerCard, PremiumCalendar, PremiumCard, ReviewCard } from "@/components/premium/system";
+import { OwnerCard, PremiumCard, ReviewCard } from "@/components/premium/system";
 import { runPricingForListing } from "@/lib/ai";
 import { buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
 import {
@@ -71,23 +71,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
 
   const canRent = listing.mode === "RENT" || listing.mode === "BOTH";
   const canSwap = listing.mode === "SWAP" || listing.mode === "BOTH";
-
-  const calendarDays = Array.from({ length: 14 }).map((_, index) => {
-    const day = new Date();
-    day.setDate(day.getDate() + index);
-    const key = day.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short" });
-    const date = day.getDate().toString();
-    if (index % 6 === 0) {
-      return { day: key, date, state: "reserved" as const };
-    }
-    if (index % 5 === 0) {
-      return { day: key, date, state: "blocked" as const };
-    }
-    if (index % 7 === 0) {
-      return { day: key, date, state: "cooldown" as const };
-    }
-    return { day: key, date, state: "available" as const };
-  });
 
   return (
     <div dir={dir} className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
@@ -199,7 +182,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             }))}
             lang={locale}
           />
-          <PremiumCalendar days={calendarDays} />
           <p className="text-xs text-white/50">
             {availableDaysCount > 0 ? t.listingDetail.openDates(availableDaysCount) : t.listingDetail.checkCalendar}
           </p>
@@ -233,6 +215,8 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             },
             { label: t.listingDetail.memberSince, value: `${listing.owner.createdAt.getFullYear()}` }
           ]}
+          messageLabel={t.listingDetail.message}
+          comingSoonTitle={t.nav.comingSoon}
         />
       </section>
 

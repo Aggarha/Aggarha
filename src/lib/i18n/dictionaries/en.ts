@@ -78,7 +78,8 @@ const en = {
     memberSince: "Member Since",
     overallRating: "Overall Rating",
     reviewsCount: (count: number) => `${count} reviews`,
-    noListingsTitle: "No PlayStation listings yet"
+    noListingsTitle: "No PlayStation listings yet",
+    message: "Message"
   },
   nearby: {
     title: "Near You",

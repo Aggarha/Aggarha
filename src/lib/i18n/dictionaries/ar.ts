@@ -80,7 +80,8 @@ const ar: Dictionary = {
     memberSince: "عضو منذ",
     overallRating: "التقييم العام",
     reviewsCount: (count) => `${count} تقييم`,
-    noListingsTitle: "لا توجد إعلانات بلايستيشن بعد"
+    noListingsTitle: "لا توجد إعلانات بلايستيشن بعد",
+    message: "مراسلة"
   },
   nearby: {
     title: "بالقرب منك",
