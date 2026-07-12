@@ -298,8 +298,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               <ListingCard
                 key={item.id}
                 id={item.id}
-                title={item.title}
-                description={item.description}
                 mode={item.mode}
                 status={item.status}
                 visibility={item.visibility}

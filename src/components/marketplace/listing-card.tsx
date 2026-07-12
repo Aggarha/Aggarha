@@ -14,8 +14,6 @@ import type { Locale } from "@/lib/i18n/types";
 
 type ListingCardProps = {
   id: string;
-  title: string;
-  description: string;
   mode: "RENT" | "SWAP" | "BOTH";
   status: string;
   visibility: string;
