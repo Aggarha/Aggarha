@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
+import { HomepageSearchBar } from "@/components/marketplace/homepage-search-bar";
 import { HorizontalListingRow } from "@/components/marketplace/horizontal-listing-row";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { SponsoredBillboard } from "@/components/marketplace/sponsored-billboard";
@@ -13,14 +14,20 @@ import {
   getListingLanguage,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
+import { flattenCategories } from "@/lib/marketplace/format";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
-import { getHomepageShowcase } from "@/lib/marketplace/query";
+import { getCategoryTree, getHomepageShowcase } from "@/lib/marketplace/query";
 import { listingCardData } from "@/lib/marketplace/serializers";
 
 type CardListing = ReturnType<typeof listingCardData>;
 
 export default async function HomePage() {
-  const [showcase, { locale, t }] = await Promise.all([getHomepageShowcase(), getLocaleAndDictionary()]);
+  const [showcase, categoryTree, { locale, t }] = await Promise.all([
+    getHomepageShowcase(),
+    getCategoryTree(),
+    getLocaleAndDictionary()
+  ]);
+  const categories = flattenCategories(categoryTree);
 
   const pool = [...showcase.featured, ...showcase.newest]
     .filter((listing, index, all) => all.findIndex((item) => item.id === listing.id) === index)
@@ -78,7 +85,10 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 pb-20 pt-6 sm:px-6 lg:px-8">
-      <SponsoredBillboard slides={billboardSlides} lang={locale} />
+      <div className="space-y-4">
+        <HomepageSearchBar categories={categories} locale={locale} t={t.marketplace} />
+        <SponsoredBillboard slides={billboardSlides} lang={locale} />
+      </div>
 
       <HorizontalListingRow title={t.home.topRented} listings={topRented} lang={locale} />
       <HorizontalListingRow title={t.home.topSwapped} listings={topSwapped} lang={locale} />

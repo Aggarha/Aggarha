@@ -13,10 +13,10 @@ import {
 import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { getCategoryTree, parseSearchFilters, searchListings } from "@/lib/marketplace/query";
+import { flattenCategories } from "@/lib/marketplace/format";
 import { listingCardData } from "@/lib/marketplace/serializers";
 
 type SearchParams = Record<string, string | string[] | undefined>;
-type CategoryNode = Awaited<ReturnType<typeof getCategoryTree>>[number];
 
 function ChevronIcon({ direction, isRtl }: { direction: "prev" | "next"; isRtl: boolean }) {
   return (
@@ -34,17 +34,6 @@ function ChevronIcon({ direction, isRtl }: { direction: "prev" | "next"; isRtl: 
       <path d={direction === "prev" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
     </svg>
   );
-}
-
-function flattenCategories(nodes: CategoryNode[]): Array<{ slug: string; name: string }> {
-  const flat: Array<{ slug: string; name: string }> = [];
-  for (const node of nodes) {
-    flat.push({ slug: node.slug, name: node.name });
-    if (node.children.length > 0) {
-      flat.push(...flattenCategories(node.children as CategoryNode[]));
-    }
-  }
-  return flat;
 }
 
 export default async function MarketplacePage({
