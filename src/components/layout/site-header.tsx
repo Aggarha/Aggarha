@@ -11,7 +11,7 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
       <div className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-x-3 px-4 py-2.5 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="inline-flex shrink-0 items-center gap-2 text-base font-black tracking-[0.05em] text-white"
+          className="inline-flex shrink-0 items-center gap-2 font-[family-name:var(--font-space-grotesk)] text-base font-black tracking-[0.05em] text-white"
         >
           <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-[#ccff00] shadow-[0_0_14px_rgba(204,255,0,0.55)]" />
           AGGARHA

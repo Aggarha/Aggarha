@@ -57,7 +57,10 @@ const en = {
     },
     noResultsTitle: "No matching listings yet",
     noResultsDescription: "Try relaxing filters or changing mode, location, and pricing bounds.",
-    clearFilters: "Clear all filters"
+    clearFilters: "Clear all filters",
+    resultsCount: (count: number) => `${count} listings`,
+    previousPage: "Previous page",
+    nextPage: "Next page"
   },
   listingDetail: {
     overview: "Overview",
@@ -91,7 +94,9 @@ const en = {
   playstation: {
     eyebrow: "PlayStation Exchange",
     title: "Gamers Zone",
+    titleLine2: "Rent games, swap your shelf",
     browseListings: "Browse PlayStation Listings",
+    listToSwap: "List a Game to Swap",
     live: "live",
     trendingGames: "Trending Games",
     bundles: "Bundles",

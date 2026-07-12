@@ -1,5 +1,19 @@
 import type { ListingMode, ListingStatus, ListingVisibility, VerificationLevel } from "@prisma/client";
 import type { Locale } from "@/lib/i18n/types";
+import type { getCategoryTree } from "@/lib/marketplace/query";
+
+type CategoryNode = Awaited<ReturnType<typeof getCategoryTree>>[number];
+
+export function flattenCategories(nodes: CategoryNode[]): Array<{ slug: string; name: string }> {
+  const flat: Array<{ slug: string; name: string }> = [];
+  for (const node of nodes) {
+    flat.push({ slug: node.slug, name: node.name });
+    if (node.children.length > 0) {
+      flat.push(...flattenCategories(node.children as CategoryNode[]));
+    }
+  }
+  return flat;
+}
 
 export function formatPrice(amount: number | null | undefined, currencyCode = "EGP", locale: Locale = "en") {
   if (amount === null || amount === undefined) {
