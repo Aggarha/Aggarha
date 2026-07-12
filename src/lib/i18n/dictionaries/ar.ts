@@ -93,7 +93,9 @@ const ar: Dictionary = {
   playstation: {
     eyebrow: "بلايستيشن",
     title: "عالم اللاعبين",
+    titleLine2: "استأجر الألعاب، بدّل مكتبتك",
     browseListings: "تصفح إعلانات بلايستيشن",
+    listToSwap: "أضف لعبة للتبديل",
     live: "متاح",
     trendingGames: "ألعاب رائجة",
     bundles: "باقات",

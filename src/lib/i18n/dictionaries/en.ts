@@ -91,7 +91,9 @@ const en = {
   playstation: {
     eyebrow: "PlayStation Exchange",
     title: "Gamers Zone",
+    titleLine2: "Rent games, swap your shelf",
     browseListings: "Browse PlayStation Listings",
+    listToSwap: "List a Game to Swap",
     live: "live",
     trendingGames: "Trending Games",
     bundles: "Bundles",
