@@ -218,7 +218,7 @@ export function NearbyExperience({
                 style={project(item.latitude, item.longitude)}
                 onMouseEnter={() => setActiveId(item.id)}
                 onMouseLeave={() => setActiveId(null)}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all duration-200 ease-[var(--ease-premium)] ${
+                className={`absolute -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-[50%_50%_50%_0] border transition-all duration-200 ease-[var(--ease-premium)] ${
                   activeId === item.id
                     ? "z-10 h-4 w-4 border-black bg-[#ccff00] shadow-[0_0_0_6px_rgba(204,255,0,0.25)]"
                     : "h-2.5 w-2.5 border-black/40 bg-[#ccff00]/80 hover:h-3.5 hover:w-3.5"
