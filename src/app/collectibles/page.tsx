@@ -1,60 +1,51 @@
-import { ListingCard } from "@/components/marketplace/listing-card";
-import {
-  CollectibleCard,
-  EmptyState,
-  MuseumSpotlight,
-  SectionHeader,
-  TextLink
-} from "@/components/premium/system";
+import { CollectibleShowcaseCard } from "@/components/marketplace/collectible-showcase-card";
+import { HorizontalListingRow } from "@/components/marketplace/horizontal-listing-row";
+import { EmptyState, MuseumSpotlight, TextLink } from "@/components/premium/system";
+import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { runCollectiblesIntelligence } from "@/lib/ai";
 import { getHomepageShowcase } from "@/lib/marketplace/query";
 import { listingCardData } from "@/lib/marketplace/serializers";
+import type { Dictionary } from "@/lib/i18n/dictionary-type";
 
-function rarityLabel(score: number): string {
-  if (score >= 80) return "Very Rare";
-  if (score >= 60) return "Rare";
-  if (score >= 40) return "Collector Grade";
-  return "Common";
+function rarityLabel(score: number, t: Dictionary): string {
+  if (score >= 80) return t.collectibles.rarity.veryRare;
+  if (score >= 60) return t.collectibles.rarity.rare;
+  if (score >= 40) return t.collectibles.rarity.collectorGrade;
+  return t.collectibles.rarity.common;
 }
 
 export default async function CollectiblesPage() {
-  const [collectibles, showcase] = await Promise.all([
+  const [collectibles, showcase, { locale, t }] = await Promise.all([
     runCollectiblesIntelligence(),
-    getHomepageShowcase()
+    getHomepageShowcase(),
+    getLocaleAndDictionary()
   ]);
   const relatedListings = showcase.newest
     .filter((listing) => listing.mode !== "RENT")
     .slice(0, 8)
     .map(listingCardData);
   const spotlight = [...collectibles].sort((a, b) => b.rarityScore - a.rarityScore)[0];
+  const isRtl = locale === "ar";
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
-      <section className="relative space-y-6 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[linear-gradient(165deg,#0f0f0f,#151515,#101010)] p-5 sm:p-10">
-        <div className="pointer-events-none absolute left-8 top-6 h-28 w-28 rounded-full bg-[#ccff00]/10 blur-3xl" />
+    <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <section className="animate-reveal-hero relative overflow-hidden rounded-[2rem] border border-[#d4af37]/20 bg-[linear-gradient(165deg,#12100c,#0a0908,#100e0a)] p-6 sm:p-10">
+        <div className="pointer-events-none absolute left-8 top-6 h-28 w-28 rounded-full bg-[#d4af37]/10 blur-3xl" />
         <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="relative grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-          <SectionHeader
-            level={1}
-            eyebrow="Collectibles Experience"
-            title="Luxury museum atmosphere for rare assets"
-            subtitle="Auction-house inspired discovery with AI-estimated value, rarity signals, and collector-grade curation."
-            action={
-              <TextLink href="/marketplace?keyword=collector">
-                Search full marketplace &rarr;
-              </TextLink>
-            }
-          />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/25 to-transparent" />
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-6xl">{t.collectibles.title}</h1>
           {spotlight ? (
             <MuseumSpotlight
+              eyebrow={t.collectibles.spotlight}
               title={spotlight.title}
-              caption={`Estimated value EGP ${spotlight.estimatedValue.toLocaleString()} · ${rarityLabel(spotlight.rarityScore)}`}
+              caption={`EGP ${spotlight.estimatedValue.toLocaleString()} · ${rarityLabel(spotlight.rarityScore, t)}`}
             />
           ) : (
             <MuseumSpotlight
-              title="Awaiting first spotlight piece"
-              caption="Rare and collector-grade listings will appear here."
+              eyebrow={t.collectibles.spotlight}
+              title={t.collectibles.awaitingFirstPiece}
+              caption={t.collectibles.rareFindsAppear}
             />
           )}
         </div>
@@ -62,36 +53,25 @@ export default async function CollectiblesPage() {
 
       {collectibles.length === 0 ? (
         <EmptyState
-          title="No collectibles intelligence yet"
-          description="Check back soon as more rare inventory is listed."
-          action={<TextLink href="/marketplace">Browse marketplace</TextLink>}
+          title={t.collectibles.noFindsTitle}
+          description={t.collectibles.noFindsDescription}
+          action={<TextLink href="/marketplace">{t.common.browseMarketplace}</TextLink>}
         />
       ) : (
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {collectibles.map((item) => (
-            <CollectibleCard
+            <CollectibleShowcaseCard
               key={item.listingId}
+              listingId={item.listingId}
               title={item.title}
               value={`EGP ${item.estimatedValue.toLocaleString()}`}
-              rarity={rarityLabel(item.rarityScore)}
+              rarity={rarityLabel(item.rarityScore, t)}
             />
           ))}
         </section>
       )}
 
-      {relatedListings.length > 0 ? (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Related Listings"
-            title="Swap and collectible-friendly inventory"
-          />
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {relatedListings.map((listing) => (
-              <ListingCard key={listing.id} {...listing} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+      <HorizontalListingRow title={t.collectibles.moreToExplore} listings={relatedListings} lang={locale} />
     </div>
   );
 }

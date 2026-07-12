@@ -3,6 +3,8 @@ import { Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MobileBottomNav } from "@/components/premium/system";
+import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
+import { dirFor } from "@/lib/i18n/types";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -44,14 +46,16 @@ export const viewport: Viewport = {
   viewportFit: "cover"
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { locale, t } = await getLocaleAndDictionary();
+
   return (
-    <html lang="en" className={spaceGrotesk.variable}>
+    <html lang={locale} dir={dirFor(locale)} className={spaceGrotesk.variable}>
       <body className="min-h-screen antialiased">
-        <SiteHeader />
+        <SiteHeader locale={locale} t={t} />
         <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
-        <MobileBottomNav />
-        <SiteFooter />
+        <MobileBottomNav locale={locale} t={t} />
+        <SiteFooter locale={locale} t={t} />
       </body>
     </html>
   );

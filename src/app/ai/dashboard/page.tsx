@@ -18,7 +18,7 @@ export default async function AIDashboardPage() {
   });
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
       <section className="relative space-y-4 overflow-hidden rounded-[2rem] border border-white/[0.08] bg-[linear-gradient(150deg,#090909,#111111,#090909)] p-6 sm:p-8">
         <div className="bg-[#ccff00]/12 pointer-events-none absolute -top-24 right-0 h-72 w-72 rounded-full blur-3xl" />
         <div className="bg-[#4f85ff]/12 pointer-events-none absolute -bottom-24 left-10 h-72 w-72 rounded-full blur-3xl" />

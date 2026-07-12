@@ -1,18 +1,25 @@
 import type { ListingMode, ListingStatus, ListingVisibility, VerificationLevel } from "@prisma/client";
+import type { Locale } from "@/lib/i18n/types";
 
-export function formatPrice(amount: number | null | undefined, currencyCode = "EGP") {
+export function formatPrice(amount: number | null | undefined, currencyCode = "EGP", locale: Locale = "en") {
   if (amount === null || amount === undefined) {
-    return "Contact owner";
+    return locale === "ar" ? "تواصل مع المالك" : "Contact owner";
   }
 
-  return new Intl.NumberFormat("en-EG", {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-EG", {
     style: "currency",
     currency: currencyCode,
     maximumFractionDigits: 0
   }).format(amount);
 }
 
-export function modeLabel(mode: ListingMode): string {
+export function modeLabel(mode: ListingMode, locale: Locale = "en"): string {
+  if (locale === "ar") {
+    if (mode === "RENT") return "إيجار";
+    if (mode === "SWAP") return "تبديل";
+    return "إيجار + تبديل";
+  }
+
   if (mode === "RENT") {
     return "Rent";
   }

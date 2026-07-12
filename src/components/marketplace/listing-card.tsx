@@ -1,9 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, listingStatusLabel, listingVisibilityLabel } from "@/lib/marketplace/format";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
-import { VerificationBadge } from "@/components/marketplace/verification-badge";
-import { PremiumBadge } from "@/components/premium/system";
+import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
+import {
+  buildDemoImageUrl,
+  buildDemoTitle,
+  buildLocationLabel,
+  getListingLanguage,
+  isSponsoredListing
+} from "@/lib/marketplace/demo-content";
+import { formatPrice } from "@/lib/marketplace/format";
+import type { Locale } from "@/lib/i18n/types";
 
 type ListingCardProps = {
   id: string;
@@ -13,6 +20,7 @@ type ListingCardProps = {
   status: string;
   visibility: string;
   imageUrl: string | null;
+  categorySlug: string;
   priceAmount: number | null;
   currencyCode: string | null;
   city: string;
@@ -20,79 +28,90 @@ type ListingCardProps = {
   trustScore: number;
   level: number;
   verificationLevel: string;
+  ownerName: string;
   viewCount: number;
+  /** Interface language — chrome only (badges, price format, direction of UI text). Defaults to English. */
+  lang?: Locale;
 };
 
+const COPY = {
+  ar: { sponsored: "إعلان ممول" },
+  en: { sponsored: "Sponsored" }
+};
+
+/**
+ * Image-first, whole-card-is-the-link — no separate CTA button. Matches
+ * Airbnb/Pinterest/Facebook Marketplace card conventions rather than a
+ * dashboard "row with an action button" pattern, and lets the photo occupy
+ * most of the card instead of competing with a button for vertical space.
+ *
+ * Two independent language axes: `lang` is the INTERFACE language (badges,
+ * price formatting, chrome direction) and defaults to English. The listing's
+ * own title always renders in its own content language — a fixed property
+ * of the listing, unaffected by which interface language is selected.
+ */
 export function ListingCard(props: ListingCardProps) {
+  const lang = props.lang ?? "en";
+  const isRtl = lang === "ar";
+  const copy = COPY[lang];
+
+  const contentLang = getListingLanguage(props.id);
+  const contentIsRtl = contentLang === "ar";
+  const title = buildDemoTitle(props.id, props.categorySlug);
+
+  const demoImage = buildDemoImageUrl(props.id, props.categorySlug);
+  const sponsored = isSponsoredListing(props.id, props.verificationLevel);
+  const textDir = isRtl ? "rtl" : "ltr";
+  const textAlign = isRtl ? "text-right" : "text-left";
+
   return (
-    <article className="overflow-hidden rounded-3xl border border-white/[0.07] bg-[#171717] shadow-panel transition duration-300 hover:-translate-y-1 hover:border-[#ccff00]/40 hover:bg-[#1b1b1b]">
-      <div className="relative h-44 w-full overflow-hidden bg-neutral-900">
+    <Link
+      href={`/marketplace/${props.id}` as import("next").Route}
+      className="group block overflow-hidden rounded-3xl border border-white/[0.07] bg-[#171717] shadow-panel transition-all duration-300 ease-[var(--ease-premium)] hover:-translate-y-1 hover:border-[#ccff00]/40 hover:bg-[#1b1b1b] hover:shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
+    >
+      <div className="relative h-72 w-full overflow-hidden bg-neutral-900 sm:h-80">
         <Image
-          src={props.imageUrl ?? "https://picsum.photos/seed/aggarha-fallback/960/640"}
-          alt={props.title}
+          src={demoImage}
+          alt={title}
           fill
-          className="object-cover transition duration-500 hover:scale-105"
+          className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.045]"
           sizes="(max-width: 1024px) 100vw, 25vw"
-          unoptimized
         />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <ListingModeBadge mode={props.mode} />
-          <span className="rounded-full border border-white/20 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white">
-            {listingVisibilityLabel(props.visibility as never)}
-          </span>
-          <PremiumBadge>AI Similar Listings</PremiumBadge>
+        <div className="absolute left-3 top-3">
+          <ListingModeBadge mode={props.mode} lang={lang} />
         </div>
-      </div>
-
-      <div className="space-y-3 p-4">
-        <div className="space-y-1">
-          <h3 className="line-clamp-1 text-base font-bold text-white">{props.title}</h3>
-          <p className="line-clamp-2 text-sm text-white/70">{props.description}</p>
-        </div>
-
-        <div className="flex flex-wrap gap-2 text-xs text-white/70">
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
-            {props.city}, {props.governorate}
-          </span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
-            {listingStatusLabel(props.status as never)}
-          </span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2 py-1">
-            {props.viewCount} views
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-bold text-[#ccff00]">
-              {formatPrice(props.priceAmount, props.currencyCode ?? "EGP")}
-            </p>
-            <p className="text-xs text-white/65">
-              Trust {props.trustScore.toFixed(1)} · Level {props.level}
-            </p>
+        {sponsored ? (
+          <div className="absolute right-3 top-3">
+            <span
+              dir={textDir}
+              className="inline-flex items-center gap-1 rounded-full border border-[#ffd27a]/45 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-[#ffd27a]"
+            >
+              {copy.sponsored}
+            </span>
           </div>
-          <VerificationBadge level={props.verificationLevel} />
-        </div>
-
-        <div className="flex flex-wrap gap-2 text-[11px]">
-          <span className="rounded-full border border-[#ccff00]/35 bg-[#ccff00]/10 px-2.5 py-1 text-[#eaff95]">
-            Quick Save (Coming soon)
-          </span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">
-            Quick Compare (Coming soon)
-          </span>
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-white/70">
-            AI Match (Coming soon)
-          </span>
-        </div>
-
-        <Link
-          href={`/marketplace/${props.id}` as import("next").Route}
-          className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#ccff00] px-4 py-2.5 text-sm font-bold text-black transition duration-300 hover:bg-[#ddff57] active:scale-[0.98]"
-        >
-          View Listing
-        </Link>
+        ) : null}
       </div>
-    </article>
+
+      <div className="space-y-1 p-3.5">
+        <h3
+          dir={contentIsRtl ? "rtl" : "ltr"}
+          className={`line-clamp-1 ${contentIsRtl ? "text-right" : "text-left"} text-base font-bold leading-snug text-white`}
+        >
+          {title}
+        </h3>
+
+        <p className="text-sm font-bold text-[#ccff00]">
+          {formatPrice(props.priceAmount, props.currencyCode ?? "EGP", lang)}
+        </p>
+
+        <p dir={textDir} className={`${textAlign} flex items-center gap-1 text-xs text-white/50`}>
+          <span className="truncate">
+            {buildLocationLabel(props.city, lang)}, {buildLocationLabel(props.governorate, lang, "governorate")} ·{" "}
+            {props.ownerName}
+          </span>
+          <VerifiedSparkle level={props.verificationLevel} lang={lang} className="shrink-0" />
+        </p>
+      </div>
+    </Link>
   );
 }

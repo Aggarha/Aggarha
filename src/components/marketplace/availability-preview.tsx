@@ -1,3 +1,5 @@
+import type { Locale } from "@/lib/i18n/types";
+
 type CalendarDate = {
   date: Date;
   status: "AVAILABLE" | "BLOCKED" | "RESERVED";
@@ -9,11 +11,19 @@ function addDays(base: Date, days: number): Date {
   return date;
 }
 
-function shortWeekday(date: Date): string {
-  return date.toLocaleDateString("en-US", { weekday: "short" });
+function shortWeekday(date: Date, locale: Locale): string {
+  return date.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short" });
 }
 
-export function AvailabilityPreview({ dates, className = "" }: { dates: CalendarDate[]; className?: string }) {
+export function AvailabilityPreview({
+  dates,
+  lang = "en",
+  className = ""
+}: {
+  dates: CalendarDate[];
+  lang?: Locale;
+  className?: string;
+}) {
   const upcoming = Array.from({ length: 10 }, (_, index) => {
     const day = addDays(new Date(), index);
     day.setHours(0, 0, 0, 0);
@@ -41,8 +51,8 @@ export function AvailabilityPreview({ dates, className = "" }: { dates: Calendar
 
         return (
           <div key={item.day.toISOString()} className={`rounded-xl p-2 text-center text-[11px] font-semibold ${color}`}>
-            <p>{shortWeekday(item.day)}</p>
-            <p>{item.day.getDate()}</p>
+            <p>{shortWeekday(item.day, lang)}</p>
+            <p className="tabular-nums">{item.day.getDate()}</p>
           </div>
         );
       })}

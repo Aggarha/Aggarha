@@ -16,7 +16,7 @@ export default function GlobalError({
         This part of Aggarha hit a snag.
       </h1>
       <p className="max-w-md text-sm text-white/65">
-        Our AI Brain didn&apos;t see this one coming. Try again, or head back while we sort it out.
+        Try again, or head back while we sort it out.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button

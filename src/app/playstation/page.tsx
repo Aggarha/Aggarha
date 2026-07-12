@@ -1,88 +1,87 @@
-import { ListingCard } from "@/components/marketplace/listing-card";
-import {
-  EmptyState,
-  PlayStationCard,
-  PlaystationDisc,
-  SectionHeader,
-  Tag,
-  TextLink
-} from "@/components/premium/system";
+import Image from "next/image";
+import Link from "next/link";
+import { HorizontalListingRow } from "@/components/marketplace/horizontal-listing-row";
+import { EmptyState } from "@/components/premium/system";
+import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { runPlaystationIntelligence } from "@/lib/ai";
 import { listingCardData } from "@/lib/marketplace/serializers";
 
+function dedupeById<T extends { id: string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  for (const item of items) {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      result.push(item);
+    }
+  }
+  return result;
+}
+
 export default async function PlaystationPage() {
-  const playstation = await runPlaystationIntelligence();
+  const [playstation, { locale, t }] = await Promise.all([runPlaystationIntelligence(), getLocaleAndDictionary()]);
+  const isRtl = locale === "ar";
+
+  const trending = dedupeById([...playstation.swapCandidates, ...playstation.rentalCandidates]);
 
   const groups = [
-    { label: "Trending Swaps", items: playstation.swapCandidates },
-    { label: "Rental Candidates", items: playstation.rentalCandidates },
-    { label: "Collector Editions", items: playstation.collectorEditions },
-    { label: "Game Bundles", items: playstation.gameBundles },
-    { label: "Accessories", items: playstation.accessories }
+    { label: t.playstation.trendingGames, items: trending.map(listingCardData) },
+    { label: t.playstation.bundles, items: playstation.gameBundles.map(listingCardData) },
+    { label: t.playstation.accessories, items: playstation.accessories.map(listingCardData) },
+    { label: t.playstation.featuredOffers, items: playstation.collectorEditions.map(listingCardData) }
   ];
 
   const totalMatched = groups.reduce((acc, group) => acc + group.items.length, 0);
   const hasResults = totalMatched > 0;
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 pb-14 pt-8 sm:px-6 lg:px-8">
-      <section className="relative space-y-8 overflow-hidden rounded-[2rem] border border-[#3d4d86]/35 bg-[linear-gradient(160deg,#080d18,#0b1630,#0a0f1d)] p-5 sm:p-10">
-        <div className="pointer-events-none absolute -left-20 top-0 h-48 w-48 rounded-full bg-[#58a6ff]/20 blur-3xl" />
-        <div className="bg-[#ccff00]/12 pointer-events-none absolute -right-16 bottom-4 h-52 w-52 rounded-full blur-3xl" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="relative grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-          <div className="space-y-6">
-            <SectionHeader
-              level={1}
-              eyebrow="PlayStation Games Exchange"
-              title="A premium gaming world inside Aggarha"
-              subtitle="Trending swaps, wishlist matching, collector editions, and AI match suggestions for trusted game traders."
-            />
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="bg-[#ccff00]/12 rounded-full border border-[#ccff00]/40 px-3 py-1 text-xs font-semibold text-[#ebff9d]">
-                {totalMatched} live matches
-              </span>
-              <TextLink href="/marketplace?keyword=playstation">
-                Search full marketplace &rarr;
-              </TextLink>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {playstation.futureReleaseRecommendations.map((tip) => (
-                <Tag key={tip}>{tip}</Tag>
-              ))}
-            </div>
+    <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <section className="animate-reveal-hero relative h-64 overflow-hidden rounded-[2rem] border border-white/10 sm:h-80">
+        <Image
+          src="/demo/products/ps-controller.jpg"
+          alt="PlayStation"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+        <div
+          className={`absolute inset-0 bg-gradient-to-${isRtl ? "l" : "r"} from-black/92 via-black/55 to-transparent`}
+        />
+        <div
+          className={`relative z-10 flex h-full max-w-lg flex-col justify-center gap-4 px-6 sm:px-12 ${isRtl ? "ms-auto text-right" : ""}`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">{t.playstation.eyebrow}</p>
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">{t.playstation.title}</h1>
+          <div className={`flex flex-wrap items-center gap-3 ${isRtl ? "justify-end" : ""}`}>
+            <Link
+              href="/marketplace?keyword=playstation"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-[#ccff00] px-5 text-sm font-bold text-black transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#deff57] hover:shadow-[0_10px_24px_rgba(204,255,0,0.22)] active:translate-y-0 active:scale-[0.97]"
+            >
+              {t.playstation.browseListings}
+            </Link>
+            <span className="bg-[#ccff00]/12 inline-flex items-center rounded-full border border-[#ccff00]/40 px-3 py-1.5 text-xs font-semibold tabular-nums text-[#ebff9d]">
+              {totalMatched} {t.playstation.live}
+            </span>
           </div>
-          <PlaystationDisc caption="Trade · Rent · Collect" />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {groups.map((group) => (
-            <PlayStationCard
-              key={group.label}
-              title={group.label}
-              subtitle={`${group.items.length} listings matched`}
-            />
-          ))}
         </div>
       </section>
 
       {!hasResults ? (
         <EmptyState
-          title="No PlayStation listings yet"
-          description="Check back soon as more traders list titles and bundles."
-          action={<TextLink href="/marketplace">Browse marketplace</TextLink>}
+          title={t.playstation.noListingsTitle}
+          description={t.playstation.noListingsDescription}
+          action={
+            <Link href="/marketplace" className="text-sm font-semibold text-[#ccff00] hover:text-[#deff57]">
+              {t.common.browseMarketplace}
+            </Link>
+          }
         />
       ) : (
         groups
           .filter((group) => group.items.length > 0)
           .map((group) => (
-            <section key={group.label} className="space-y-4">
-              <SectionHeader eyebrow="PlayStation Exchange" title={group.label} />
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {group.items.map((listing) => (
-                  <ListingCard key={listing.id} {...listingCardData(listing)} />
-                ))}
-              </div>
-            </section>
+            <HorizontalListingRow key={group.label} title={group.label} listings={group.items} lang={locale} />
           ))
       )}
     </div>

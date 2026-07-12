@@ -10,7 +10,11 @@
   --fg: #f6f7f2;
   --lime: #ccff00;
   --lime-soft: #d9ff4a;
+  --gold: #d4af37;
+  --gold-soft: #f0cf6a;
+  --neon-orange: #ff8a1f;
   --line: rgba(255, 255, 255, 0.06);
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
@@ -136,6 +140,72 @@ input[type="radio"] {
   }
 }
 
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: pageEnter 220ms var(--ease-premium) both;
+}
+
+.animate-reveal-hero {
+  animation: revealUp 0.8s var(--ease-premium) both;
+}
+
+@keyframes kenBurns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+.animate-ken-burns {
+  animation: kenBurns 6.5s var(--ease-premium) both;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -420px 0;
+  }
+  100% {
+    background-position: 420px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background-color: rgba(255, 255, 255, 0.06);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.15) 40%,
+    rgba(255, 255, 255, 0.05) 60%
+  );
+  background-size: 420px 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s var(--ease-premium),
+    transform 0.7s var(--ease-premium);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -144,5 +214,10 @@ input[type="radio"] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -1,55 +1,46 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { MobileNavMenu } from "@/components/layout/mobile-nav-menu";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import type { Locale } from "@/lib/i18n/types";
+import type { Dictionary } from "@/lib/i18n/dictionary-type";
 
-export function SiteHeader() {
+export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-black/85 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-white/[0.05] bg-black/70 backdrop-blur-xl">
+      <div className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-x-3 px-4 py-2.5 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-lg font-black tracking-[0.05em] text-white"
+          className="inline-flex shrink-0 items-center gap-2 text-base font-black tracking-[0.05em] text-white"
         >
-          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[#ccff00] shadow-[0_0_18px_rgba(204,255,0,0.65)]" />
+          <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-[#ccff00] shadow-[0_0_14px_rgba(204,255,0,0.55)]" />
           AGGARHA
         </Link>
-        <nav className="hidden gap-2 rounded-2xl border border-white/[0.08] bg-[#111111] p-1 text-sm text-white/70 md:flex">
+        <nav className="hidden items-center gap-6 text-[13px] font-medium text-white/55 md:flex">
           <Link
             href={"/marketplace" as Route}
-            className="hover:bg-[#ccff00]/8 rounded-xl px-3 py-1.5 transition-colors hover:text-[#ccff00]"
+            className="transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
           >
-            Browse
+            {t.nav.browse}
           </Link>
           <Link
-            href={"/featured" as Route}
-            className="hover:bg-[#ccff00]/8 rounded-xl px-3 py-1.5 transition-colors hover:text-[#ccff00]"
+            href={"/nearby" as Route}
+            className="transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
           >
-            Featured
-          </Link>
-          <Link
-            href={"/collectibles" as Route}
-            className="hover:bg-[#ccff00]/8 rounded-xl px-3 py-1.5 transition-colors hover:text-[#ccff00]"
-          >
-            Collectibles
-          </Link>
-          <Link
-            href={"/playstation" as Route}
-            className="hover:bg-[#ccff00]/8 rounded-xl px-3 py-1.5 transition-colors hover:text-[#ccff00]"
-          >
-            PlayStation
-          </Link>
-          <Link
-            href={"/ai/dashboard" as Route}
-            className="hover:bg-[#ccff00]/8 rounded-xl px-3 py-1.5 transition-colors hover:text-[#ccff00]"
-          >
-            AI Brain
+            {t.nav.nearby}
           </Link>
         </nav>
-        <Link
-          href={"/marketplace" as Route}
-          className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-white/10 bg-[#ccff00] px-4 py-2.5 text-sm font-semibold text-black transition duration-300 hover:bg-[#deff57] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:scale-[0.98]"
-        >
-          Start Exploring
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <LanguageSwitcher locale={locale} t={t} />
+          <MobileNavMenu locale={locale} nav={t.nav} />
+          <Link
+            href={"/marketplace" as Route}
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-[#ccff00] px-3.5 text-[13px] font-semibold text-black transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#deff57] hover:shadow-[0_10px_22px_rgba(204,255,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-0 active:scale-[0.97]"
+          >
+            <span className="sm:hidden">{t.nav.explore}</span>
+            <span className="hidden sm:inline">{t.nav.startExploring}</span>
+          </Link>
+        </div>
       </div>
     </header>
   );

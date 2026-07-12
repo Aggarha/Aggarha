@@ -1,6 +1,7 @@
 import { modeLabel } from "@/lib/marketplace/format";
+import type { Locale } from "@/lib/i18n/types";
 
-export function ListingModeBadge({ mode }: { mode: "RENT" | "SWAP" | "BOTH" }) {
+export function ListingModeBadge({ mode, lang = "en" }: { mode: "RENT" | "SWAP" | "BOTH"; lang?: Locale }) {
   const classes =
     mode === "RENT"
       ? "border border-[#58f0c6]/40 bg-[#58f0c6]/14 text-[#a3ffe4]"
@@ -10,7 +11,7 @@ export function ListingModeBadge({ mode }: { mode: "RENT" | "SWAP" | "BOTH" }) {
 
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${classes}`}>
-      {modeLabel(mode)}
+      {modeLabel(mode, lang)}
     </span>
   );
 }

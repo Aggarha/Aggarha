@@ -1,4 +1,5 @@
 import type { ListingMode } from "@prisma/client";
+import { buildSellerName } from "@/lib/marketplace/demo-content";
 
 type RawListing = {
   id: string;
@@ -11,10 +12,17 @@ type RawListing = {
   priceAmount: unknown;
   currencyCode: string | null;
   viewCount: number;
+  category: {
+    slug: string;
+  };
   owner: {
+    id: string;
     trustScore: unknown;
     level: number;
     verificationLevel: string;
+    profile?: {
+      displayName: string | null;
+    } | null;
   };
   location: {
     city: string;
@@ -38,6 +46,7 @@ export function listingCardData(listing: RawListing) {
     status: listing.status,
     visibility: listing.visibility,
     imageUrl: listing.imageUrl,
+    categorySlug: listing.category.slug,
     priceAmount: listing.priceAmount ? toNumber(listing.priceAmount) : null,
     currencyCode: listing.currencyCode,
     city: listing.location?.city ?? "Unknown",
@@ -45,6 +54,7 @@ export function listingCardData(listing: RawListing) {
     trustScore: toNumber(listing.owner.trustScore),
     level: listing.owner.level,
     verificationLevel: listing.owner.verificationLevel,
+    ownerName: buildSellerName(listing.owner.id),
     viewCount: listing.viewCount
   };
 }
