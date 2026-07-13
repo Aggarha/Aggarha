@@ -30,11 +30,18 @@ type ListingCardProps = {
   viewCount: number;
   /** Interface language — chrome only (badges, price format, direction of UI text). Defaults to English. */
   lang?: Locale;
+  /**
+   * Opt-in, real signal (visibility === FEATURED/BOOSTED) — not the
+   * hash-fabricated `isSponsoredListing` flag. When true, replaces the
+   * Sponsored badge slot with an honest "Featured" badge for cards that
+   * actually qualify. Defaults to false everywhere except /featured.
+   */
+  featuredBadge?: boolean;
 };
 
 const COPY = {
-  ar: { sponsored: "إعلان ممول" },
-  en: { sponsored: "Sponsored" }
+  ar: { sponsored: "إعلان ممول", featured: "مميز" },
+  en: { sponsored: "Sponsored", featured: "Featured" }
 };
 
 /**
@@ -58,7 +65,8 @@ export function ListingCard(props: ListingCardProps) {
   const title = buildDemoTitle(props.id, props.categorySlug);
 
   const demoImage = buildDemoImageUrl(props.id, props.categorySlug);
-  const sponsored = isSponsoredListing(props.id, props.verificationLevel);
+  const isFeatured = Boolean(props.featuredBadge) && (props.visibility === "FEATURED" || props.visibility === "BOOSTED");
+  const sponsored = !props.featuredBadge && isSponsoredListing(props.id, props.verificationLevel);
   const textDir = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "text-right" : "text-left";
 
@@ -78,7 +86,16 @@ export function ListingCard(props: ListingCardProps) {
         <div className="absolute left-3 top-3">
           <ListingModeBadge mode={props.mode} lang={lang} />
         </div>
-        {sponsored ? (
+        {isFeatured ? (
+          <div className="absolute right-3 top-3">
+            <span
+              dir={textDir}
+              className="inline-flex items-center gap-1 rounded-full border border-[#ccff00]/50 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-[#ccff00]"
+            >
+              {copy.featured}
+            </span>
+          </div>
+        ) : sponsored ? (
           <div className="absolute right-3 top-3">
             <span
               dir={textDir}

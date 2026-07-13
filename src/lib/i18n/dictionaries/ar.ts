@@ -125,6 +125,7 @@ const ar: Dictionary = {
   },
   featured: {
     title: "أبرز العروض",
+    subtitle: "روّج لها الملاك للوصول إلى مزيد من المستأجرين والمبدّلين",
     browseAll: "عرض الكل",
     noFeaturedTitle: "لا توجد إعلانات مميزة بعد",
     noFeaturedDescription: "تحقق لاحقًا مع ترويج الملاك لإعلاناتهم."

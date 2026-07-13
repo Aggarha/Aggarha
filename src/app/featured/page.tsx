@@ -12,7 +12,10 @@ export default async function FeaturedPage() {
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">{t.featured.title}</h1>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">{t.featured.title}</h1>
+          <p className="text-sm text-white/55">{t.featured.subtitle}</p>
+        </div>
         <TextLink href="/marketplace?sort=featured">{t.featured.browseAll}</TextLink>
       </div>
 
@@ -25,7 +28,7 @@ export default async function FeaturedPage() {
       ) : (
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {featured.map((listing) => (
-            <ListingCard key={listing.id} {...listing} lang={locale} />
+            <ListingCard key={listing.id} {...listing} lang={locale} featuredBadge />
           ))}
         </section>
       )}

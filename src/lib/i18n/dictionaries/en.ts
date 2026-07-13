@@ -123,6 +123,7 @@ const en = {
   },
   featured: {
     title: "Featured Drops",
+    subtitle: "Boosted by their owners to reach more renters and swappers",
     browseAll: "Browse all",
     noFeaturedTitle: "No featured listings yet",
     noFeaturedDescription: "Check back soon as owners promote inventory."
