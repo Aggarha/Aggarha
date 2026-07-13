@@ -1,10 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { EmptyState } from "@/components/premium/system";
+import { buildDemoImageUrl, buildDemoTitle, getListingLanguage } from "@/lib/marketplace/demo-content";
+import { formatPrice } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 import type { listingCardData } from "@/lib/marketplace/serializers";
 
@@ -205,26 +208,71 @@ export function NearbyExperience({
 
           <div
             className={`${mobileView === "map" ? "block" : "hidden"} relative h-[420px] overflow-hidden rounded-3xl border border-white/10 bg-[radial-gradient(circle_at_30%_20%,rgba(204,255,0,0.08),transparent_45%),linear-gradient(180deg,#111111,#0a0a0a)] md:sticky md:top-20 md:block`}
+            onClick={() => setActiveId(null)}
           >
             <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px]" />
             <div
               style={project(center.lat, center.lng)}
               className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#58a6ff] shadow-[0_0_0_6px_rgba(88,166,255,0.18)]"
             />
-            {visible.map((item) => (
-              <Link
-                key={item.id}
-                href={`/marketplace/${item.id}` as Route}
-                style={project(item.latitude, item.longitude)}
-                onMouseEnter={() => setActiveId(item.id)}
-                onMouseLeave={() => setActiveId(null)}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-[50%_50%_50%_0] border transition-all duration-200 ease-[var(--ease-premium)] ${
-                  activeId === item.id
-                    ? "z-10 h-4 w-4 border-black bg-[#ccff00] shadow-[0_0_0_6px_rgba(204,255,0,0.25)]"
-                    : "h-2.5 w-2.5 border-black/40 bg-[#ccff00]/80 hover:h-3.5 hover:w-3.5"
-                }`}
-              />
-            ))}
+            {visible.map((item) => {
+              const isActive = activeId === item.id;
+              const href = `/marketplace/${item.id}` as Route;
+              const titleIsRtl = getListingLanguage(item.id) === "ar";
+
+              return (
+                <div
+                  key={item.id}
+                  style={project(item.latitude, item.longitude)}
+                  className="absolute -translate-x-1/2 -translate-y-1/2"
+                  onMouseEnter={() => setActiveId(item.id)}
+                  onMouseLeave={() => setActiveId(null)}
+                >
+                  <Link
+                    href={href}
+                    onClick={(event) => {
+                      if (!isActive) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setActiveId(item.id);
+                      }
+                    }}
+                    className={`block -rotate-45 rounded-[50%_50%_50%_0] border transition-all duration-200 ease-[var(--ease-premium)] ${
+                      isActive
+                        ? "z-10 h-4 w-4 border-black bg-[#ccff00] shadow-[0_0_0_6px_rgba(204,255,0,0.25)]"
+                        : "h-2.5 w-2.5 border-black/40 bg-[#ccff00]/80 hover:h-3.5 hover:w-3.5"
+                    }`}
+                  />
+
+                  {isActive ? (
+                    <Link
+                      href={href}
+                      onClick={(event) => event.stopPropagation()}
+                      className="absolute left-1/2 top-full z-20 mt-2 w-36 -translate-x-1/2 overflow-hidden rounded-2xl border border-white/15 bg-[#171717] shadow-[0_12px_28px_rgba(0,0,0,0.5)] transition-all duration-200 ease-[var(--ease-premium)] hover:border-[#ccff00]/40"
+                    >
+                      <div className="relative h-16 w-full">
+                        <Image
+                          src={buildDemoImageUrl(item.id, item.categorySlug)}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="144px"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="space-y-0.5 p-2">
+                        <p dir={titleIsRtl ? "rtl" : "ltr"} className="truncate text-xs font-semibold text-white">
+                          {buildDemoTitle(item.id, item.categorySlug)}
+                        </p>
+                        <p className="text-xs font-bold text-[#ccff00]">
+                          {formatPrice(item.priceAmount, item.currencyCode ?? "EGP", locale)}
+                        </p>
+                      </div>
+                    </Link>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
