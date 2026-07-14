@@ -4,7 +4,8 @@ import type {
   InputHTMLAttributes,
   PropsWithChildren,
   ReactNode,
-  SelectHTMLAttributes
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes
 } from "react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -206,7 +207,9 @@ export function OwnerCard({
   trust,
   stats,
   verificationLevel,
-  lang = "en"
+  lang = "en",
+  messageLabel,
+  comingSoonTitle
 }: {
   name: string;
   level: number;
@@ -214,6 +217,8 @@ export function OwnerCard({
   stats: Array<{ label: string; value: string }>;
   verificationLevel: string;
   lang?: Locale;
+  messageLabel?: string;
+  comingSoonTitle?: string;
 }) {
   return (
     <PremiumCard className="space-y-4 bg-[#191919]">
@@ -233,6 +238,11 @@ export function OwnerCard({
           </div>
         ))}
       </div>
+      {messageLabel ? (
+        <PremiumButton tone="ghost" disabled aria-disabled="true" title={comingSoonTitle} className="w-full">
+          {messageLabel}
+        </PremiumButton>
+      ) : null}
     </PremiumCard>
   );
 }
@@ -486,6 +496,20 @@ export function PremiumInput({ className, ...props }: InputHTMLAttributes<HTMLIn
   );
 }
 
+export function PremiumTextarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      className={cn(
+        "placeholder:text-white/38 w-full resize-none rounded-2xl border border-white/[0.1] bg-[#121212] px-3 py-2.5 text-sm text-white",
+        "transition-all duration-200 ease-[var(--ease-premium)]",
+        "focus:border-[#ccff00] focus:outline-none focus:ring-2 focus:ring-[#ccff00]/25 focus:shadow-[0_0_0_4px_rgba(204,255,0,0.08)]",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
 export function BottomSheet({ title, children }: PropsWithChildren<{ title: string }>) {
   return (
     <div className="rounded-t-[1.75rem] border border-white/[0.1] bg-[#161616] p-4 shadow-[0_-14px_32px_rgba(0,0,0,0.45)]">
@@ -700,11 +724,13 @@ export function MuseumSpotlight({
   eyebrow = "Museum Spotlight",
   title,
   caption,
+  rarity,
   className
 }: {
   eyebrow?: string;
   title: string;
   caption: string;
+  rarity?: string;
   className?: string;
 }) {
   return (
@@ -714,6 +740,13 @@ export function MuseumSpotlight({
         className
       )}
     >
+      {rarity ? (
+        <div className="absolute right-5 top-5 z-10 sm:right-6 sm:top-6">
+          <span className="inline-flex items-center rounded-full border border-[#d4af37]/45 bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-[#e8c76b] backdrop-blur">
+            {rarity}
+          </span>
+        </div>
+      ) : null}
       {/* spotlight beam */}
       <div className="absolute left-1/2 top-0 h-40 w-56 -translate-x-1/2 bg-[conic-gradient(from_180deg_at_50%_0%,transparent_75deg,rgba(240,207,106,0.18)_90deg,transparent_105deg)] blur-md" />
       <div className="absolute left-1/2 top-5 h-10 w-32 -translate-x-1/2 rounded-full bg-[#f0cf6a]/25 blur-xl" />

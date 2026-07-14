@@ -261,7 +261,11 @@ export async function getHomepageShowcase() {
         status: { in: marketplaceStatuses },
         visibility: { in: [ListingVisibility.FEATURED, ListingVisibility.BOOSTED, ListingVisibility.PUBLIC] }
       },
-      orderBy: [{ featuredUntil: "desc" }, { boostedUntil: "desc" }, { viewCount: "desc" }],
+      orderBy: [
+        { featuredUntil: { sort: "desc", nulls: "last" } },
+        { boostedUntil: { sort: "desc", nulls: "last" } },
+        { viewCount: "desc" }
+      ],
       take: 8,
       include: {
         category: true,

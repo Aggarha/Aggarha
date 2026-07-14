@@ -78,7 +78,8 @@ const en = {
     memberSince: "Member Since",
     overallRating: "Overall Rating",
     reviewsCount: (count: number) => `${count} reviews`,
-    noListingsTitle: "No PlayStation listings yet"
+    noListingsTitle: "No PlayStation listings yet",
+    message: "Message"
   },
   nearby: {
     title: "Near You",
@@ -122,6 +123,7 @@ const en = {
   },
   featured: {
     title: "Featured Drops",
+    subtitle: "Boosted by their owners to reach more renters and swappers",
     browseAll: "Browse all",
     noFeaturedTitle: "No featured listings yet",
     noFeaturedDescription: "Check back soon as owners promote inventory."

@@ -80,7 +80,8 @@ const ar: Dictionary = {
     memberSince: "عضو منذ",
     overallRating: "التقييم العام",
     reviewsCount: (count) => `${count} تقييم`,
-    noListingsTitle: "لا توجد إعلانات بلايستيشن بعد"
+    noListingsTitle: "لا توجد إعلانات بلايستيشن بعد",
+    message: "مراسلة"
   },
   nearby: {
     title: "بالقرب منك",
@@ -124,6 +125,7 @@ const ar: Dictionary = {
   },
   featured: {
     title: "أبرز العروض",
+    subtitle: "روّج لها الملاك للوصول إلى مزيد من المستأجرين والمبدّلين",
     browseAll: "عرض الكل",
     noFeaturedTitle: "لا توجد إعلانات مميزة بعد",
     noFeaturedDescription: "تحقق لاحقًا مع ترويج الملاك لإعلاناتهم."
