@@ -709,11 +709,13 @@ export function MuseumSpotlight({
   eyebrow = "Museum Spotlight",
   title,
   caption,
+  rarity,
   className
 }: {
   eyebrow?: string;
   title: string;
   caption: string;
+  rarity?: string;
   className?: string;
 }) {
   return (
@@ -723,6 +725,13 @@ export function MuseumSpotlight({
         className
       )}
     >
+      {rarity ? (
+        <div className="absolute right-5 top-5 z-10 sm:right-6 sm:top-6">
+          <span className="inline-flex items-center rounded-full border border-[#d4af37]/45 bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-[#e8c76b] backdrop-blur">
+            {rarity}
+          </span>
+        </div>
+      ) : null}
       {/* spotlight beam */}
       <div className="absolute left-1/2 top-0 h-40 w-56 -translate-x-1/2 bg-[conic-gradient(from_180deg_at_50%_0%,transparent_75deg,rgba(240,207,106,0.18)_90deg,transparent_105deg)] blur-md" />
       <div className="absolute left-1/2 top-5 h-10 w-32 -translate-x-1/2 rounded-full bg-[#f0cf6a]/25 blur-xl" />

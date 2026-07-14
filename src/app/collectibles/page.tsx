@@ -39,7 +39,8 @@ export default async function CollectiblesPage() {
             <MuseumSpotlight
               eyebrow={t.collectibles.spotlight}
               title={spotlight.title}
-              caption={`EGP ${spotlight.estimatedValue.toLocaleString()} · ${rarityLabel(spotlight.rarityScore, t)}`}
+              caption={`EGP ${spotlight.estimatedValue.toLocaleString()}`}
+              rarity={rarityLabel(spotlight.rarityScore, t)}
             />
           ) : (
             <MuseumSpotlight
