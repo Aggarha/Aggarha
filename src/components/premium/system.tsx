@@ -4,7 +4,8 @@ import type {
   InputHTMLAttributes,
   PropsWithChildren,
   ReactNode,
-  SelectHTMLAttributes
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes
 } from "react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -486,6 +487,20 @@ export function PremiumInput({ className, ...props }: InputHTMLAttributes<HTMLIn
     <input
       className={cn(
         "placeholder:text-white/38 w-full rounded-2xl border border-white/[0.1] bg-[#121212] px-3 py-2.5 text-sm text-white",
+        "transition-all duration-200 ease-[var(--ease-premium)]",
+        "focus:border-[#ccff00] focus:outline-none focus:ring-2 focus:ring-[#ccff00]/25 focus:shadow-[0_0_0_4px_rgba(204,255,0,0.08)]",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function PremiumTextarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      className={cn(
+        "placeholder:text-white/38 w-full resize-none rounded-2xl border border-white/[0.1] bg-[#121212] px-3 py-2.5 text-sm text-white",
         "transition-all duration-200 ease-[var(--ease-premium)]",
         "focus:border-[#ccff00] focus:outline-none focus:ring-2 focus:ring-[#ccff00]/25 focus:shadow-[0_0_0_4px_rgba(204,255,0,0.08)]",
         className
