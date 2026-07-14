@@ -4,9 +4,9 @@ import type { Locale } from "@/lib/i18n/types";
 export function ListingModeBadge({ mode, lang = "en" }: { mode: "RENT" | "SWAP" | "BOTH"; lang?: Locale }) {
   const classes =
     mode === "RENT"
-      ? "border border-[#58f0c6]/40 bg-[#58f0c6]/14 text-[#a3ffe4]"
+      ? "border border-[#ccff00]/40 bg-[#ccff00]/12 text-[#eaff95]"
       : mode === "SWAP"
-        ? "border border-[#ffd27a]/40 bg-[#ffd27a]/14 text-[#ffd27a]"
+        ? "border border-[#ff8a1f]/45 bg-[#ff8a1f]/16 text-[#ffb877]"
         : "border border-white/20 bg-white/10 text-white";
 
   return (

@@ -110,8 +110,8 @@ export function AddListingWizard({
   const photoCount = photoSlots.filter(Boolean).length;
 
   const modeOptions: Array<{ value: ListingMode; label: string; activeClass: string }> = [
-    { value: "RENT", label: copy.rent, activeClass: "border-[#58f0c6]/45 bg-[#58f0c6]/14 text-[#a3ffe4]" },
-    { value: "SWAP", label: copy.swap, activeClass: "border-[#ffd27a]/45 bg-[#ffd27a]/14 text-[#ffd27a]" },
+    { value: "RENT", label: copy.rent, activeClass: "border-[#ccff00]/45 bg-[#ccff00]/12 text-[#eaff95]" },
+    { value: "SWAP", label: copy.swap, activeClass: "border-[#ff8a1f]/45 bg-[#ff8a1f]/16 text-[#ffb877]" },
     { value: "BOTH", label: copy.both, activeClass: "border-white/30 bg-white/15 text-white" }
   ];
 
