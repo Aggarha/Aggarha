@@ -43,9 +43,6 @@ export function ListingPreviewCard({
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 25vw"
         />
-        <div className="absolute left-3 top-3">
-          <ListingModeBadge mode={mode} lang={lang} />
-        </div>
         <div className="absolute right-3 top-3">
           <span className="inline-flex items-center rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white/70">
             {copy.photos(photoCount)}
@@ -54,6 +51,9 @@ export function ListingPreviewCard({
       </div>
 
       <div className="space-y-1 p-3.5">
+        <div className={isRtl ? "flex justify-end" : "flex justify-start"}>
+          <ListingModeBadge mode={mode} lang={lang} />
+        </div>
         <h3 className={`line-clamp-1 ${isRtl ? "text-right" : "text-left"} text-base font-bold leading-snug text-white`}>
           {title || copy.untitled}
         </h3>

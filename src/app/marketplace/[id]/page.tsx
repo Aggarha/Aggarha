@@ -88,9 +88,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               unoptimized
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-            <div className="absolute left-3 top-3">
-              <ListingModeBadge mode={listing.mode} lang={locale} />
-            </div>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             {gallery.slice(1).map((photo) => (
@@ -111,7 +108,8 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           </div>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
+          <ListingModeBadge mode={listing.mode} lang={locale} />
           <h1
             dir={contentDir}
             className={`break-words ${contentDir === "rtl" ? "text-right" : "text-left"} text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl`}
