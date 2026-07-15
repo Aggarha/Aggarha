@@ -83,9 +83,6 @@ export function ListingCard(props: ListingCardProps) {
           className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.045]"
           sizes="(max-width: 1024px) 100vw, 25vw"
         />
-        <div className="absolute left-3 top-3">
-          <ListingModeBadge mode={props.mode} lang={lang} />
-        </div>
         {isFeatured ? (
           <div className="absolute right-3 top-3">
             <span
@@ -108,6 +105,10 @@ export function ListingCard(props: ListingCardProps) {
       </div>
 
       <div className="space-y-1 p-3.5">
+        <div className={isRtl ? "flex justify-end" : "flex justify-start"}>
+          <ListingModeBadge mode={props.mode} lang={lang} />
+        </div>
+
         <h3
           dir={contentIsRtl ? "rtl" : "ltr"}
           className={`line-clamp-1 ${contentIsRtl ? "text-right" : "text-left"} text-base font-bold leading-snug text-white`}
