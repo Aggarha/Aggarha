@@ -637,9 +637,11 @@ function BottomNavIcon({ name }: { name: keyof typeof NAV_ICONS }) {
 
 /**
  * The primary mobile navigation — not a duplicate of the header. Home,
- * Browse, and Nearby are real destinations; Messages and Profile are shown
- * (matching the intended 5-tab app shell) but disabled, since those pages
- * don't exist yet and adding them would mean new routes.
+ * Browse, Nearby, and Requests are real destinations; Messages stays
+ * disabled since that page doesn't exist yet. The last slot currently
+ * points to /bookings, labeled "Requests" and reusing the profile
+ * icon/position — swap the label back to Profile once a real profile
+ * page exists.
  */
 export function MobileBottomNav({ locale, t }: { locale: Locale; t: Dictionary }) {
   const itemClass =
@@ -671,14 +673,10 @@ export function MobileBottomNav({ locale, t }: { locale: Locale; t: Dictionary }
         <BottomNavIcon name="messages" />
         {t.nav.messages}
       </span>
-      <span
-        aria-disabled="true"
-        title={t.nav.comingSoon}
-        className={cn(itemClass, "cursor-not-allowed text-white/30")}
-      >
+      <Link href="/bookings" className={cn(itemClass, "hover:bg-white/10 hover:text-white")}>
         <BottomNavIcon name="profile" />
-        {t.nav.profile}
-      </span>
+        {t.nav.requests}
+      </Link>
     </nav>
   );
 }

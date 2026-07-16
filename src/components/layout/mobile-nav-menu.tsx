@@ -7,6 +7,8 @@ import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/types";
 
 type NavStrings = {
+  login: string;
+  listItem: string;
   featured: string;
   collectibles: string;
   playstation: string;
@@ -20,6 +22,8 @@ export function MobileNavMenu({ locale, nav }: { locale: Locale; nav: NavStrings
   const isRtl = locale === "ar";
 
   const links: Array<{ href: Route; label: string }> = [
+    { href: "/listings/new" as Route, label: nav.listItem },
+    { href: "/login" as Route, label: nav.login },
     { href: "/featured" as Route, label: nav.featured },
     { href: "/collectibles" as Route, label: nav.collectibles },
     { href: "/playstation" as Route, label: nav.playstation }

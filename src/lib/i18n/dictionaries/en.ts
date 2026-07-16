@@ -10,6 +10,9 @@ const en = {
     playstation: "PlayStation",
     startExploring: "Start Exploring",
     explore: "Explore",
+    login: "Log in",
+    listItem: "List an item",
+    requests: "Requests",
     comingSoon: "Coming soon",
     openMenu: "Open menu",
     closeMenu: "Close menu"

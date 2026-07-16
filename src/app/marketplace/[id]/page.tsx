@@ -1,4 +1,6 @@
+import type { Route } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AvailabilityPreview } from "@/components/marketplace/availability-preview";
 import { ConditionDamageReport } from "@/components/marketplace/condition-report";
@@ -140,15 +142,12 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               </button>
             ) : null}
             {canSwap ? (
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={t.nav.comingSoon}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-white/15 bg-white/[0.06] px-6 text-sm font-bold text-white opacity-90"
+              <Link
+                href={"/swap-proposal" as Route}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-white/15 bg-white/[0.06] px-6 text-sm font-bold text-white transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 active:scale-[0.97]"
               >
                 {t.common.swap}
-              </button>
+              </Link>
             ) : null}
           </div>
         </div>
