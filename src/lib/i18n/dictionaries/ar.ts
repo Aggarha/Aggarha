@@ -12,6 +12,9 @@ const ar: Dictionary = {
     playstation: "بلايستيشن",
     startExploring: "ابدأ الاستكشاف",
     explore: "استكشف",
+    login: "تسجيل الدخول",
+    listItem: "أضف إعلانًا",
+    requests: "الطلبات",
     comingSoon: "قريبًا",
     openMenu: "فتح القائمة",
     closeMenu: "إغلاق القائمة"
