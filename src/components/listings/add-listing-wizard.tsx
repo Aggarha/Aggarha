@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AvailabilityPreview } from "@/components/marketplace/availability-preview";
+import { AvailabilityCalendar } from "@/components/marketplace/availability-preview";
 import { ConditionMarkInput, type ConditionMarkDraft } from "@/components/listings/condition-mark-input";
 import { ListingPreviewCard } from "@/components/listings/listing-preview-card";
 import { StepIndicator } from "@/components/listings/step-indicator";
@@ -43,9 +43,7 @@ const COPY = {
     cityLabel: "City",
     cityPlaceholder: "e.g. Cairo",
     availabilityTitle: "Set availability",
-    availabilityHint: "The next 10 days, starting today. All days default to available — tap a date to block it.",
-    legendAvailable: "Available",
-    legendBlocked: "Blocked (tap to toggle)",
+    availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview"
   },
   ar: {
@@ -78,9 +76,7 @@ const COPY = {
     cityLabel: "المدينة",
     cityPlaceholder: "مثال: القاهرة",
     availabilityTitle: "حدد التوفر",
-    availabilityHint: "الأيام العشرة القادمة، ابتداءً من اليوم. كل الأيام متاحة افتراضيًا — اضغط على تاريخ لحجبه.",
-    legendAvailable: "متاح",
-    legendBlocked: "محجوب (اضغط للتبديل)",
+    availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة"
   }
 };
@@ -304,17 +300,7 @@ export function AddListingWizard({
                 <h2 className="text-lg font-bold text-white">{copy.availabilityTitle}</h2>
                 <p className="mt-1 text-sm text-white/55">{copy.availabilityHint}</p>
               </div>
-              <AvailabilityPreview dates={availabilityDates} lang={lang} onToggle={toggleAvailability} />
-              <div className="flex flex-wrap gap-3 text-[11px] text-white/50">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full border border-[#ccff00]/40 bg-[#ccff00]/14" />
-                  {copy.legendAvailable}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full border border-white/12 bg-white/8" />
-                  {copy.legendBlocked}
-                </span>
-              </div>
+              <AvailabilityCalendar dates={availabilityDates} lang={lang} onToggle={toggleAvailability} />
             </div>
           ) : null}
 

@@ -1,21 +1,68 @@
+"use client";
+
+import { useState } from "react";
 import type { Locale } from "@/lib/i18n/types";
+
+type CalendarStatus = "AVAILABLE" | "BLOCKED" | "RESERVED";
 
 type CalendarDate = {
   date: Date;
-  status: "AVAILABLE" | "BLOCKED" | "RESERVED";
+  status: CalendarStatus;
 };
 
-function addDays(base: Date, days: number): Date {
-  const date = new Date(base);
-  date.setDate(date.getDate() + days);
-  return date;
+type DayCell =
+  | { type: "pad" }
+  | { type: "day"; date: Date; status: CalendarStatus; isToday: boolean; isPast: boolean };
+
+const MAX_MONTHS_AHEAD = 6;
+
+const COPY = {
+  en: {
+    available: "Available",
+    reserved: "Reserved",
+    blocked: "Blocked",
+    prevMonth: "Previous month",
+    nextMonth: "Next month"
+  },
+  ar: {
+    available: "متاح",
+    reserved: "محجوز",
+    blocked: "محجوب",
+    prevMonth: "الشهر السابق",
+    nextMonth: "الشهر التالي"
+  }
+};
+
+function startOfDay(date: Date): Date {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  return next;
 }
 
-function shortWeekday(date: Date, locale: Locale): string {
-  return date.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short" });
+function monthLabel(year: number, month: number, lang: Locale): string {
+  return new Date(year, month, 1).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
+    month: "long",
+    year: "numeric"
+  });
 }
 
-export function AvailabilityPreview({
+/** Jan 1, 2023 was a Sunday — a stable Sun-Sat reference week for generating weekday labels. */
+function weekdayLabels(lang: Locale): string[] {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(2023, 0, 1 + index);
+    return date.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { weekday: "short" });
+  });
+}
+
+function ChevronIcon({ direction }: { direction: "prev" | "next" }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d={direction === "prev" ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6"} />
+    </svg>
+  );
+}
+
+export function AvailabilityCalendar({
   dates,
   lang = "en",
   className = "",
@@ -24,54 +71,136 @@ export function AvailabilityPreview({
   dates: CalendarDate[];
   lang?: Locale;
   className?: string;
-  /** When provided, each day becomes a toggle button instead of a static cell. */
+  /** When provided, in-month non-past days become toggle buttons. */
   onToggle?: (date: Date) => void;
 }) {
-  const upcoming = Array.from({ length: 10 }, (_, index) => {
-    const day = addDays(new Date(), index);
-    day.setHours(0, 0, 0, 0);
-    const existing = dates.find((item) => {
-      const itemDate = new Date(item.date);
-      itemDate.setHours(0, 0, 0, 0);
-      return itemDate.getTime() === day.getTime();
-    });
+  const today = startOfDay(new Date());
+  const [viewed, setViewed] = useState({ year: today.getFullYear(), month: today.getMonth() });
 
-    return {
-      day,
-      status: existing?.status ?? "AVAILABLE"
-    };
-  });
+  const monthsAhead = (viewed.year - today.getFullYear()) * 12 + (viewed.month - today.getMonth());
+  const canGoPrev = monthsAhead > 0;
+  const canGoNext = monthsAhead < MAX_MONTHS_AHEAD;
+
+  const goPrev = () => {
+    if (!canGoPrev) return;
+    setViewed((current) => {
+      const month = current.month === 0 ? 11 : current.month - 1;
+      const year = current.month === 0 ? current.year - 1 : current.year;
+      return { year, month };
+    });
+  };
+
+  const goNext = () => {
+    if (!canGoNext) return;
+    setViewed((current) => {
+      const month = current.month === 11 ? 0 : current.month + 1;
+      const year = current.month === 11 ? current.year + 1 : current.year;
+      return { year, month };
+    });
+  };
+
+  const firstWeekday = new Date(viewed.year, viewed.month, 1).getDay();
+  const totalDays = new Date(viewed.year, viewed.month + 1, 0).getDate();
+  const trailing = (7 - ((firstWeekday + totalDays) % 7)) % 7;
+
+  const cells: DayCell[] = [
+    ...Array.from({ length: firstWeekday }, () => ({ type: "pad" as const })),
+    ...Array.from({ length: totalDays }, (_, index) => {
+      const date = new Date(viewed.year, viewed.month, index + 1);
+      const existing = dates.find((item) => startOfDay(new Date(item.date)).getTime() === date.getTime());
+      return {
+        type: "day" as const,
+        date,
+        status: existing?.status ?? ("AVAILABLE" as CalendarStatus),
+        isToday: date.getTime() === today.getTime(),
+        isPast: date.getTime() < today.getTime()
+      };
+    }),
+    ...Array.from({ length: trailing }, () => ({ type: "pad" as const }))
+  ];
+
+  const copy = COPY[lang];
+  const weekdays = weekdayLabels(lang);
 
   return (
-    <div className={`grid grid-cols-5 gap-2 ${className}`}>
-      {upcoming.map((item) => {
-        const color =
-          item.status === "AVAILABLE"
-            ? "border border-[#ccff00]/40 bg-[#ccff00]/14 text-[#eaff95]"
-            : item.status === "RESERVED"
-              ? "border border-amber-300/45 bg-amber-300/16 text-amber-200"
-              : "border border-white/12 bg-white/8 text-white/65";
+    <div className={className}>
+      <div className="mb-3 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={!canGoPrev}
+          aria-label={copy.prevMonth}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors duration-200 ease-[var(--ease-premium)] hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-white/70"
+        >
+          <ChevronIcon direction="prev" />
+        </button>
+        <p className="text-sm font-bold text-white">{monthLabel(viewed.year, viewed.month, lang)}</p>
+        <button
+          type="button"
+          onClick={goNext}
+          disabled={!canGoNext}
+          aria-label={copy.nextMonth}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors duration-200 ease-[var(--ease-premium)] hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-white/70"
+        >
+          <ChevronIcon direction="next" />
+        </button>
+      </div>
 
-        const cellClass = `rounded-xl p-2 text-center text-[11px] font-semibold transition-all duration-200 ease-[var(--ease-premium)] ${color} ${
-          onToggle ? "cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" : ""
-        }`;
-        const content = (
-          <>
-            <p>{shortWeekday(item.day, lang)}</p>
-            <p className="tabular-nums">{item.day.getDate()}</p>
-          </>
-        );
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-white/40 sm:gap-1.5">
+        {weekdays.map((label) => (
+          <p key={label}>{label}</p>
+        ))}
+      </div>
 
-        return onToggle ? (
-          <button key={item.day.toISOString()} type="button" onClick={() => onToggle(item.day)} className={cellClass}>
-            {content}
-          </button>
-        ) : (
-          <div key={item.day.toISOString()} className={cellClass}>
-            {content}
-          </div>
-        );
-      })}
+      <div className="mt-1 grid grid-cols-7 gap-1 sm:gap-1.5">
+        {cells.map((cell, index) => {
+          if (cell.type === "pad") {
+            return <div key={`pad-${index}`} />;
+          }
+
+          const color =
+            cell.status === "AVAILABLE"
+              ? "border border-[#ccff00]/40 bg-[#ccff00]/14 text-[#eaff95]"
+              : cell.status === "RESERVED"
+                ? "border border-amber-300/45 bg-amber-300/16 text-amber-200"
+                : "border border-white/12 bg-white/8 text-white/65";
+
+          const interactive = Boolean(onToggle) && !cell.isPast;
+          const todayRing = cell.isToday ? "shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.85)]" : "";
+          const pastTreatment = cell.isPast ? "opacity-35" : "";
+
+          const cellClass = `rounded-lg p-1.5 text-center text-[11px] font-semibold transition-all duration-200 ease-[var(--ease-premium)] ${color} ${todayRing} ${pastTreatment} ${
+            interactive ? "cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" : ""
+          }`;
+
+          const content = <p className="tabular-nums">{cell.date.getDate()}</p>;
+
+          return interactive ? (
+            <button key={cell.date.toISOString()} type="button" onClick={() => onToggle?.(cell.date)} className={cellClass}>
+              {content}
+            </button>
+          ) : (
+            <div key={cell.date.toISOString()} className={cellClass}>
+              {content}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-white/50">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full border border-[#ccff00]/40 bg-[#ccff00]/14" />
+          {copy.available}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full border border-amber-300/45 bg-amber-300/16" />
+          {copy.reserved}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full border border-white/12 bg-white/8" />
+          {copy.blocked}
+        </span>
+      </div>
     </div>
   );
 }
