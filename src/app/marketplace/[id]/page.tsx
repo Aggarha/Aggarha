@@ -2,7 +2,7 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AvailabilityPreview } from "@/components/marketplace/availability-preview";
+import { AvailabilityCalendar } from "@/components/marketplace/availability-preview";
 import { ConditionDamageReport } from "@/components/marketplace/condition-report";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { ListingCard } from "@/components/marketplace/listing-card";
@@ -172,7 +172,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
       <section className="space-y-4">
         <h2 className="text-xl font-bold tracking-tight text-white">{t.listingDetail.availability}</h2>
         <PremiumCard className="space-y-3 bg-[#171717]">
-          <AvailabilityPreview
+          <AvailabilityCalendar
             dates={listing.availabilityDates.map((entry) => ({
               date: entry.date,
               status: entry.status
