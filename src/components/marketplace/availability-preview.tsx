@@ -18,11 +18,14 @@ function shortWeekday(date: Date, locale: Locale): string {
 export function AvailabilityPreview({
   dates,
   lang = "en",
-  className = ""
+  className = "",
+  onToggle
 }: {
   dates: CalendarDate[];
   lang?: Locale;
   className?: string;
+  /** When provided, each day becomes a toggle button instead of a static cell. */
+  onToggle?: (date: Date) => void;
 }) {
   const upcoming = Array.from({ length: 10 }, (_, index) => {
     const day = addDays(new Date(), index);
@@ -49,10 +52,23 @@ export function AvailabilityPreview({
               ? "border border-amber-300/45 bg-amber-300/16 text-amber-200"
               : "border border-white/12 bg-white/8 text-white/65";
 
-        return (
-          <div key={item.day.toISOString()} className={`rounded-xl p-2 text-center text-[11px] font-semibold ${color}`}>
+        const cellClass = `rounded-xl p-2 text-center text-[11px] font-semibold transition-all duration-200 ease-[var(--ease-premium)] ${color} ${
+          onToggle ? "cursor-pointer hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.96]" : ""
+        }`;
+        const content = (
+          <>
             <p>{shortWeekday(item.day, lang)}</p>
             <p className="tabular-nums">{item.day.getDate()}</p>
+          </>
+        );
+
+        return onToggle ? (
+          <button key={item.day.toISOString()} type="button" onClick={() => onToggle(item.day)} className={cellClass}>
+            {content}
+          </button>
+        ) : (
+          <div key={item.day.toISOString()} className={cellClass}>
+            {content}
           </div>
         );
       })}
