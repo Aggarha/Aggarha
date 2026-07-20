@@ -3,6 +3,7 @@ import { Manrope, Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { MobileBottomNav } from "@/components/premium/system";
+import { getOptionalSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { dirFor } from "@/lib/i18n/types";
 import "./globals.css";
@@ -53,12 +54,13 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { locale, t } = await getLocaleAndDictionary();
+  const [{ locale, t }, session] = await Promise.all([getLocaleAndDictionary(), getOptionalSession()]);
+  const isAuthenticated = Boolean(session);
 
   return (
     <html lang={locale} dir={dirFor(locale)} className={`${spaceGrotesk.variable} ${manrope.variable}`}>
       <body className="min-h-screen antialiased">
-        <SiteHeader locale={locale} t={t} />
+        <SiteHeader locale={locale} t={t} isAuthenticated={isAuthenticated} />
         <main className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
         <MobileBottomNav locale={locale} t={t} />
         <SiteFooter locale={locale} t={t} />

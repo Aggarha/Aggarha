@@ -3,11 +3,13 @@
 import { useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
+import { logoutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/types";
 
 type NavStrings = {
   login: string;
+  logout: string;
   listItem: string;
   featured: string;
   collectibles: string;
@@ -17,17 +19,29 @@ type NavStrings = {
 };
 
 /** Browse already lives in the mobile bottom nav — no duplicates here. */
-export function MobileNavMenu({ locale, nav }: { locale: Locale; nav: NavStrings }) {
+export function MobileNavMenu({
+  locale,
+  nav,
+  isAuthenticated
+}: {
+  locale: Locale;
+  nav: NavStrings;
+  isAuthenticated: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const isRtl = locale === "ar";
 
   const links: Array<{ href: Route; label: string }> = [
     { href: "/listings/new" as Route, label: nav.listItem },
-    { href: "/login" as Route, label: nav.login },
     { href: "/featured" as Route, label: nav.featured },
     { href: "/collectibles" as Route, label: nav.collectibles },
     { href: "/playstation" as Route, label: nav.playstation }
   ];
+
+  const itemLinkClass = cn(
+    "flex min-h-[44px] items-center rounded-xl px-3 text-sm font-semibold text-white/80 transition-all duration-200 ease-[var(--ease-premium)] hover:bg-white/5 hover:text-[#ccff00]",
+    isRtl ? "hover:pr-4" : "hover:pl-4"
+  );
 
   return (
     <div className="md:hidden">
@@ -55,16 +69,19 @@ export function MobileNavMenu({ locale, nav }: { locale: Locale; nav: NavStrings
           className="absolute inset-x-0 top-full border-b border-white/[0.06] bg-black/95 px-4 pb-4 pt-2 shadow-[0_20px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl [animation:revealUp_.22s_ease_both]"
         >
           <nav className="flex flex-col gap-1">
+            {isAuthenticated ? (
+              <form action={logoutAction}>
+                <button type="submit" onClick={() => setOpen(false)} className={cn(itemLinkClass, "w-full text-start")}>
+                  {nav.logout}
+                </button>
+              </form>
+            ) : (
+              <Link href={"/login" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
+                {nav.login}
+              </Link>
+            )}
             {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex min-h-[44px] items-center rounded-xl px-3 text-sm font-semibold text-white/80 transition-all duration-200 ease-[var(--ease-premium)] hover:bg-white/5 hover:text-[#ccff00]",
-                  isRtl ? "hover:pr-4" : "hover:pl-4"
-                )}
-              >
+              <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className={itemLinkClass}>
                 {link.label}
               </Link>
             ))}

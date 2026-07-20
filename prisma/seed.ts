@@ -11,8 +11,12 @@ import {
   FraudReportStatus,
   Prisma
 } from "@prisma/client";
+import { hashPassword } from "../src/lib/auth/password";
 
 const prisma = new PrismaClient();
+
+/** Every seeded user shares this password so demo/review accounts are actually usable for login testing. */
+const SEED_TEST_PASSWORD = "Test1234!";
 
 type CategorySeed = {
   slug: string;
@@ -250,6 +254,8 @@ async function main() {
     )
   );
 
+  const seedPasswordHash = await hashPassword(SEED_TEST_PASSWORD);
+
   const users = [] as Array<{ id: string; trustScore: number; level: number; verification: VerificationLevel }>;
   for (let i = 0; i < 16; i += 1) {
     const trustScore = 55 + (i % 9) * 4.2;
@@ -269,6 +275,7 @@ async function main() {
       data: {
         email: `user${i + 1}@aggarha.eg`,
         phone: `+201000000${(100 + i).toString().slice(-3)}`,
+        passwordHash: seedPasswordHash,
         role: i < 5 ? UserRole.RESELLER : UserRole.USER,
         verificationLevel: verification,
         emailVerifiedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * (40 + i)),

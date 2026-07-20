@@ -13,6 +13,7 @@ const ar: Dictionary = {
     startExploring: "ابدأ الاستكشاف",
     explore: "استكشف",
     login: "تسجيل الدخول",
+    logout: "تسجيل الخروج",
     listItem: "أضف إعلانًا",
     requests: "الطلبات",
     comingSoon: "قريبًا",
