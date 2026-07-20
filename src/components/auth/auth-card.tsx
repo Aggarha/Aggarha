@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { loginAction, signupAction } from "@/lib/auth/actions";
 import { PremiumButton, PremiumCard, PremiumInput } from "@/components/premium/system";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -21,6 +22,8 @@ const COPY = {
     forgotPassword: "Forgot password?",
     loginCta: "Log in",
     signupCta: "Create account",
+    loginPending: "Logging in…",
+    signupPending: "Creating account…",
     noAccount: "Don't have an account?",
     hasAccount: "Already have an account?",
     switchToSignup: "Sign up",
@@ -44,6 +47,8 @@ const COPY = {
     forgotPassword: "نسيت كلمة المرور؟",
     loginCta: "تسجيل الدخول",
     signupCta: "إنشاء الحساب",
+    loginPending: "جارٍ تسجيل الدخول…",
+    signupPending: "جارٍ إنشاء الحساب…",
     noAccount: "ليس لديك حساب؟",
     hasAccount: "لديك حساب بالفعل؟",
     switchToSignup: "إنشاء حساب",
@@ -55,10 +60,17 @@ const COPY = {
   }
 };
 
-export function AuthCard({ lang = "en" }: { lang?: Locale }) {
+export function AuthCard({ lang = "en", next = "/" }: { lang?: Locale; next?: string }) {
   const [tab, setTab] = useState<AuthTab>("login");
   const isRtl = lang === "ar";
   const copy = COPY[lang];
+
+  const [loginState, loginFormAction, loginPending] = useActionState(loginAction, undefined);
+  const [signupState, signupFormAction, signupPending] = useActionState(signupAction, undefined);
+
+  const formAction = tab === "login" ? loginFormAction : signupFormAction;
+  const pending = tab === "login" ? loginPending : signupPending;
+  const error = tab === "login" ? loginState?.error : signupState?.error;
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto w-full max-w-md">
@@ -91,11 +103,9 @@ export function AuthCard({ lang = "en" }: { lang?: Locale }) {
           </button>
         </div>
 
-        <form
-          onSubmit={(event) => event.preventDefault()}
-          className="space-y-4 [animation:revealUp_.3s_ease_both]"
-          key={tab}
-        >
+        <form action={formAction} className="space-y-4 [animation:revealUp_.3s_ease_both]" key={tab}>
+          <input type="hidden" name="next" value={next} />
+
           {tab === "signup" ? (
             <label className="block space-y-1.5">
               <span className="text-xs font-semibold text-white/60">{copy.name}</span>
@@ -128,8 +138,16 @@ export function AuthCard({ lang = "en" }: { lang?: Locale }) {
             </div>
           ) : null}
 
-          <PremiumButton type="submit" tone="primary" className="w-full">
-            {tab === "login" ? copy.loginCta : copy.signupCta}
+          {error ? <p className="text-center text-xs font-semibold text-[#ff9a8a]">{error}</p> : null}
+
+          <PremiumButton type="submit" tone="primary" disabled={pending} className="w-full">
+            {pending
+              ? tab === "login"
+                ? copy.loginPending
+                : copy.signupPending
+              : tab === "login"
+                ? copy.loginCta
+                : copy.signupCta}
           </PremiumButton>
         </form>
 

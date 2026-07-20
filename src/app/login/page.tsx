@@ -1,12 +1,32 @@
+import type { Route } from "next";
+import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/auth-card";
+import { getOptionalSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 
-export default async function LoginPage() {
-  const { locale } = await getLocaleAndDictionary();
+function safeNextPath(value: string | undefined): string {
+  if (value && value.startsWith("/") && !value.startsWith("//")) {
+    return value;
+  }
+  return "/";
+}
+
+export default async function LoginPage({
+  searchParams
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const [{ locale }, session, { next }] = await Promise.all([getLocaleAndDictionary(), getOptionalSession(), searchParams]);
+
+  const nextPath = safeNextPath(next);
+
+  if (session) {
+    redirect(nextPath as Route);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
-      <AuthCard lang={locale} />
+      <AuthCard lang={locale} next={nextPath} />
     </div>
   );
 }

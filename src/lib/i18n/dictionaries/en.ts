@@ -11,6 +11,7 @@ const en = {
     startExploring: "Start Exploring",
     explore: "Explore",
     login: "Log in",
+    logout: "Log out",
     listItem: "List an item",
     requests: "Requests",
     comingSoon: "Coming soon",

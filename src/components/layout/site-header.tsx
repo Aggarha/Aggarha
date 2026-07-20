@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { MobileNavMenu } from "@/components/layout/mobile-nav-menu";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { logoutAction } from "@/lib/auth/actions";
 import type { Locale } from "@/lib/i18n/types";
 import type { Dictionary } from "@/lib/i18n/dictionary-type";
 
@@ -13,7 +14,15 @@ function PlusIcon() {
   );
 }
 
-export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
+export function SiteHeader({
+  locale,
+  t,
+  isAuthenticated
+}: {
+  locale: Locale;
+  t: Dictionary;
+  isAuthenticated: boolean;
+}) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/[0.05] bg-black/70 backdrop-blur-xl">
       <div className="relative mx-auto flex w-full max-w-7xl items-center justify-between gap-x-3 px-4 py-2.5 sm:px-6 lg:px-8">
@@ -40,12 +49,23 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
         </nav>
         <div className="flex shrink-0 items-center gap-2">
           <div className="hidden items-center gap-3 md:flex">
-            <Link
-              href={"/login" as Route}
-              className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
-            >
-              {t.nav.login}
-            </Link>
+            {isAuthenticated ? (
+              <form action={logoutAction}>
+                <button
+                  type="submit"
+                  className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
+                >
+                  {t.nav.logout}
+                </button>
+              </form>
+            ) : (
+              <Link
+                href={"/login" as Route}
+                className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
+              >
+                {t.nav.login}
+              </Link>
+            )}
             <Link
               href={"/listings/new" as Route}
               className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl bg-[#1b1b1b] px-3.5 text-[13px] font-semibold text-white transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#202020] hover:shadow-[0_10px_22px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-0 active:scale-[0.97]"
@@ -55,7 +75,7 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
             </Link>
           </div>
           <LanguageSwitcher locale={locale} t={t} />
-          <MobileNavMenu locale={locale} nav={t.nav} />
+          <MobileNavMenu locale={locale} nav={t.nav} isAuthenticated={isAuthenticated} />
           <Link
             href={"/marketplace" as Route}
             className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-[#ccff00] px-3.5 text-[13px] font-semibold text-black transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#deff57] hover:shadow-[0_10px_22px_rgba(204,255,0,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black active:translate-y-0 active:scale-[0.97]"
