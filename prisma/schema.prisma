@@ -73,6 +73,12 @@ enum AvailabilityDateStatus {
   RESERVED
 }
 
+enum DefectSeverity {
+  MINOR
+  MEDIUM
+  MAJOR
+}
+
 enum FraudReportStatus {
   OPEN
   UNDER_REVIEW
@@ -229,12 +235,40 @@ model Listing {
   duplicateSignalsAsPrimary DuplicateListingSignal[] @relation("PrimaryListing")
   duplicateSignalsAsSuspected DuplicateListingSignal[] @relation("SuspectedListing")
   fraudReports        FraudReport[]
+  photos              ListingPhoto[]
+  conditionMarks      ListingConditionMark[]
+  offeredInBookings   BookingOfferedListing[]
 
   @@index([ownerId])
   @@index([categoryId])
   @@index([locationId])
   @@index([status, mode, visibility])
   @@index([viewCount])
+}
+
+model ListingPhoto {
+  id         String   @id @default(cuid())
+  listingId  String
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+}
+
+model ListingConditionMark {
+  id           String         @id @default(cuid())
+  listingId    String
+  description  String
+  severity     DefectSeverity
+  photoUrl     String?
+  createdAt    DateTime       @default(now())
+
+  listing      Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
 }
 
 model AvailabilityRule {
@@ -273,10 +307,11 @@ model Booking {
   listingId          String
   requesterId        String
   ownerId            String
+  mode               ListingMode
   status             BookingStatus @default(REQUESTED)
-  startDate          DateTime
-  endDate            DateTime
-  totalDays          Int
+  startDate          DateTime?
+  endDate            DateTime?
+  totalDays          Int?
   requestedAt        DateTime      @default(now())
   approvedAt         DateTime?
   rejectedAt         DateTime?
@@ -287,13 +322,25 @@ model Booking {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  listing            Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  requester          User          @relation("BookingRequester", fields: [requesterId], references: [id])
-  owner              User          @relation("BookingOwner", fields: [ownerId], references: [id])
+  listing            Listing                 @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  requester          User                    @relation("BookingRequester", fields: [requesterId], references: [id])
+  owner              User                    @relation("BookingOwner", fields: [ownerId], references: [id])
+  offeredListings    BookingOfferedListing[]
 
   @@index([listingId, status])
   @@index([requesterId, startDate])
   @@index([ownerId, startDate])
+}
+
+model BookingOfferedListing {
+  id         String  @id @default(cuid())
+  bookingId  String
+  listingId  String
+
+  booking    Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  listing    Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, listingId])
 }
 
 model Deal {
