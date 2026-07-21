@@ -131,19 +131,16 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           </div>
           <div className="flex flex-wrap gap-2">
             {canRent ? (
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                title={t.nav.comingSoon}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#ccff00] px-6 text-sm font-bold text-black opacity-90"
+              <Link
+                href={`/rent?listingId=${listing.id}` as Route}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-[#ccff00] px-6 text-sm font-bold text-black transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#deff57] active:translate-y-0 active:scale-[0.97]"
               >
                 {t.common.rent}
-              </button>
+              </Link>
             ) : null}
             {canSwap ? (
               <Link
-                href={"/swap-proposal" as Route}
+                href={`/swap-proposal?listingId=${listing.id}` as Route}
                 className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-white/15 bg-white/[0.06] px-6 text-sm font-bold text-white transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-white/10 active:translate-y-0 active:scale-[0.97]"
               >
                 {t.common.swap}
