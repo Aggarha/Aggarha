@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { AvailabilityCalendar } from "@/components/marketplace/availability-preview";
 import { ConditionMarkInput, type ConditionMarkDraft } from "@/components/listings/condition-mark-input";
 import { ListingPreviewCard } from "@/components/listings/listing-preview-card";
 import { StepIndicator } from "@/components/listings/step-indicator";
 import { PremiumButton, PremiumCard, PremiumInput, PremiumSelect, PremiumTextarea } from "@/components/premium/system";
+import { createListingAction } from "@/lib/listings/actions";
 import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -44,7 +45,8 @@ const COPY = {
     cityPlaceholder: "e.g. Cairo",
     availabilityTitle: "Set availability",
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
-    previewLabel: "Live preview"
+    previewLabel: "Live preview",
+    publishing: "Publishing…"
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -77,7 +79,8 @@ const COPY = {
     cityPlaceholder: "مثال: القاهرة",
     availabilityTitle: "حدد التوفر",
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
-    previewLabel: "معاينة مباشرة"
+    previewLabel: "معاينة مباشرة",
+    publishing: "جارٍ النشر…"
   }
 };
 
@@ -106,6 +109,27 @@ export function AddListingWizard({
   const [price, setPrice] = useState("");
   const [city, setCity] = useState("");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const [isPublishing, startPublishTransition] = useTransition();
+
+  const handlePublish = () => {
+    setPublishError(null);
+    startPublishTransition(async () => {
+      const result = await createListingAction({
+        title,
+        description,
+        categorySlug,
+        mode,
+        priceAmount: price ? Number(price) : null,
+        photoCount,
+        conditionMarks: marks.map((mark) => ({ description: mark.description, severity: mark.severity })),
+        blockedDates
+      });
+      if ("error" in result) {
+        setPublishError(result.error);
+      }
+    });
+  };
 
   const toggleAvailability = (date: Date) => {
     const iso = date.toISOString().slice(0, 10);
@@ -304,13 +328,17 @@ export function AddListingWizard({
             </div>
           ) : null}
 
+          {stepIndex === steps.length - 1 && publishError ? (
+            <p className="text-center text-xs font-semibold text-[#ff9a8a]">{publishError}</p>
+          ) : null}
+
           <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
             <PremiumButton type="button" tone="ghost" onClick={goBack} disabled={stepIndex === 0}>
               {copy.back}
             </PremiumButton>
             {stepIndex === steps.length - 1 ? (
-              <PremiumButton type="button" tone="primary" onClick={() => {}}>
-                {copy.publish}
+              <PremiumButton type="button" tone="primary" onClick={handlePublish} disabled={isPublishing}>
+                {isPublishing ? copy.publishing : copy.publish}
               </PremiumButton>
             ) : (
               <PremiumButton type="button" tone="primary" onClick={goNext}>

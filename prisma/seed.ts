@@ -398,6 +398,7 @@ async function main() {
         listingId: listing.id,
         requesterId: requester.id,
         ownerId: owner.id,
+        mode: ListingMode.RENT,
         status: pick([BookingStatus.REQUESTED, BookingStatus.APPROVED, BookingStatus.REJECTED, BookingStatus.COMPLETED], i),
         startDate,
         endDate,
