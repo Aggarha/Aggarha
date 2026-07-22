@@ -132,7 +132,12 @@ export function AddListingWizard({
   };
 
   const toggleAvailability = (date: Date) => {
-    const iso = date.toISOString().slice(0, 10);
+    // Build the key from LOCAL date components, not toISOString() — that converts through UTC
+    // first, which silently shifts the day by one for any timezone ahead or behind UTC.
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const iso = `${year}-${month}-${day}`;
     setBlockedDates((current) => (current.includes(iso) ? current.filter((item) => item !== iso) : [...current, iso]));
   };
 
