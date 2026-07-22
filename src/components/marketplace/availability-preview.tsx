@@ -39,6 +39,24 @@ function startOfDay(date: Date): Date {
   return next;
 }
 
+/**
+ * `dates` entries are always UTC-midnight-normalized calendar days (whether freshly parsed
+ * from a "YYYY-MM-DD" key client-side, or read back from the DB — see add-listing-wizard.tsx
+ * and createListingAction). Grid cells, by contrast, are LOCAL dates (`new Date(y, m, d)`), so
+ * they represent the same calendar day differently depending on the viewer's timezone. Comparing
+ * raw timestamps (as this used to do via a local startOfDay on both sides) silently shifts the
+ * match by a day for any non-UTC timezone. Comparing the UTC-extracted key against the
+ * local-extracted key instead recovers the intended calendar day on both sides correctly,
+ * regardless of the viewer's timezone.
+ */
+function utcDateKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+}
+
+function localDateKey(date: Date): string {
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
 function monthLabel(year: number, month: number, lang: Locale): string {
   return new Date(year, month, 1).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", {
     month: "long",
@@ -107,7 +125,7 @@ export function AvailabilityCalendar({
     ...Array.from({ length: firstWeekday }, () => ({ type: "pad" as const })),
     ...Array.from({ length: totalDays }, (_, index) => {
       const date = new Date(viewed.year, viewed.month, index + 1);
-      const existing = dates.find((item) => startOfDay(new Date(item.date)).getTime() === date.getTime());
+      const existing = dates.find((item) => utcDateKey(new Date(item.date)) === localDateKey(date));
       return {
         type: "day" as const,
         date,
