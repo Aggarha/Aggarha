@@ -50,14 +50,28 @@ export function SiteHeader({
         <div className="flex shrink-0 items-center gap-2">
           <div className="hidden items-center gap-3 md:flex">
             {isAuthenticated ? (
-              <form action={logoutAction}>
-                <button
-                  type="submit"
+              <>
+                <Link
+                  href={"/listings/mine" as Route}
                   className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
                 >
-                  {t.nav.logout}
-                </button>
-              </form>
+                  {t.nav.myListings}
+                </Link>
+                <Link
+                  href={"/bookings" as Route}
+                  className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
+                >
+                  {t.nav.requests}
+                </Link>
+                <form action={logoutAction}>
+                  <button
+                    type="submit"
+                    className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
+                  >
+                    {t.nav.logout}
+                  </button>
+                </form>
+              </>
             ) : (
               <Link
                 href={"/login" as Route}

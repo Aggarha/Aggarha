@@ -11,6 +11,8 @@ type NavStrings = {
   login: string;
   logout: string;
   listItem: string;
+  myListings: string;
+  requests: string;
   featured: string;
   collectibles: string;
   playstation: string;
@@ -70,11 +72,19 @@ export function MobileNavMenu({
         >
           <nav className="flex flex-col gap-1">
             {isAuthenticated ? (
-              <form action={logoutAction}>
-                <button type="submit" onClick={() => setOpen(false)} className={cn(itemLinkClass, "w-full text-start")}>
-                  {nav.logout}
-                </button>
-              </form>
+              <>
+                <Link href={"/listings/mine" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
+                  {nav.myListings}
+                </Link>
+                <Link href={"/bookings" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
+                  {nav.requests}
+                </Link>
+                <form action={logoutAction}>
+                  <button type="submit" onClick={() => setOpen(false)} className={cn(itemLinkClass, "w-full text-start")}>
+                    {nav.logout}
+                  </button>
+                </form>
+              </>
             ) : (
               <Link href={"/login" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
                 {nav.login}
