@@ -121,6 +121,7 @@ export function AddListingWizard({
         categorySlug,
         mode,
         priceAmount: price ? Number(price) : null,
+        city,
         photoCount,
         conditionMarks: marks.map((mark) => ({ description: mark.description, severity: mark.severity })),
         blockedDates
