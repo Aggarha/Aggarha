@@ -6,7 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { EmptyState } from "@/components/premium/system";
-import { buildDemoImageUrl, buildDemoTitle, getListingLanguage } from "@/lib/marketplace/demo-content";
+import { buildDemoImageUrl, isArabicText } from "@/lib/marketplace/demo-content";
 import { formatPrice } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 import type { listingCardData } from "@/lib/marketplace/serializers";
@@ -218,7 +218,7 @@ export function NearbyExperience({
             {visible.map((item) => {
               const isActive = activeId === item.id;
               const href = `/marketplace/${item.id}` as Route;
-              const titleIsRtl = getListingLanguage(item.id) === "ar";
+              const titleIsRtl = isArabicText(item.title);
 
               return (
                 <div
@@ -262,7 +262,7 @@ export function NearbyExperience({
                       </div>
                       <div className="space-y-0.5 p-2">
                         <p dir={titleIsRtl ? "rtl" : "ltr"} className="truncate text-xs font-semibold text-white">
-                          {buildDemoTitle(item.id, item.categorySlug)}
+                          {item.title}
                         </p>
                         <p className="text-xs font-bold text-[#ccff00]">
                           {formatPrice(item.priceAmount, item.currencyCode ?? "EGP", locale)}

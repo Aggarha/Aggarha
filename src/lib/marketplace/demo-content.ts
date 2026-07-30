@@ -39,6 +39,13 @@ export function getListingLanguage(listingId: string): Locale {
   return hashSeed(`${listingId}-content-lang`) % 5 < 3 ? "ar" : "en";
 }
 
+const ARABIC_SCRIPT_RANGE = /[؀-ۿݐ-ݿ]/;
+
+/** Detects a real listing's content language from its actual text, not a per-id hash. */
+export function isArabicText(text: string): boolean {
+  return ARABIC_SCRIPT_RANGE.test(text);
+}
+
 type CategoryContent = {
   titles: { en: [string, string, string]; ar: [string, string, string] };
   description: { en: string; ar: string };

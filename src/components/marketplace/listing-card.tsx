@@ -4,9 +4,8 @@ import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
 import {
   buildDemoImageUrl,
-  buildDemoTitle,
   buildLocationLabel,
-  getListingLanguage,
+  isArabicText,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
 import { formatPrice } from "@/lib/marketplace/format";
@@ -14,6 +13,7 @@ import type { Locale } from "@/lib/i18n/types";
 
 type ListingCardProps = {
   id: string;
+  title: string;
   mode: "RENT" | "SWAP" | "BOTH";
   status: string;
   visibility: string;
@@ -60,9 +60,8 @@ export function ListingCard(props: ListingCardProps) {
   const isRtl = lang === "ar";
   const copy = COPY[lang];
 
-  const contentLang = getListingLanguage(props.id);
-  const contentIsRtl = contentLang === "ar";
-  const title = buildDemoTitle(props.id, props.categorySlug);
+  const title = props.title;
+  const contentIsRtl = isArabicText(title);
 
   const demoImage = buildDemoImageUrl(props.id, props.categorySlug);
   const isFeatured = Boolean(props.featuredBadge) && (props.visibility === "FEATURED" || props.visibility === "BOOSTED");
