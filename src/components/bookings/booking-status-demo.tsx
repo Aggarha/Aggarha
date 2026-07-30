@@ -29,13 +29,8 @@ export type BookingRecord = {
   offeredListingTitles: string[];
 };
 
-const SENT_WINDOW_MINUTES = 15;
-
 function uiStatusFor(booking: BookingRecord): BookingStatus | null {
-  if (booking.status === "REQUESTED") {
-    const ageMinutes = (Date.now() - new Date(booking.requestedAt).getTime()) / 60000;
-    return ageMinutes <= SENT_WINDOW_MINUTES ? "sent" : "pending";
-  }
+  if (booking.status === "REQUESTED") return "pending";
   if (booking.status === "APPROVED") return "accepted";
   if (booking.status === "REJECTED") return "declined";
   return null;
@@ -45,11 +40,11 @@ const COPY = {
   en: {
     renterView: "Renter view",
     ownerView: "Owner view",
-    tabs: { sent: "Sent", pending: "Pending", accepted: "Accepted", declined: "Declined" } as Record<BookingStatus, string>,
+    tabs: { pending: "Pending", accepted: "Accepted", declined: "Declined" } as Record<BookingStatus, string>,
     timeline: { requestSent: "Request sent", reviewing: "Owner reviewing", accepted: "Accepted", declined: "Declined" },
     timelineOwner: { requestSent: "Request received", reviewing: "Reviewing", accepted: "Accepted", declined: "Declined" },
-    sentNote: "We'll notify you as soon as the owner responds.",
-    sentNoteOwner: "A new request just came in — review it below.",
+    pendingNote: "We'll notify you as soon as the owner responds.",
+    pendingNoteOwner: "A new request just came in — review it below.",
     messageOwner: "Message owner",
     messageRenter: "Message renter",
     cancel: "Cancel request",
@@ -67,11 +62,11 @@ const COPY = {
   ar: {
     renterView: "عرض المستأجر",
     ownerView: "عرض المالك",
-    tabs: { sent: "تم الإرسال", pending: "قيد الانتظار", accepted: "مقبول", declined: "مرفوض" } as Record<BookingStatus, string>,
+    tabs: { pending: "قيد الانتظار", accepted: "مقبول", declined: "مرفوض" } as Record<BookingStatus, string>,
     timeline: { requestSent: "تم إرسال الطلب", reviewing: "المالك يراجع", accepted: "مقبول", declined: "مرفوض" },
     timelineOwner: { requestSent: "تم استلام الطلب", reviewing: "قيد المراجعة", accepted: "مقبول", declined: "مرفوض" },
-    sentNote: "سنخبرك فور رد المالك.",
-    sentNoteOwner: "وصل طلب جديد — راجعه أدناه.",
+    pendingNote: "سنخبرك فور رد المالك.",
+    pendingNoteOwner: "وصل طلب جديد — راجعه أدناه.",
     messageOwner: "مراسلة المالك",
     messageRenter: "مراسلة المستأجر",
     cancel: "إلغاء الطلب",
@@ -131,11 +126,11 @@ export function BookingStatusDemo({
   const router = useRouter();
   const isRtl = lang === "ar";
   const copy = COPY[lang];
-  const statuses: BookingStatus[] = ["sent", "pending", "accepted", "declined"];
+  const statuses: BookingStatus[] = ["pending", "accepted", "declined"];
   const timelineCopy = view === "renter" ? copy.timeline : copy.timelineOwner;
 
   const bookings = view === "renter" ? renterBookings : ownerBookings;
-  const grouped: Record<BookingStatus, BookingRecord[]> = { sent: [], pending: [], accepted: [], declined: [] };
+  const grouped: Record<BookingStatus, BookingRecord[]> = { pending: [], accepted: [], declined: [] };
   for (const booking of bookings) {
     const uiStatus = uiStatusFor(booking);
     if (uiStatus) {
@@ -210,13 +205,13 @@ export function BookingStatusDemo({
           <PremiumCard className="space-y-4 bg-[#171717]">
             <BookingStatusTimeline status={status} t={timelineCopy} />
 
-            {status === "sent" ? <p className="text-xs text-white/50">{view === "renter" ? copy.sentNote : copy.sentNoteOwner}</p> : null}
+            {status === "pending" ? <p className="text-xs text-white/50">{view === "renter" ? copy.pendingNote : copy.pendingNoteOwner}</p> : null}
             {actionError ? <p className="text-xs font-semibold text-[#ff9a8a]">{actionError}</p> : null}
 
             <div className="flex flex-wrap gap-2 border-t border-white/[0.08] pt-4">
               {view === "renter" ? (
                 <>
-                  {status === "sent" || status === "pending" ? (
+                  {status === "pending" ? (
                     <>
                       <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
                         {copy.messageOwner}
@@ -254,7 +249,7 @@ export function BookingStatusDemo({
                 </>
               ) : (
                 <>
-                  {status === "sent" || status === "pending" ? (
+                  {status === "pending" ? (
                     <>
                       <PremiumButton
                         tone="primary"

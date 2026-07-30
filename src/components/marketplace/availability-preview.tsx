@@ -180,7 +180,7 @@ export function AvailabilityCalendar({
             cell.status === "AVAILABLE"
               ? "border border-[#ccff00]/40 bg-[#ccff00]/14 text-[#eaff95]"
               : cell.status === "RESERVED"
-                ? "border border-amber-300/45 bg-amber-300/16 text-amber-200"
+                ? "border border-amber-400/70 bg-amber-400/35 text-amber-100"
                 : "border border-white/12 bg-white/8 text-white/65";
 
           const interactive = Boolean(onToggle) && !cell.isPast;
@@ -211,7 +211,7 @@ export function AvailabilityCalendar({
           {copy.available}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full border border-amber-300/45 bg-amber-300/16" />
+          <span className="h-2.5 w-2.5 rounded-full border border-amber-400/70 bg-amber-400/35" />
           {copy.reserved}
         </span>
         <span className="inline-flex items-center gap-1.5">
