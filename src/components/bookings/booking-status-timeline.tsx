@@ -1,4 +1,4 @@
-export type BookingStatus = "sent" | "pending" | "accepted" | "declined";
+export type BookingStatus = "pending" | "accepted" | "declined";
 
 type TimelineStrings = {
   requestSent: string;
@@ -33,7 +33,7 @@ export function BookingStatusTimeline({ status, t }: { status: BookingStatus; t:
     {
       label: t.reviewing,
       done: status === "accepted" || status === "declined",
-      active: status === "sent" || status === "pending"
+      active: status === "pending"
     },
     { label: finalLabel, done: finalDone, active: false, negative: finalIsNegative }
   ];
