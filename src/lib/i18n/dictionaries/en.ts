@@ -13,6 +13,7 @@ const en = {
     login: "Log in",
     logout: "Log out",
     listItem: "List an item",
+    myListings: "My Listings",
     requests: "Requests",
     comingSoon: "Coming soon",
     openMenu: "Open menu",
@@ -131,6 +132,12 @@ const en = {
     browseAll: "Browse all",
     noFeaturedTitle: "No featured listings yet",
     noFeaturedDescription: "Check back soon as owners promote inventory."
+  },
+  myListings: {
+    title: "My Listings",
+    noListingsTitle: "You haven't listed anything yet",
+    noListingsDescription: "Items you list for rent or swap will show up here.",
+    listItem: "List an item"
   },
   error: {
     badge: "Something broke",

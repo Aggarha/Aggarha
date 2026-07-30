@@ -15,6 +15,7 @@ const ar: Dictionary = {
     login: "تسجيل الدخول",
     logout: "تسجيل الخروج",
     listItem: "أضف إعلانًا",
+    myListings: "إعلاناتي",
     requests: "الطلبات",
     comingSoon: "قريبًا",
     openMenu: "فتح القائمة",
@@ -133,6 +134,12 @@ const ar: Dictionary = {
     browseAll: "عرض الكل",
     noFeaturedTitle: "لا توجد إعلانات مميزة بعد",
     noFeaturedDescription: "تحقق لاحقًا مع ترويج الملاك لإعلاناتهم."
+  },
+  myListings: {
+    title: "إعلاناتي",
+    noListingsTitle: "لم تُضِف أي إعلان بعد",
+    noListingsDescription: "ستظهر هنا العناصر التي تعرضها للإيجار أو التبديل.",
+    listItem: "أضف إعلانًا"
   },
   error: {
     badge: "حدث خطأ ما",

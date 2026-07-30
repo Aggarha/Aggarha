@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
+import type { Locale } from "@/lib/i18n/types";
 import { HomepageSearchBar } from "@/components/marketplace/homepage-search-bar";
 import { HorizontalListingRow } from "@/components/marketplace/horizontal-listing-row";
 import { ListingCard } from "@/components/marketplace/listing-card";
@@ -10,8 +11,7 @@ import {
   buildCategoryImageUrl,
   buildCategoryLabel,
   buildDemoImageUrl,
-  buildDemoTitle,
-  getListingLanguage,
+  isArabicText,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
 import { flattenCategories } from "@/lib/marketplace/format";
@@ -49,8 +49,8 @@ export default async function HomePage() {
 
   const billboardSlides = billboardListings.map((listing) => ({
     id: listing.id,
-    title: buildDemoTitle(listing.id, listing.categorySlug),
-    titleLang: getListingLanguage(listing.id),
+    title: listing.title,
+    titleLang: (isArabicText(listing.title) ? "ar" : "en") as Locale,
     imageUrl: buildDemoImageUrl(listing.id, listing.categorySlug),
     city: listing.city,
     governorate: listing.governorate

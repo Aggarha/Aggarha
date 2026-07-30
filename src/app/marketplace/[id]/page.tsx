@@ -12,11 +12,9 @@ import { runPricingForListing } from "@/lib/ai";
 import { buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
 import {
   buildCategoryLabel,
-  buildDemoDescription,
-  buildDemoTitle,
   buildLocationLabel,
   buildSellerName,
-  getListingLanguage
+  isArabicText
 } from "@/lib/marketplace/demo-content";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { formatPrice } from "@/lib/marketplace/format";
@@ -43,10 +41,10 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   const conditionReport = buildConditionReport(listing);
   const ownerName = buildSellerName(listing.owner.id);
 
-  const title = buildDemoTitle(listing.id, listing.category.slug);
-  const description = buildDemoDescription(listing.id, listing.category.slug);
-  const contentLang = getListingLanguage(listing.id);
-  const contentDir = contentLang === "ar" ? "rtl" : "ltr";
+  const title = listing.title;
+  const description = listing.description;
+  const titleDir = isArabicText(title) ? "rtl" : "ltr";
+  const descriptionDir = isArabicText(description) ? "rtl" : "ltr";
 
   const locationLine = listing.location
     ? `${buildLocationLabel(listing.location.city, locale)}, ${buildLocationLabel(listing.location.governorate, locale, "governorate")}`
@@ -113,8 +111,8 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
         <div className="space-y-2">
           <ListingModeBadge mode={listing.mode} lang={locale} />
           <h1
-            dir={contentDir}
-            className={`break-words ${contentDir === "rtl" ? "text-right" : "text-left"} text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl`}
+            dir={titleDir}
+            className={`break-words ${titleDir === "rtl" ? "text-right" : "text-left"} text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl`}
           >
             {title}
           </h1>
@@ -154,7 +152,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
       <section className="space-y-4">
         <h2 className="text-xl font-bold tracking-tight text-white">{t.listingDetail.overview}</h2>
         <PremiumCard className="space-y-3 bg-[#171717]">
-          <p dir={contentDir} className={`text-sm text-white/80 ${contentDir === "rtl" ? "text-right" : "text-left"}`}>
+          <p dir={descriptionDir} className={`text-sm text-white/80 ${descriptionDir === "rtl" ? "text-right" : "text-left"}`}>
             {description}
           </p>
           <p className="text-xs text-white/50">
@@ -276,6 +274,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               <ListingCard
                 key={item.id}
                 id={item.id}
+                title={item.title}
                 mode={item.mode}
                 status={item.status}
                 visibility={item.visibility}

@@ -26,6 +26,7 @@ const createListingSchema = z.object({
   categorySlug: z.string().min(1),
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
   priceAmount: z.number().positive().nullable(),
+  city: z.string().trim(),
   photoCount: z.number().int().min(0).max(4),
   conditionMarks: z.array(
     z.object({
@@ -63,10 +64,17 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
   const coverImageUrl = buildCategoryImageUrl(data.categorySlug);
 
   const listing = await prisma.$transaction(async (tx) => {
+    // The wizard only collects a free-text city, not a separate governorate, so we
+    // duplicate the typed value into both fields rather than inventing a fake governorate.
+    const location = data.city
+      ? await tx.location.create({ data: { country: "Egypt", city: data.city, governorate: data.city } })
+      : null;
+
     const created = await tx.listing.create({
       data: {
         ownerId: session.userId,
         categoryId: category.id,
+        locationId: location?.id,
         title: data.title,
         description: data.description,
         mode: data.mode as ListingMode,
@@ -76,8 +84,6 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
         currencyCode: data.priceAmount ? "EGP" : undefined,
         imageUrl: coverImageUrl,
         publishedAt: new Date()
-        // locationId intentionally omitted: the wizard only collects a free-text city,
-        // not enough to populate a real Location row (governorate is required) — approved.
       }
     });
 
