@@ -41,6 +41,8 @@ const COPY = {
     both: "Both",
     priceLabel: "Price per day (EGP)",
     pricePlaceholder: "e.g. 350",
+    swapPreferencesLabel: "What would you swap this for?",
+    swapPreferencesPlaceholder: "e.g. Gaming Console, Clothes",
     cityLabel: "City",
     cityPlaceholder: "e.g. Cairo",
     availabilityTitle: "Set availability",
@@ -75,6 +77,8 @@ const COPY = {
     both: "كلاهما",
     priceLabel: "السعر لليوم (جنيه)",
     pricePlaceholder: "مثال: 350",
+    swapPreferencesLabel: "بماذا تود استبداله؟",
+    swapPreferencesPlaceholder: "مثال: جهاز ألعاب، ملابس",
     cityLabel: "المدينة",
     cityPlaceholder: "مثال: القاهرة",
     availabilityTitle: "حدد التوفر",
@@ -108,6 +112,7 @@ export function AddListingWizard({
   const [mode, setMode] = useState<ListingMode>("RENT");
   const [price, setPrice] = useState("");
   const [city, setCity] = useState("");
+  const [swapPreferences, setSwapPreferences] = useState("");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [isPublishing, startPublishTransition] = useTransition();
@@ -122,6 +127,7 @@ export function AddListingWizard({
         mode,
         priceAmount: price ? Number(price) : null,
         city,
+        swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
         photoCount,
         conditionMarks: marks.map((mark) => ({ description: mark.description, severity: mark.severity })),
         blockedDates
@@ -312,6 +318,18 @@ export function AddListingWizard({
                   placeholder={copy.pricePlaceholder}
                 />
               </label>
+              {mode === "SWAP" || mode === "BOTH" ? (
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold text-white/60">{copy.swapPreferencesLabel}</span>
+                  <PremiumInput
+                    type="text"
+                    maxLength={200}
+                    value={swapPreferences}
+                    onChange={(event) => setSwapPreferences(event.target.value)}
+                    placeholder={copy.swapPreferencesPlaceholder}
+                  />
+                </label>
+              ) : null}
               <label className="block space-y-1.5">
                 <span className="text-xs font-semibold text-white/60">{copy.cityLabel}</span>
                 <PremiumInput

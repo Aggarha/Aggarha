@@ -159,6 +159,9 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             {buildCategoryLabel(listing.category.slug, listing.category.name, locale)} · {listing.minRentalDays ?? 1}–
             {listing.maxRentalDays ?? 30} {locale === "ar" ? "يوم" : "days"}
           </p>
+          {listing.mode !== "RENT" && listing.swapPreferences ? (
+            <p className="text-xs font-semibold text-[#ffb877]">{t.listingDetail.swapPreferences(listing.swapPreferences)}</p>
+          ) : null}
         </PremiumCard>
         <ConditionDamageReport report={conditionReport} listingTitle={title} />
       </section>

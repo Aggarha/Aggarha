@@ -27,6 +27,7 @@ const createListingSchema = z.object({
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
   priceAmount: z.number().positive().nullable(),
   city: z.string().trim(),
+  swapPreferences: z.string().trim().max(200).nullable(),
   photoCount: z.number().int().min(0).max(4),
   conditionMarks: z.array(
     z.object({
@@ -83,6 +84,7 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
         priceAmount: data.priceAmount ?? undefined,
         currencyCode: data.priceAmount ? "EGP" : undefined,
         imageUrl: coverImageUrl,
+        swapPreferences: data.swapPreferences || null,
         publishedAt: new Date()
       }
     });
