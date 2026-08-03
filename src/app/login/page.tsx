@@ -14,9 +14,13 @@ function safeNextPath(value: string | undefined): string {
 export default async function LoginPage({
   searchParams
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; reset?: string }>;
 }) {
-  const [{ locale }, session, { next }] = await Promise.all([getLocaleAndDictionary(), getOptionalSession(), searchParams]);
+  const [{ locale }, session, { next, reset }] = await Promise.all([
+    getLocaleAndDictionary(),
+    getOptionalSession(),
+    searchParams
+  ]);
 
   const nextPath = safeNextPath(next);
 
@@ -26,7 +30,7 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-12 sm:px-6 lg:px-8">
-      <AuthCard lang={locale} next={nextPath} />
+      <AuthCard lang={locale} next={nextPath} resetSuccess={reset === "success"} />
     </div>
   );
 }

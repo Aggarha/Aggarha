@@ -91,6 +91,8 @@ model User {
   email                       String?           @unique
   phone                       String?           @unique
   passwordHash                String?
+  resetToken                  String?           @unique
+  resetTokenExpiry            DateTime?
   role                        UserRole          @default(USER)
   verificationLevel           VerificationLevel @default(UNVERIFIED)
   emailVerifiedAt             DateTime?

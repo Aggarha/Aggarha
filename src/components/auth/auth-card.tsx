@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import type { Route } from "next";
+import Link from "next/link";
 import { loginAction, signupAction } from "@/lib/auth/actions";
 import { PremiumButton, PremiumCard, PremiumInput } from "@/components/premium/system";
 import type { Locale } from "@/lib/i18n/types";
@@ -31,7 +33,8 @@ const COPY = {
     eyebrow: "Welcome to Aggarha",
     loginTitle: "Log in to your account",
     signupTitle: "Create your account",
-    terms: "By continuing you agree to Aggarha's Terms and Privacy Policy."
+    terms: "By continuing you agree to Aggarha's Terms and Privacy Policy.",
+    resetSuccess: "Your password has been reset. Log in with your new password."
   },
   ar: {
     login: "تسجيل الدخول",
@@ -56,11 +59,12 @@ const COPY = {
     eyebrow: "أهلاً بك في اجّرها",
     loginTitle: "سجّل الدخول إلى حسابك",
     signupTitle: "أنشئ حسابك",
-    terms: "بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة باجّرها."
+    terms: "بالمتابعة، أنت توافق على شروط الاستخدام وسياسة الخصوصية الخاصة باجّرها.",
+    resetSuccess: "تم إعادة تعيين كلمة المرور. سجّل الدخول بكلمة المرور الجديدة."
   }
 };
 
-export function AuthCard({ lang = "en", next = "/" }: { lang?: Locale; next?: string }) {
+export function AuthCard({ lang = "en", next = "/", resetSuccess = false }: { lang?: Locale; next?: string; resetSuccess?: boolean }) {
   const [tab, setTab] = useState<AuthTab>("login");
   const isRtl = lang === "ar";
   const copy = COPY[lang];
@@ -81,6 +85,12 @@ export function AuthCard({ lang = "en", next = "/" }: { lang?: Locale; next?: st
             {tab === "login" ? copy.loginTitle : copy.signupTitle}
           </h1>
         </div>
+
+        {resetSuccess && tab === "login" ? (
+          <p className="rounded-2xl border border-[#ccff00]/30 bg-[#ccff00]/[0.06] p-3 text-center text-xs font-semibold text-[#eaff95]">
+            {copy.resetSuccess}
+          </p>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-1 rounded-2xl border border-white/[0.08] bg-[#101010] p-1">
           <button
@@ -132,9 +142,9 @@ export function AuthCard({ lang = "en", next = "/" }: { lang?: Locale; next?: st
 
           {tab === "login" ? (
             <div className="flex justify-end">
-              <a href="#" className="text-xs font-semibold text-white/55 transition-colors hover:text-[#ccff00]">
+              <Link href={"/forgot-password" as Route} className="text-xs font-semibold text-white/55 transition-colors hover:text-[#ccff00]">
                 {copy.forgotPassword}
-              </a>
+              </Link>
             </div>
           ) : null}
 
