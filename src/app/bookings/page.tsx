@@ -8,7 +8,9 @@ const bookingInclude = {
   listing: {
     select: { id: true, title: true, imageUrl: true, priceAmount: true, currencyCode: true, mode: true }
   },
-  offeredListings: { include: { listing: { select: { id: true, title: true } } } }
+  offeredListings: { include: { listing: { select: { id: true, title: true } } } },
+  owner: { select: { phone: true, email: true } },
+  requester: { select: { phone: true, email: true } }
 } as const;
 
 function serializeBooking(booking: {
@@ -19,6 +21,8 @@ function serializeBooking(booking: {
   totalDays: number | null;
   listing: { id: string; title: string; imageUrl: string | null; priceAmount: unknown; currencyCode: string | null; mode: string };
   offeredListings: { listing: { id: string; title: string } }[];
+  owner: { phone: string | null; email: string | null };
+  requester: { phone: string | null; email: string | null };
 }) {
   return {
     id: booking.id,
@@ -34,7 +38,9 @@ function serializeBooking(booking: {
       currencyCode: booking.listing.currencyCode ?? "EGP",
       mode: booking.listing.mode as "RENT" | "SWAP" | "BOTH"
     },
-    offeredListingTitles: booking.offeredListings.map((offer) => offer.listing.title)
+    offeredListingTitles: booking.offeredListings.map((offer) => offer.listing.title),
+    ownerContact: { phone: booking.owner.phone, email: booking.owner.email },
+    renterContact: { phone: booking.requester.phone, email: booking.requester.email }
   };
 }
 

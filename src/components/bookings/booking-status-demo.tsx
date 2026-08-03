@@ -27,6 +27,8 @@ export type BookingRecord = {
     mode: "RENT" | "SWAP" | "BOTH";
   };
   offeredListingTitles: string[];
+  ownerContact: { phone: string | null; email: string | null };
+  renterContact: { phone: string | null; email: string | null };
 };
 
 function uiStatusFor(booking: BookingRecord): BookingStatus | null {
@@ -134,6 +136,31 @@ function ListingSummary({ booking, lang = "en" }: { booking: BookingRecord; lang
         ) : null}
       </div>
     </div>
+  );
+}
+
+/**
+ * Contact details are only ever passed in for an ACCEPTED booking's counterparty
+ * (see /bookings' serializeBooking + the "accepted"-only render below) — revealing
+ * a phone/email before acceptance would let either side skip the platform entirely.
+ */
+function ContactLinks({ contact }: { contact: { phone: string | null; email: string | null } }) {
+  const linkClass =
+    "inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-white/10 bg-[#1b1b1b] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#202020] active:translate-y-0 active:scale-[0.97]";
+
+  return (
+    <>
+      {contact.phone ? (
+        <a href={`tel:${contact.phone}`} className={linkClass}>
+          {contact.phone}
+        </a>
+      ) : null}
+      {contact.email ? (
+        <a href={`mailto:${contact.email}`} className={linkClass}>
+          {contact.email}
+        </a>
+      ) : null}
+    </>
   );
 }
 
@@ -266,9 +293,7 @@ export function BookingStatusDemo({
                       <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
                         {copy.viewBooking}
                       </PremiumButton>
-                      <PremiumButton tone="ghost" type="button" disabled aria-disabled="true">
-                        {copy.messageOwner}
-                      </PremiumButton>
+                      <ContactLinks contact={current.ownerContact} />
                     </>
                   ) : null}
                   {status === "declined" ? (
@@ -317,9 +342,7 @@ export function BookingStatusDemo({
                       <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
                         {copy.viewBooking}
                       </PremiumButton>
-                      <PremiumButton tone="ghost" type="button" disabled aria-disabled="true">
-                        {copy.messageRenter}
-                      </PremiumButton>
+                      <ContactLinks contact={current.renterContact} />
                     </>
                   ) : null}
                   {status === "declined" ? (
