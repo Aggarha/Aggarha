@@ -6,7 +6,7 @@ import Image from "next/image";
 import { BookingStatusTimeline, type BookingStatus } from "@/components/bookings/booking-status-timeline";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { EmptyState, PremiumButton, PremiumCard } from "@/components/premium/system";
-import { cancelBookingAction, respondToBookingAction } from "@/lib/bookings/actions";
+import { cancelBookingAction, completeBookingAction, respondToBookingAction } from "@/lib/bookings/actions";
 import { formatPrice } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -32,6 +32,7 @@ export type BookingRecord = {
 function uiStatusFor(booking: BookingRecord): BookingStatus | null {
   if (booking.status === "REQUESTED") return "pending";
   if (booking.status === "APPROVED") return "accepted";
+  if (booking.status === "COMPLETED") return "completed";
   if (booking.status === "REJECTED") return "declined";
   return null;
 }
@@ -40,9 +41,21 @@ const COPY = {
   en: {
     renterView: "Renter view",
     ownerView: "Owner view",
-    tabs: { pending: "Pending", accepted: "Accepted", declined: "Declined" } as Record<BookingStatus, string>,
-    timeline: { requestSent: "Request sent", reviewing: "Owner reviewing", accepted: "Accepted", declined: "Declined" },
-    timelineOwner: { requestSent: "Request received", reviewing: "Reviewing", accepted: "Accepted", declined: "Declined" },
+    tabs: { pending: "Pending", accepted: "Accepted", completed: "Completed", declined: "Declined" } as Record<BookingStatus, string>,
+    timeline: {
+      requestSent: "Request sent",
+      reviewing: "Owner reviewing",
+      accepted: "Accepted",
+      completed: "Completed",
+      declined: "Declined"
+    },
+    timelineOwner: {
+      requestSent: "Request received",
+      reviewing: "Reviewing",
+      accepted: "Accepted",
+      completed: "Completed",
+      declined: "Declined"
+    },
     pendingNote: "We'll notify you as soon as the owner responds.",
     pendingNoteOwner: "A new request just came in — review it below.",
     messageOwner: "Message owner",
@@ -53,6 +66,7 @@ const COPY = {
     viewBooking: "View booking details",
     browseSimilar: "Browse similar listings",
     sendNewRequest: "Send new request",
+    markCompleted: "Mark as completed",
     days: (n: number) => `${n} ${n === 1 ? "day" : "days"}`,
     swap: "Swap",
     offering: "Offering",
@@ -62,9 +76,21 @@ const COPY = {
   ar: {
     renterView: "عرض المستأجر",
     ownerView: "عرض المالك",
-    tabs: { pending: "قيد الانتظار", accepted: "مقبول", declined: "مرفوض" } as Record<BookingStatus, string>,
-    timeline: { requestSent: "تم إرسال الطلب", reviewing: "المالك يراجع", accepted: "مقبول", declined: "مرفوض" },
-    timelineOwner: { requestSent: "تم استلام الطلب", reviewing: "قيد المراجعة", accepted: "مقبول", declined: "مرفوض" },
+    tabs: { pending: "قيد الانتظار", accepted: "مقبول", completed: "مكتمل", declined: "مرفوض" } as Record<BookingStatus, string>,
+    timeline: {
+      requestSent: "تم إرسال الطلب",
+      reviewing: "المالك يراجع",
+      accepted: "مقبول",
+      completed: "مكتمل",
+      declined: "مرفوض"
+    },
+    timelineOwner: {
+      requestSent: "تم استلام الطلب",
+      reviewing: "قيد المراجعة",
+      accepted: "مقبول",
+      completed: "مكتمل",
+      declined: "مرفوض"
+    },
     pendingNote: "سنخبرك فور رد المالك.",
     pendingNoteOwner: "وصل طلب جديد — راجعه أدناه.",
     messageOwner: "مراسلة المالك",
@@ -75,6 +101,7 @@ const COPY = {
     viewBooking: "عرض تفاصيل الحجز",
     browseSimilar: "تصفح إعلانات مشابهة",
     sendNewRequest: "إرسال طلب جديد",
+    markCompleted: "وضع علامة كمكتمل",
     days: (n: number) => `${n} ${n === 1 ? "يوم" : "أيام"}`,
     swap: "تبادل",
     offering: "العرض",
@@ -126,11 +153,11 @@ export function BookingStatusDemo({
   const router = useRouter();
   const isRtl = lang === "ar";
   const copy = COPY[lang];
-  const statuses: BookingStatus[] = ["pending", "accepted", "declined"];
+  const statuses: BookingStatus[] = ["pending", "accepted", "completed", "declined"];
   const timelineCopy = view === "renter" ? copy.timeline : copy.timelineOwner;
 
   const bookings = view === "renter" ? renterBookings : ownerBookings;
-  const grouped: Record<BookingStatus, BookingRecord[]> = { pending: [], accepted: [], declined: [] };
+  const grouped: Record<BookingStatus, BookingRecord[]> = { pending: [], accepted: [], completed: [], declined: [] };
   for (const booking of bookings) {
     const uiStatus = uiStatusFor(booking);
     if (uiStatus) {
@@ -228,10 +255,18 @@ export function BookingStatusDemo({
                   ) : null}
                   {status === "accepted" ? (
                     <>
-                      <PremiumButton tone="primary" type="button" disabled aria-disabled="true">
-                        {copy.viewBooking}
+                      <PremiumButton
+                        tone="primary"
+                        type="button"
+                        disabled={isActionPending}
+                        onClick={() => runAction(() => completeBookingAction({ bookingId: current.id }), "completed")}
+                      >
+                        {copy.markCompleted}
                       </PremiumButton>
                       <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
+                        {copy.viewBooking}
+                      </PremiumButton>
+                      <PremiumButton tone="ghost" type="button" disabled aria-disabled="true">
                         {copy.messageOwner}
                       </PremiumButton>
                     </>
@@ -271,10 +306,18 @@ export function BookingStatusDemo({
                   ) : null}
                   {status === "accepted" ? (
                     <>
-                      <PremiumButton tone="primary" type="button" disabled aria-disabled="true">
-                        {copy.viewBooking}
+                      <PremiumButton
+                        tone="primary"
+                        type="button"
+                        disabled={isActionPending}
+                        onClick={() => runAction(() => completeBookingAction({ bookingId: current.id }), "completed")}
+                      >
+                        {copy.markCompleted}
                       </PremiumButton>
                       <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
+                        {copy.viewBooking}
+                      </PremiumButton>
+                      <PremiumButton tone="ghost" type="button" disabled aria-disabled="true">
                         {copy.messageRenter}
                       </PremiumButton>
                     </>

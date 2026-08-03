@@ -1,9 +1,10 @@
-export type BookingStatus = "pending" | "accepted" | "declined";
+export type BookingStatus = "pending" | "accepted" | "completed" | "declined";
 
 type TimelineStrings = {
   requestSent: string;
   reviewing: string;
   accepted: string;
+  completed: string;
   declined: string;
 };
 
@@ -24,19 +25,23 @@ function CrossIcon() {
 }
 
 export function BookingStatusTimeline({ status, t }: { status: BookingStatus; t: TimelineStrings }) {
-  const finalLabel = status === "declined" ? t.declined : t.accepted;
-  const finalDone = status === "accepted" || status === "declined";
-  const finalIsNegative = status === "declined";
-
-  const steps = [
-    { label: t.requestSent, done: true, active: false },
-    {
-      label: t.reviewing,
-      done: status === "accepted" || status === "declined",
-      active: status === "pending"
-    },
-    { label: finalLabel, done: finalDone, active: false, negative: finalIsNegative }
-  ];
+  const steps =
+    status === "declined"
+      ? [
+          { label: t.requestSent, done: true, active: false },
+          { label: t.reviewing, done: true, active: false },
+          { label: t.declined, done: true, active: false, negative: true }
+        ]
+      : [
+          { label: t.requestSent, done: true, active: false },
+          {
+            label: t.reviewing,
+            done: status === "accepted" || status === "completed",
+            active: status === "pending"
+          },
+          { label: t.accepted, done: status === "accepted" || status === "completed", active: false },
+          { label: t.completed, done: status === "completed", active: status === "accepted" }
+        ];
 
   return (
     <ol className="space-y-0">

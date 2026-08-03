@@ -19,7 +19,8 @@ const ERRORS = {
     noOfferedListings: "Select at least one listing to offer.",
     notFound: "Request not found.",
     notAuthorized: "You're not allowed to do that.",
-    notPending: "This request has already been responded to."
+    notPending: "This request has already been responded to.",
+    notApproved: "This booking hasn't been accepted yet."
   },
   ar: {
     invalidInput: "يرجى ملء الحقول المطلوبة.",
@@ -30,7 +31,8 @@ const ERRORS = {
     noOfferedListings: "اختر إعلاناً واحداً على الأقل لعرضه.",
     notFound: "الطلب غير موجود.",
     notAuthorized: "غير مسموح لك بذلك.",
-    notPending: "تم الرد على هذا الطلب بالفعل."
+    notPending: "تم الرد على هذا الطلب بالفعل.",
+    notApproved: "لم يتم قبول هذا الحجز بعد."
   }
 };
 
@@ -154,13 +156,27 @@ export async function respondToBookingAction(input: {
     return { error: copy.notPending };
   }
 
-  await prisma.booking.update({
-    where: { id: booking.id },
-    data:
-      input.decision === "APPROVE"
-        ? { status: PrismaBookingStatus.APPROVED, approvedAt: new Date() }
-        : { status: PrismaBookingStatus.REJECTED, rejectedAt: new Date() }
-  });
+  if (input.decision === "APPROVE") {
+    await prisma.$transaction([
+      prisma.booking.update({
+        where: { id: booking.id },
+        data: { status: PrismaBookingStatus.APPROVED, approvedAt: new Date() }
+      }),
+      prisma.deal.create({
+        data: {
+          listingId: booking.listingId,
+          initiatorId: booking.requesterId,
+          ownerId: booking.ownerId,
+          renterId: booking.requesterId
+        }
+      })
+    ]);
+  } else {
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: PrismaBookingStatus.REJECTED, rejectedAt: new Date() }
+    });
+  }
 
   revalidatePath("/bookings");
   return { ok: true };
@@ -182,6 +198,51 @@ export async function cancelBookingAction(input: { bookingId: string }): Promise
     where: { id: booking.id },
     data: { status: PrismaBookingStatus.CANCELED, canceledAt: new Date() }
   });
+
+  revalidatePath("/bookings");
+  return { ok: true };
+}
+
+export async function completeBookingAction(input: { bookingId: string }): Promise<BookingActionResult> {
+  const [session, locale] = await Promise.all([requireSession(), getLocale()]);
+  const copy = ERRORS[locale];
+
+  const booking = await prisma.booking.findUnique({ where: { id: input.bookingId } });
+  if (!booking) {
+    return { error: copy.notFound };
+  }
+  if (booking.requesterId !== session.userId && booking.ownerId !== session.userId) {
+    return { error: copy.notAuthorized };
+  }
+  if (booking.status !== PrismaBookingStatus.APPROVED) {
+    return { error: copy.notApproved };
+  }
+
+  const deal = await prisma.deal.findFirst({
+    where: {
+      listingId: booking.listingId,
+      ownerId: booking.ownerId,
+      renterId: booking.requesterId,
+      status: "PENDING"
+    },
+    orderBy: { initiatedAt: "desc" }
+  });
+
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: PrismaBookingStatus.COMPLETED, completedAt: now }
+    }),
+    ...(deal
+      ? [
+          prisma.deal.update({
+            where: { id: deal.id },
+            data: { status: "COMPLETED", completedAt: now }
+          })
+        ]
+      : [])
+  ]);
 
   revalidatePath("/bookings");
   return { ok: true };
