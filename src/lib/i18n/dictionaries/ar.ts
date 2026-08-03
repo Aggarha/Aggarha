@@ -86,7 +86,8 @@ const ar: Dictionary = {
     overallRating: "التقييم العام",
     reviewsCount: (count) => `${count} تقييم`,
     noListingsTitle: "لا توجد إعلانات بلايستيشن بعد",
-    message: "مراسلة"
+    message: "مراسلة",
+    swapPreferences: (value) => `يرغب في استبداله بـ: ${value}`
   },
   nearby: {
     title: "بالقرب منك",

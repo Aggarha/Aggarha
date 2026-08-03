@@ -84,7 +84,8 @@ const en = {
     overallRating: "Overall Rating",
     reviewsCount: (count: number) => `${count} reviews`,
     noListingsTitle: "No PlayStation listings yet",
-    message: "Message"
+    message: "Message",
+    swapPreferences: (value: string) => `Looking to swap for: ${value}`
   },
   nearby: {
     title: "Near You",

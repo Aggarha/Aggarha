@@ -91,6 +91,8 @@ model User {
   email                       String?           @unique
   phone                       String?           @unique
   passwordHash                String?
+  resetToken                  String?           @unique
+  resetTokenExpiry            DateTime?
   role                        UserRole          @default(USER)
   verificationLevel           VerificationLevel @default(UNVERIFIED)
   emailVerifiedAt             DateTime?
@@ -218,6 +220,7 @@ model Listing {
   expiresAt           DateTime?
   viewCount           Int                @default(0)
   imageUrl            String?
+  swapPreferences     String?            @db.VarChar(200)
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
