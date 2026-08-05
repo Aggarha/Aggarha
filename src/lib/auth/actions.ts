@@ -9,6 +9,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession, revokeSession, setSessionCookie, clearSessionCookie, getOptionalSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { env } from "@/lib/env";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export type AuthActionState = { error?: string } | undefined;
 
@@ -24,7 +25,8 @@ const ERRORS = {
     accountNotFound: "No account found with that email or phone.",
     googleOnlyAccount: "This account uses Google sign-in — there's no password to reset.",
     resetTokenInvalid: "This reset link is invalid or has expired. Request a new one.",
-    genericResetMessage: "If an account exists with that email or phone, you'll receive a reset link shortly."
+    genericResetMessage: "If an account exists with that email or phone, you'll receive a reset link shortly.",
+    tooManyAttempts: "Too many attempts. Please try again in a few minutes."
   },
   ar: {
     invalidInput: "يرجى ملء جميع الحقول بشكل صحيح.",
@@ -35,7 +37,8 @@ const ERRORS = {
     accountNotFound: "لا يوجد حساب بهذا البريد الإلكتروني أو رقم الهاتف.",
     googleOnlyAccount: "هذا الحساب يستخدم تسجيل الدخول عبر جوجل — لا توجد كلمة مرور لإعادة تعيينها.",
     resetTokenInvalid: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا.",
-    genericResetMessage: "إذا كان هناك حساب بهذا البريد الإلكتروني أو رقم الهاتف، ستصلك رسالة تحتوي على رابط إعادة التعيين قريبًا."
+    genericResetMessage: "إذا كان هناك حساب بهذا البريد الإلكتروني أو رقم الهاتف، ستصلك رسالة تحتوي على رابط إعادة التعيين قريبًا.",
+    tooManyAttempts: "محاولات كثيرة جدًا. يرجى المحاولة مرة أخرى بعد دقائق قليلة."
   }
 };
 
@@ -95,6 +98,11 @@ export async function loginAction(_prevState: AuthActionState, formData: FormDat
   const locale = await getLocale();
   const copy = ERRORS[locale];
 
+  const { limited } = await checkRateLimit({ route: "login", limit: 5, windowMinutes: 15 });
+  if (limited) {
+    return { error: copy.tooManyAttempts };
+  }
+
   const parsed = loginSchema.safeParse({
     identifier: formData.get("identifier"),
     password: formData.get("password")
@@ -121,6 +129,11 @@ export async function loginAction(_prevState: AuthActionState, formData: FormDat
 export async function signupAction(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const locale = await getLocale();
   const copy = ERRORS[locale];
+
+  const { limited } = await checkRateLimit({ route: "signup", limit: 10, windowMinutes: 15 });
+  if (limited) {
+    return { error: copy.tooManyAttempts };
+  }
 
   const parsed = signupSchema.safeParse({
     name: formData.get("name"),
@@ -203,6 +216,11 @@ export async function requestPasswordResetAction(
   const locale = await getLocale();
   const copy = ERRORS[locale];
   const isDemoMode = env.NODE_ENV !== "production";
+
+  const { limited } = await checkRateLimit({ route: "password-reset", limit: 5, windowMinutes: 15 });
+  if (limited) {
+    return { error: copy.tooManyAttempts };
+  }
 
   const parsed = requestResetSchema.safeParse({ identifier: formData.get("identifier") });
   if (!parsed.success) {
