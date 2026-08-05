@@ -23,7 +23,8 @@ const ERRORS = {
     accountExists: "An account with this email or phone already exists.",
     accountNotFound: "No account found with that email or phone.",
     googleOnlyAccount: "This account uses Google sign-in — there's no password to reset.",
-    resetTokenInvalid: "This reset link is invalid or has expired. Request a new one."
+    resetTokenInvalid: "This reset link is invalid or has expired. Request a new one.",
+    genericResetMessage: "If an account exists with that email or phone, you'll receive a reset link shortly."
   },
   ar: {
     invalidInput: "يرجى ملء جميع الحقول بشكل صحيح.",
@@ -33,7 +34,8 @@ const ERRORS = {
     accountExists: "يوجد حساب بالفعل بهذا البريد الإلكتروني أو رقم الهاتف.",
     accountNotFound: "لا يوجد حساب بهذا البريد الإلكتروني أو رقم الهاتف.",
     googleOnlyAccount: "هذا الحساب يستخدم تسجيل الدخول عبر جوجل — لا توجد كلمة مرور لإعادة تعيينها.",
-    resetTokenInvalid: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا."
+    resetTokenInvalid: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا.",
+    genericResetMessage: "إذا كان هناك حساب بهذا البريد الإلكتروني أو رقم الهاتف، ستصلك رسالة تحتوي على رابط إعادة التعيين قريبًا."
   }
 };
 
@@ -179,12 +181,20 @@ export async function logoutAction(): Promise<void> {
   redirect("/login");
 }
 
-export type RequestResetState = { error?: string; resetLink?: string } | undefined;
+export type RequestResetState = { error?: string; resetLink?: string; message?: string } | undefined;
 
 /**
- * Demo-mode: returns the reset link directly instead of emailing it, since there's
- * no email provider wired up yet. Swap the return/log for a real send once one is —
- * the token/expiry storage and resetPasswordAction below don't need to change.
+ * Demo-mode (NODE_ENV !== "production", e.g. local dev / review-preview) returns the
+ * reset link directly instead of emailing it, since there's no email provider wired up
+ * yet — this is what makes the flow testable end-to-end today.
+ *
+ * In production, that raw link is never returned to the client: whoever requests a
+ * reset always sees the same generic message, whether or not the account exists, is
+ * Google-only, or anything else — differentiating any of those would let an attacker
+ * enumerate real accounts by email/phone. The link is still generated and stored, and
+ * still logged server-side only (pm2 logs), so it can be relayed manually for now.
+ * Swap the console.log for a real send once an email provider is wired up — nothing
+ * else here needs to change.
  */
 export async function requestPasswordResetAction(
   _prevState: RequestResetState,
@@ -192,6 +202,7 @@ export async function requestPasswordResetAction(
 ): Promise<RequestResetState> {
   const locale = await getLocale();
   const copy = ERRORS[locale];
+  const isDemoMode = env.NODE_ENV !== "production";
 
   const parsed = requestResetSchema.safeParse({ identifier: formData.get("identifier") });
   if (!parsed.success) {
@@ -203,14 +214,11 @@ export async function requestPasswordResetAction(
     where: isEmail(identifier) ? { email: identifier } : { phone: identifier }
   });
 
-  if (!user) {
-    return { error: copy.accountNotFound };
-  }
-
-  // TODO: once Google sign-in ships, accounts created via OAuth will also have a
-  // null passwordHash — this message is already correct for that case, no change needed.
-  if (!user.passwordHash) {
-    return { error: copy.googleOnlyAccount };
+  if (!user || !user.passwordHash) {
+    if (isDemoMode) {
+      return { error: user ? copy.googleOnlyAccount : copy.accountNotFound };
+    }
+    return { message: copy.genericResetMessage };
   }
 
   const resetToken = crypto.randomBytes(32).toString("hex");
@@ -222,9 +230,9 @@ export async function requestPasswordResetAction(
   });
 
   const resetLink = `${env.APP_URL}/reset-password?token=${resetToken}`;
-  console.log(`[demo-mode] password reset link for ${identifier}: ${resetLink}`);
+  console.log(`[${isDemoMode ? "demo-mode" : "production"}] password reset link for ${identifier}: ${resetLink}`);
 
-  return { resetLink };
+  return isDemoMode ? { resetLink } : { message: copy.genericResetMessage };
 }
 
 export async function resetPasswordAction(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
