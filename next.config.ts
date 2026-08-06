@@ -15,7 +15,8 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  typedRoutes: true
+  typedRoutes: true,
+  agentRules: false
 };
 
 export default withPWA(nextConfig);
