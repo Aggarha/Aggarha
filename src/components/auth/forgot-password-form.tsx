@@ -67,6 +67,12 @@ export function ForgotPasswordForm({ lang = "en" }: { lang?: Locale }) {
           </div>
         ) : null}
 
+        {state?.message ? (
+          <p className="rounded-2xl border border-[#ccff00]/30 bg-[#ccff00]/[0.06] p-3 text-center text-xs font-semibold text-[#eaff95]">
+            {state.message}
+          </p>
+        ) : null}
+
         <p className="text-center text-xs text-white/50">
           <Link href="/login" className="font-semibold text-[#ccff00] hover:text-[#deff57]">
             {copy.backToLogin}
