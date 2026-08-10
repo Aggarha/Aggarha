@@ -329,6 +329,7 @@ model Booking {
   requester          User                    @relation("BookingRequester", fields: [requesterId], references: [id])
   owner              User                    @relation("BookingOwner", fields: [ownerId], references: [id])
   offeredListings    BookingOfferedListing[]
+  deal               Deal?
 
   @@index([listingId, status])
   @@index([requesterId, startDate])
@@ -348,6 +349,7 @@ model BookingOfferedListing {
 
 model Deal {
   id                String      @id @default(cuid())
+  bookingId         String?     @unique
   listingId         String
   initiatorId       String
   ownerId           String
@@ -363,6 +365,7 @@ model Deal {
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
+  booking           Booking?    @relation(fields: [bookingId], references: [id])
   listing           Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
   initiator         User        @relation("DealInitiator", fields: [initiatorId], references: [id])
   owner             User        @relation("DealOwner", fields: [ownerId], references: [id])

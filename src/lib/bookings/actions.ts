@@ -164,6 +164,7 @@ export async function respondToBookingAction(input: {
       }),
       prisma.deal.create({
         data: {
+          bookingId: booking.id,
           listingId: booking.listingId,
           initiatorId: booking.requesterId,
           ownerId: booking.ownerId,
@@ -218,15 +219,7 @@ export async function completeBookingAction(input: { bookingId: string }): Promi
     return { error: copy.notApproved };
   }
 
-  const deal = await prisma.deal.findFirst({
-    where: {
-      listingId: booking.listingId,
-      ownerId: booking.ownerId,
-      renterId: booking.requesterId,
-      status: "PENDING"
-    },
-    orderBy: { initiatedAt: "desc" }
-  });
+  const deal = await prisma.deal.findUnique({ where: { bookingId: booking.id } });
 
   const now = new Date();
   await prisma.$transaction([

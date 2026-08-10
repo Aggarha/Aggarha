@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { BookingStatusTimeline, type BookingStatus } from "@/components/bookings/booking-status-timeline";
+import { ReviewForm } from "@/components/bookings/review-form";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { EmptyState, PremiumButton, PremiumCard } from "@/components/premium/system";
 import { cancelBookingAction, completeBookingAction, respondToBookingAction } from "@/lib/bookings/actions";
@@ -29,6 +30,7 @@ export type BookingRecord = {
   offeredListingTitles: string[];
   ownerContact: { phone: string | null; email: string | null };
   renterContact: { phone: string | null; email: string | null };
+  alreadyReviewed: boolean;
 };
 
 function uiStatusFor(booking: BookingRecord): BookingStatus | null {
@@ -296,6 +298,9 @@ export function BookingStatusDemo({
                       <ContactLinks contact={current.ownerContact} />
                     </>
                   ) : null}
+                  {status === "completed" ? (
+                    <ReviewForm bookingId={current.id} alreadyReviewed={current.alreadyReviewed} lang={lang} />
+                  ) : null}
                   {status === "declined" ? (
                     <>
                       <PremiumButton tone="primary" type="button" disabled aria-disabled="true">
@@ -344,6 +349,9 @@ export function BookingStatusDemo({
                       </PremiumButton>
                       <ContactLinks contact={current.renterContact} />
                     </>
+                  ) : null}
+                  {status === "completed" ? (
+                    <ReviewForm bookingId={current.id} alreadyReviewed={current.alreadyReviewed} lang={lang} />
                   ) : null}
                   {status === "declined" ? (
                     <PremiumButton tone="secondary" type="button" disabled aria-disabled="true">
