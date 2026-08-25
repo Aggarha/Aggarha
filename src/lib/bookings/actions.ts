@@ -8,6 +8,7 @@ import { BookingStatus as PrismaBookingStatus, ListingMode } from "@prisma/clien
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
+import { sendBookingRequestedEmail, sendBookingApprovedEmail, sendBookingRejectedEmail } from "@/lib/email/send";
 
 const ERRORS = {
   en: {
@@ -89,7 +90,7 @@ export async function createBookingRequestAction(
     }
     const totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
 
-    await prisma.booking.create({
+    const created = await prisma.booking.create({
       data: {
         listingId: listing.id,
         requesterId: session.userId,
@@ -101,6 +102,7 @@ export async function createBookingRequestAction(
         requesterMessage: data.message || undefined
       }
     });
+    await sendBookingRequestedEmail(created.id);
   } else {
     if (!(listing.mode === ListingMode.SWAP || listing.mode === ListingMode.BOTH)) {
       return { error: copy.modeNotSupported };
@@ -116,8 +118,8 @@ export async function createBookingRequestAction(
       return { error: copy.invalidInput };
     }
 
-    await prisma.$transaction(async (tx) => {
-      const created = await tx.booking.create({
+    const created = await prisma.$transaction(async (tx) => {
+      const booking = await tx.booking.create({
         data: {
           listingId: listing.id,
           requesterId: session.userId,
@@ -127,9 +129,11 @@ export async function createBookingRequestAction(
         }
       });
       await tx.bookingOfferedListing.createMany({
-        data: (data.offeredListingIds ?? []).map((id) => ({ bookingId: created.id, listingId: id }))
+        data: (data.offeredListingIds ?? []).map((id) => ({ bookingId: booking.id, listingId: id }))
       });
+      return booking;
     });
+    await sendBookingRequestedEmail(created.id);
   }
 
   revalidatePath("/bookings");
@@ -172,11 +176,13 @@ export async function respondToBookingAction(input: {
         }
       })
     ]);
+    await sendBookingApprovedEmail(booking.id);
   } else {
     await prisma.booking.update({
       where: { id: booking.id },
       data: { status: PrismaBookingStatus.REJECTED, rejectedAt: new Date() }
     });
+    await sendBookingRejectedEmail(booking.id);
   }
 
   revalidatePath("/bookings");

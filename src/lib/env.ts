@@ -7,7 +7,9 @@ const envSchema = z.object({
   ADMIN_URL: z.string().url(),
   DATABASE_URL: z.string().min(1),
   AUTH_SECRET: z.string().min(16),
-  AUTH_SESSION_TTL_HOURS: z.coerce.number().int().positive().default(720)
+  AUTH_SESSION_TTL_HOURS: z.coerce.number().int().positive().default(720),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default("Aggarha <noreply@aggarha.com>")
 });
 
 export const env = envSchema.parse({
@@ -17,5 +19,7 @@ export const env = envSchema.parse({
   ADMIN_URL: process.env.ADMIN_URL,
   DATABASE_URL: process.env.DATABASE_URL,
   AUTH_SECRET: process.env.AUTH_SECRET,
-  AUTH_SESSION_TTL_HOURS: process.env.AUTH_SESSION_TTL_HOURS
+  AUTH_SESSION_TTL_HOURS: process.env.AUTH_SESSION_TTL_HOURS,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  EMAIL_FROM: process.env.EMAIL_FROM
 });
