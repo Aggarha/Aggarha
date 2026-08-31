@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import Image from "next/image";
 import { createBookingRequestAction } from "@/lib/bookings/actions";
+import { calculateTotalDays } from "@/lib/bookings/format";
 import { PremiumButton, PremiumCard, PremiumInput, PremiumTextarea } from "@/components/premium/system";
 import { formatPrice } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
@@ -15,7 +16,9 @@ const COPY = {
     messageLabel: "Message (optional)",
     messagePlaceholder: "Add a note for the owner...",
     send: "Send rental request",
-    sending: "Sending…"
+    sending: "Sending…",
+    total: (price: string, days: number) => `Total: ${price} for ${days} ${days === 1 ? "day" : "days"}`,
+    selectDatesPrompt: "Select a start and end date to see the total"
   },
   ar: {
     title: "طلب استئجار",
@@ -24,7 +27,9 @@ const COPY = {
     messageLabel: "رسالة (اختياري)",
     messagePlaceholder: "أضف ملاحظة للمالك...",
     send: "إرسال طلب الاستئجار",
-    sending: "جارٍ الإرسال…"
+    sending: "جارٍ الإرسال…",
+    total: (price: string, days: number) => `الإجمالي: ${price} مقابل ${days} ${days === 1 ? "يوم" : "أيام"}`,
+    selectDatesPrompt: "اختر تاريخ البدء والانتهاء لرؤية الإجمالي"
   }
 };
 
@@ -47,6 +52,19 @@ export function RentRequestForm({
   const copy = COPY[lang];
   const [state, formAction, pending] = useActionState(createBookingRequestAction, undefined);
   const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const totalDays = useMemo(() => {
+    if (!startDate || !endDate) {
+      return null;
+    }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (!(end.getTime() > start.getTime())) {
+      return null;
+    }
+    return calculateTotalDays(start, end);
+  }, [startDate, endDate]);
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto w-full max-w-2xl space-y-6">
@@ -79,9 +97,22 @@ export function RentRequestForm({
           </label>
           <label className="block space-y-1.5">
             <span className="text-xs font-semibold text-white/60">{copy.endDate}</span>
-            <PremiumInput type="date" name="endDate" required min={startDate || undefined} />
+            <PremiumInput
+              type="date"
+              name="endDate"
+              required
+              min={startDate || undefined}
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+            />
           </label>
         </div>
+
+        {totalDays && priceAmount ? (
+          <p className="text-sm font-bold text-[#ccff00]">{copy.total(formatPrice(priceAmount * totalDays, currencyCode, lang), totalDays)}</p>
+        ) : (
+          <p className="text-xs text-white/50">{copy.selectDatesPrompt}</p>
+        )}
 
         <label className="block space-y-1.5">
           <span className="text-xs font-semibold text-white/60">{copy.messageLabel}</span>
