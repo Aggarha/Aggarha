@@ -15,7 +15,12 @@ async function safeSend(subject: string, html: string, to: string | null): Promi
     return;
   }
   try {
-    await resend.emails.send({ from: env.EMAIL_FROM, to, subject, html });
+    const { data, error } = await resend.emails.send({ from: env.EMAIL_FROM, to, subject, html });
+    if (error) {
+      console.error(`[email] Resend rejected "${subject}"`, error);
+      return;
+    }
+    console.log(`[email] sent "${subject}" to ${to} (id: ${data?.id})`);
   } catch (err) {
     console.error(`[email] failed to send "${subject}"`, err);
   }
