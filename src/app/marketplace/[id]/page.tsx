@@ -92,7 +92,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             {gallery.slice(1).map((photo) => (
               <div
-                key={photo.angle}
+                key={photo.id}
                 className="group relative h-24 overflow-hidden rounded-xl border border-white/10 transition-colors duration-300 ease-[var(--ease-premium)] hover:border-white/25 sm:h-28"
               >
                 <Image

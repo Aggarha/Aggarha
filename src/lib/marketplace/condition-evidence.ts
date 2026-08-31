@@ -1,17 +1,13 @@
 /**
- * Frontend-only demo derivation for listing photo galleries and condition/damage
- * evidence. There is no schema support yet for multi-angle photos or condition
- * evidence (Listing only has a single `imageUrl` column) — see docs/DATABASE_ARCHITECTURE.md.
- * This module deterministically derives realistic-looking, per-listing-stable demo
- * data from the listing's own id, so the UI can be built and reviewed before the
- * real upload/storage feature exists.
+ * Listing photo galleries come from real `ListingPhoto` rows (uploaded via R2 —
+ * see src/lib/storage/r2.ts) now that Phase 0 image upload exists. Condition/damage
+ * evidence is still frontend-only demo derivation: `ListingConditionMark` has no
+ * photo-upload path yet, so this module keeps deterministically deriving
+ * realistic-looking, per-listing-stable demo defects from the listing's own id.
  */
 
-export type PhotoAngle = "main" | "front" | "back" | "left" | "right" | "closeup" | "accessories";
-
-export type ListingPhoto = {
-  angle: PhotoAngle;
-  label: string;
+export type ListingGalleryPhoto = {
+  id: string;
   url: string;
 };
 
@@ -42,17 +38,6 @@ export type ConditionBadge = {
   variant: ConditionBadgeVariant;
   label: string;
 };
-
-const ANGLE_LABELS: Record<Exclude<PhotoAngle, "main">, string> = {
-  front: "Front View",
-  back: "Back View",
-  left: "Left Side",
-  right: "Right Side",
-  closeup: "Close-up Detail",
-  accessories: "Included Accessories"
-};
-
-const ANGLE_ORDER: Array<Exclude<PhotoAngle, "main">> = ["front", "back", "left", "right", "closeup", "accessories"];
 
 const DEFECT_LABELS: Record<DefectType, string> = {
   scratch: "Scratch",
@@ -97,20 +82,18 @@ function hashSeed(input: string): number {
   return hash;
 }
 
-export function buildListingGallery(listing: { id: string; imageUrl: string | null }): ListingPhoto[] {
-  const main: ListingPhoto = {
-    angle: "main",
-    label: "Main Photo",
-    url: listing.imageUrl ?? `https://picsum.photos/seed/${listing.id}-main/1200/800`
-  };
+/** Real photos first (main photo pinned to the front), falling back to the listing's cover image for listings with no uploaded photos yet. */
+export function buildListingGallery(listing: {
+  imageUrl: string | null;
+  photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
+}): ListingGalleryPhoto[] {
+  if (listing.photos.length > 0) {
+    return [...listing.photos]
+      .sort((a, b) => (a.isMain === b.isMain ? a.sortOrder - b.sortOrder : a.isMain ? -1 : 1))
+      .map((photo) => ({ id: photo.id, url: photo.url }));
+  }
 
-  const angles = ANGLE_ORDER.map((angle) => ({
-    angle,
-    label: ANGLE_LABELS[angle],
-    url: `https://picsum.photos/seed/${listing.id}-${angle}/1200/800`
-  }));
-
-  return [main, ...angles];
+  return [{ id: "cover", url: listing.imageUrl ?? "/demo/products/generic.jpg" }];
 }
 
 export function buildConditionReport(listing: { id: string }): ConditionReport {

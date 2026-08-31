@@ -341,6 +341,9 @@ export async function getListingDetails(listingId: string) {
             include: { profile: true }
           }
         }
+      },
+      photos: {
+        orderBy: { sortOrder: "asc" }
       }
     }
   });
