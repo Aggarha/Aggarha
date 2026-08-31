@@ -254,6 +254,7 @@ model ListingPhoto {
   listingId  String
   url        String
   sortOrder  Int      @default(0)
+  isMain     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
