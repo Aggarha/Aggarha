@@ -9,7 +9,12 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(16),
   AUTH_SESSION_TTL_HOURS: z.coerce.number().int().positive().default(720),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default("Aggarha <noreply@aggarha.com>")
+  EMAIL_FROM: z.string().default("Aggarha <noreply@aggarha.com>"),
+  R2_ACCESS_KEY_ID: z.string().min(1),
+  R2_SECRET_ACCESS_KEY: z.string().min(1),
+  R2_ENDPOINT: z.string().url(),
+  R2_BUCKET_NAME: z.string().min(1),
+  R2_PUBLIC_URL: z.string().url()
 });
 
 export const env = envSchema.parse({
@@ -21,5 +26,10 @@ export const env = envSchema.parse({
   AUTH_SECRET: process.env.AUTH_SECRET,
   AUTH_SESSION_TTL_HOURS: process.env.AUTH_SESSION_TTL_HOURS,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
-  EMAIL_FROM: process.env.EMAIL_FROM
+  EMAIL_FROM: process.env.EMAIL_FROM,
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+  R2_ENDPOINT: process.env.R2_ENDPOINT,
+  R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
+  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL
 });
