@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { sendBookingRequestedEmail, sendBookingApprovedEmail, sendBookingRejectedEmail } from "@/lib/email/send";
+import { calculateTotalDays } from "@/lib/bookings/format";
 
 const ERRORS = {
   en: {
@@ -88,7 +89,7 @@ export async function createBookingRequestAction(
     if (!(endDate.getTime() > startDate.getTime())) {
       return { error: copy.invalidDates };
     }
-    const totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const totalDays = calculateTotalDays(startDate, endDate);
 
     const created = await prisma.booking.create({
       data: {
