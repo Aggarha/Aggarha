@@ -8,10 +8,22 @@ import { StepIndicator } from "@/components/listings/step-indicator";
 import { PremiumButton, PremiumCard, PremiumInput, PremiumSelect, PremiumTextarea } from "@/components/premium/system";
 import { createListingAction } from "@/lib/listings/actions";
 import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
+import { uploadListingPhoto } from "@/lib/listings/upload-client";
 import type { Locale } from "@/lib/i18n/types";
 
 type CategoryOption = { slug: string; name: string };
 type ListingMode = "RENT" | "SWAP" | "BOTH";
+
+type PhotoDraft = {
+  id: string;
+  previewUrl: string;
+  status: "uploading" | "done" | "error";
+  uploadedUrl: string | null;
+  errorMessage: string | null;
+  isMain: boolean;
+};
+
+const MAX_PHOTOS = 4;
 
 const COPY = {
   en: {
@@ -22,7 +34,16 @@ const COPY = {
     photosTitle: "Add photos",
     photosHint: "Add up to 4 photos. The first photo becomes the cover image.",
     slotAdd: "Add photo",
-    slotAdded: "Photo added",
+    uploadingLabel: "Uploading…",
+    mainBadgeLabel: "Main",
+    setMainLabel: "Set as main",
+    removeLabel: "Remove",
+    uploadErrors: {
+      invalid_type: "Unsupported file type",
+      too_large: "File is larger than 5MB",
+      presign_failed: "Could not start upload",
+      upload_failed: "Upload failed"
+    },
     conditionTitle: "Document condition",
     conditionHint: "Mark any scratches, dents, or missing parts so renters know exactly what to expect.",
     addMark: "+ Add another mark",
@@ -58,7 +79,16 @@ const COPY = {
     photosTitle: "أضف الصور",
     photosHint: "أضف حتى 4 صور. الصورة الأولى ستكون صورة الغلاف.",
     slotAdd: "إضافة صورة",
-    slotAdded: "تمت إضافة الصورة",
+    uploadingLabel: "جارٍ الرفع…",
+    mainBadgeLabel: "الرئيسية",
+    setMainLabel: "تعيين كرئيسية",
+    removeLabel: "إزالة",
+    uploadErrors: {
+      invalid_type: "نوع الملف غير مدعوم",
+      too_large: "حجم الملف أكبر من 5 ميجابايت",
+      presign_failed: "تعذر بدء الرفع",
+      upload_failed: "فشل الرفع"
+    },
     conditionTitle: "وثّق الحالة",
     conditionHint: "سجّل أي خدوش أو أضرار أو أجزاء ناقصة ليعرف المستأجر بالضبط ما يتوقعه.",
     addMark: "+ إضافة علامة أخرى",
@@ -92,6 +122,10 @@ function nextMarkId() {
   return `mark-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function nextPhotoId() {
+  return `photo-${Math.random().toString(36).slice(2, 9)}`;
+}
+
 export function AddListingWizard({
   categories,
   lang = "en"
@@ -103,7 +137,7 @@ export function AddListingWizard({
   const isRtl = lang === "ar";
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [photoSlots, setPhotoSlots] = useState<boolean[]>([false, false, false, false]);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
   const [skipDamage, setSkipDamage] = useState(false);
   const [marks, setMarks] = useState<ConditionMarkDraft[]>([]);
   const [title, setTitle] = useState("");
@@ -120,6 +154,9 @@ export function AddListingWizard({
   const handlePublish = () => {
     setPublishError(null);
     startPublishTransition(async () => {
+      const uploadedPhotos = photos.filter(
+        (photo): photo is PhotoDraft & { uploadedUrl: string } => photo.status === "done" && photo.uploadedUrl !== null
+      );
       const result = await createListingAction({
         title,
         description,
@@ -128,13 +165,69 @@ export function AddListingWizard({
         priceAmount: price ? Number(price) : null,
         city,
         swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
-        photoCount,
+        photos: uploadedPhotos.map((photo) => ({ url: photo.uploadedUrl, isMain: photo.isMain })),
         conditionMarks: marks.map((mark) => ({ description: mark.description, severity: mark.severity })),
         blockedDates
       });
       if ("error" in result) {
         setPublishError(result.error);
       }
+    });
+  };
+
+  const handleFilesSelected = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const files = Array.from(fileList).slice(0, MAX_PHOTOS - photos.length);
+
+    files.forEach((file) => {
+      const id = nextPhotoId();
+      const previewUrl = URL.createObjectURL(file);
+      setPhotos((current) => [
+        ...current,
+        { id, previewUrl, status: "uploading", uploadedUrl: null, errorMessage: null, isMain: current.length === 0 }
+      ]);
+
+      uploadListingPhoto(file).then((result) => {
+        if ("error" in result) {
+          setPhotos((current) =>
+            current.map((photo) =>
+              photo.id === id ? { ...photo, status: "error", errorMessage: copy.uploadErrors[result.error] } : photo
+            )
+          );
+          return;
+        }
+        setPhotos((current) =>
+          current.map((photo) => (photo.id === id ? { ...photo, status: "done", uploadedUrl: result.url } : photo))
+        );
+      });
+    });
+  };
+
+  const setMainPhoto = (id: string) => {
+    setPhotos((current) => current.map((photo) => ({ ...photo, isMain: photo.id === id })));
+  };
+
+  const removePhoto = (id: string) => {
+    setPhotos((current) => {
+      const wasMain = current.find((photo) => photo.id === id)?.isMain ?? false;
+      const remaining = current.filter((photo) => photo.id !== id);
+      if (wasMain && remaining.length > 0) {
+        remaining[0] = { ...remaining[0], isMain: true };
+      }
+      return remaining;
+    });
+  };
+
+  const movePhoto = (id: string, direction: -1 | 1) => {
+    setPhotos((current) => {
+      const index = current.findIndex((photo) => photo.id === id);
+      const targetIndex = index + direction;
+      if (index === -1 || targetIndex < 0 || targetIndex >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
     });
   };
 
@@ -151,7 +244,8 @@ export function AddListingWizard({
   const availabilityDates = blockedDates.map((iso) => ({ date: new Date(iso), status: "BLOCKED" as const }));
 
   const steps = copy.steps.map((label, index) => ({ key: `step-${index}`, label }));
-  const photoCount = photoSlots.filter(Boolean).length;
+  const photoCount = photos.length;
+  const hasUploadingPhoto = photos.some((photo) => photo.status === "uploading");
 
   const modeOptions: Array<{ value: ListingMode; label: string; activeClass: string }> = [
     { value: "RENT", label: copy.rent, activeClass: "border-[#ccff00]/45 bg-[#ccff00]/12 text-[#eaff95]" },
@@ -188,25 +282,82 @@ export function AddListingWizard({
                 <p className="mt-1 text-sm text-white/55">{copy.photosHint}</p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {photoSlots.map((added, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() =>
-                      setPhotoSlots((value) => value.map((slot, slotIndex) => (slotIndex === index ? !slot : slot)))
-                    }
-                    className={`flex h-28 flex-col items-center justify-center gap-1 rounded-2xl border text-xs font-semibold transition-all duration-200 ease-[var(--ease-premium)] ${
-                      added
-                        ? "border-[#ccff00]/40 bg-[#ccff00]/10 text-[#eaff95]"
-                        : "border-dashed border-white/15 bg-white/[0.02] text-white/45 hover:border-white/30 hover:text-white/70"
+                {photos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    className={`relative flex h-28 flex-col items-center justify-center overflow-hidden rounded-2xl border text-xs font-semibold transition-all duration-200 ease-[var(--ease-premium)] ${
+                      photo.status === "error"
+                        ? "border-[#ff9a8a]/40 bg-[#ff9a8a]/10 text-[#ff9a8a]"
+                        : "border-[#ccff00]/40 bg-[#ccff00]/10"
                     }`}
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                      {added ? <path d="M20 6 9 17l-5-5" /> : <path d="M12 5v14M5 12h14" />}
-                    </svg>
-                    {added ? copy.slotAdded : copy.slotAdd}
-                  </button>
+                    {photo.status === "error" ? (
+                      <>
+                        <span className="px-2 text-center">{photo.errorMessage}</span>
+                        <button type="button" onClick={() => removePhoto(photo.id)} className="mt-1 underline">
+                          {copy.removeLabel}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local blob: preview / freshly-uploaded R2 asset, not an optimizable static asset */}
+                        <img src={photo.previewUrl} alt="" className="h-full w-full object-cover" />
+                        {photo.status === "uploading" ? (
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-[11px] text-white">
+                            {copy.uploadingLabel}
+                          </span>
+                        ) : (
+                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/60 px-1.5 py-1">
+                            {photo.isMain ? (
+                              <span className="text-[10px] font-bold text-[#ccff00]">{copy.mainBadgeLabel}</span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setMainPhoto(photo.id)}
+                                className="text-[10px] text-white/70 hover:text-white"
+                              >
+                                {copy.setMainLabel}
+                              </button>
+                            )}
+                            <div className="flex items-center gap-1.5 text-white/70">
+                              {index > 0 ? (
+                                <button type="button" onClick={() => movePhoto(photo.id, -1)} className="hover:text-white">
+                                  ←
+                                </button>
+                              ) : null}
+                              {index < photos.length - 1 ? (
+                                <button type="button" onClick={() => movePhoto(photo.id, 1)} className="hover:text-white">
+                                  →
+                                </button>
+                              ) : null}
+                              <button type="button" onClick={() => removePhoto(photo.id)} className="hover:text-white">
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 ))}
+                {photos.length < MAX_PHOTOS ? (
+                  <label className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] text-xs font-semibold text-white/45 transition-all duration-200 ease-[var(--ease-premium)] hover:border-white/30 hover:text-white/70">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    {copy.slotAdd}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={(event) => {
+                        handleFilesSelected(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -361,7 +512,7 @@ export function AddListingWizard({
               {copy.back}
             </PremiumButton>
             {stepIndex === steps.length - 1 ? (
-              <PremiumButton type="button" tone="primary" onClick={handlePublish} disabled={isPublishing}>
+              <PremiumButton type="button" tone="primary" onClick={handlePublish} disabled={isPublishing || hasUploadingPhoto}>
                 {isPublishing ? copy.publishing : copy.publish}
               </PremiumButton>
             ) : (

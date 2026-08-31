@@ -44,3 +44,10 @@ export async function createPresignedUploadUrl(input: {
 export function buildPublicUrl(key: string): string {
   return `${env.R2_PUBLIC_URL}/${key}`;
 }
+
+const LISTING_PHOTO_URL_PREFIX = `${env.R2_PUBLIC_URL}/listings/photos/`;
+
+/** Guards against a client submitting an arbitrary external URL as a "listing photo" — only URLs this server itself issued a presigned upload for are accepted. */
+export function isOwnedListingPhotoUrl(url: string): boolean {
+  return url.startsWith(LISTING_PHOTO_URL_PREFIX);
+}
