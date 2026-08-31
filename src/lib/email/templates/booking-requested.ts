@@ -1,8 +1,9 @@
-import { emailLayout } from "@/lib/email/templates/layout";
+import { emailLayout, listingImageBlock, ctaButton } from "@/lib/email/templates/layout";
 import { escapeHtml } from "@/lib/email/escape";
 
 export function bookingRequestedEmail(params: {
   listingTitle: string;
+  listingImageUrl: string | null;
   requesterName: string;
   mode: "RENT" | "SWAP";
   startDate: Date | null;
@@ -24,11 +25,12 @@ export function bookingRequestedEmail(params: {
   return {
     subject: `New ${kind} request for "${params.listingTitle}"`,
     html: emailLayout(`
+      ${listingImageBlock(params.listingImageUrl, params.listingTitle)}
       <p>Hi,</p>
       <p><strong>${requesterName}</strong> sent you a ${kind} request for <strong>${listingTitle}</strong>.</p>
       ${dates}
       ${message}
-      <p><a href="${params.viewUrl}" style="color:#2563eb;">View request</a></p>
+      ${ctaButton(params.viewUrl, "View listing")}
     `)
   };
 }

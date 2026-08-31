@@ -1,8 +1,9 @@
-import { emailLayout } from "@/lib/email/templates/layout";
+import { emailLayout, listingImageBlock, ctaButton } from "@/lib/email/templates/layout";
 import { escapeHtml } from "@/lib/email/escape";
 
 export function bookingApprovedEmail(params: {
   listingTitle: string;
+  listingImageUrl: string | null;
   ownerName: string;
   viewUrl: string;
 }): { subject: string; html: string } {
@@ -11,9 +12,10 @@ export function bookingApprovedEmail(params: {
   return {
     subject: `Your request for "${params.listingTitle}" was accepted`,
     html: emailLayout(`
+      ${listingImageBlock(params.listingImageUrl, params.listingTitle)}
       <p>Good news!</p>
       <p><strong>${ownerName}</strong> accepted your request for <strong>${listingTitle}</strong>.</p>
-      <p><a href="${params.viewUrl}" style="color:#2563eb;">View booking</a></p>
+      ${ctaButton(params.viewUrl, "View listing")}
     `)
   };
 }

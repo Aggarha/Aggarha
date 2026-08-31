@@ -30,7 +30,7 @@ export async function sendBookingRequestedEmail(bookingId: string): Promise<void
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      listing: { select: { title: true } },
+      listing: { select: { id: true, title: true, imageUrl: true } },
       owner: { select: { email: true } },
       requester: { select: { profile: { select: { displayName: true } } } }
     }
@@ -39,12 +39,13 @@ export async function sendBookingRequestedEmail(bookingId: string): Promise<void
 
   const { subject, html } = bookingRequestedEmail({
     listingTitle: booking.listing.title,
+    listingImageUrl: booking.listing.imageUrl,
     requesterName: booking.requester.profile?.displayName ?? "A member",
     mode: booking.mode === "SWAP" ? "SWAP" : "RENT",
     startDate: booking.startDate,
     endDate: booking.endDate,
     message: booking.requesterMessage,
-    viewUrl: `${env.APP_URL}/bookings`
+    viewUrl: `${env.APP_URL}/marketplace/${booking.listing.id}`
   });
   await safeSend(subject, html, booking.owner.email);
 }
@@ -53,7 +54,7 @@ export async function sendBookingApprovedEmail(bookingId: string): Promise<void>
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      listing: { select: { title: true } },
+      listing: { select: { id: true, title: true, imageUrl: true } },
       requester: { select: { email: true } },
       owner: { select: { profile: { select: { displayName: true } } } }
     }
@@ -62,8 +63,9 @@ export async function sendBookingApprovedEmail(bookingId: string): Promise<void>
 
   const { subject, html } = bookingApprovedEmail({
     listingTitle: booking.listing.title,
+    listingImageUrl: booking.listing.imageUrl,
     ownerName: booking.owner.profile?.displayName ?? "The owner",
-    viewUrl: `${env.APP_URL}/bookings`
+    viewUrl: `${env.APP_URL}/marketplace/${booking.listing.id}`
   });
   await safeSend(subject, html, booking.requester.email);
 }
@@ -72,7 +74,7 @@ export async function sendBookingRejectedEmail(bookingId: string): Promise<void>
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      listing: { select: { title: true } },
+      listing: { select: { id: true, title: true, imageUrl: true } },
       requester: { select: { email: true } }
     }
   });
@@ -80,7 +82,8 @@ export async function sendBookingRejectedEmail(bookingId: string): Promise<void>
 
   const { subject, html } = bookingRejectedEmail({
     listingTitle: booking.listing.title,
-    viewUrl: `${env.APP_URL}/bookings`
+    listingImageUrl: booking.listing.imageUrl,
+    viewUrl: `${env.APP_URL}/marketplace/${booking.listing.id}`
   });
   await safeSend(subject, html, booking.requester.email);
 }
