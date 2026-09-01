@@ -246,6 +246,7 @@ export function AddListingWizard({
   const steps = copy.steps.map((label, index) => ({ key: `step-${index}`, label }));
   const photoCount = photos.length;
   const hasUploadingPhoto = photos.some((photo) => photo.status === "uploading");
+  const mainPhotoUrl = photos.find((photo) => photo.status === "done" && photo.isMain)?.uploadedUrl ?? null;
 
   const modeOptions: Array<{ value: ListingMode; label: string; activeClass: string }> = [
     { value: "RENT", label: copy.rent, activeClass: "border-[#ccff00]/45 bg-[#ccff00]/12 text-[#eaff95]" },
@@ -532,6 +533,7 @@ export function AddListingWizard({
             priceAmount={price ? Number(price) : null}
             city={city}
             photoCount={photoCount}
+            mainPhotoUrl={mainPhotoUrl}
             lang={lang}
           />
         </div>
