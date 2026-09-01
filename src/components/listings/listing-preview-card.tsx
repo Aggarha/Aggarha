@@ -16,6 +16,7 @@ export function ListingPreviewCard({
   priceAmount,
   city,
   photoCount,
+  mainPhotoUrl = null,
   lang = "en"
 }: {
   title: string;
@@ -24,11 +25,12 @@ export function ListingPreviewCard({
   priceAmount: number | null;
   city: string;
   photoCount: number;
+  mainPhotoUrl?: string | null;
   lang?: Locale;
 }) {
   const isRtl = lang === "ar";
   const copy = COPY[lang];
-  const image = categorySlug ? buildCategoryImageUrl(categorySlug) : buildCategoryImageUrl("");
+  const image = mainPhotoUrl ?? (categorySlug ? buildCategoryImageUrl(categorySlug) : buildCategoryImageUrl(""));
 
   return (
     <div
@@ -42,6 +44,7 @@ export function ListingPreviewCard({
           fill
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 25vw"
+          unoptimized={mainPhotoUrl !== null}
         />
         <div className="absolute right-3 top-3">
           <span className="inline-flex items-center rounded-full border border-white/15 bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white/70">

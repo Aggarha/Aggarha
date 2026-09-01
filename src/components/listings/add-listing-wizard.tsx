@@ -69,7 +69,8 @@ const COPY = {
     availabilityTitle: "Set availability",
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview",
-    publishing: "Publishing…"
+    publishing: "Publishing…",
+    waitForUploads: "Wait for photo uploads to finish before publishing."
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -114,7 +115,8 @@ const COPY = {
     availabilityTitle: "حدد التوفر",
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة",
-    publishing: "جارٍ النشر…"
+    publishing: "جارٍ النشر…",
+    waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر."
   }
 };
 
@@ -246,6 +248,7 @@ export function AddListingWizard({
   const steps = copy.steps.map((label, index) => ({ key: `step-${index}`, label }));
   const photoCount = photos.length;
   const hasUploadingPhoto = photos.some((photo) => photo.status === "uploading");
+  const mainPhotoUrl = photos.find((photo) => photo.status === "done" && photo.isMain)?.uploadedUrl ?? null;
 
   const modeOptions: Array<{ value: ListingMode; label: string; activeClass: string }> = [
     { value: "RENT", label: copy.rent, activeClass: "border-[#ccff00]/45 bg-[#ccff00]/12 text-[#eaff95]" },
@@ -503,6 +506,10 @@ export function AddListingWizard({
             </div>
           ) : null}
 
+          {stepIndex === steps.length - 1 && hasUploadingPhoto ? (
+            <p className="text-center text-xs font-semibold text-white/55">{copy.waitForUploads}</p>
+          ) : null}
+
           {stepIndex === steps.length - 1 && publishError ? (
             <p className="text-center text-xs font-semibold text-[#ff9a8a]">{publishError}</p>
           ) : null}
@@ -532,6 +539,7 @@ export function AddListingWizard({
             priceAmount={price ? Number(price) : null}
             city={city}
             photoCount={photoCount}
+            mainPhotoUrl={mainPhotoUrl}
             lang={lang}
           />
         </div>
