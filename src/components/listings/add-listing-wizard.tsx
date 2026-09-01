@@ -70,7 +70,10 @@ const COPY = {
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview",
     publishing: "Publishing…",
-    waitForUploads: "Wait for photo uploads to finish before publishing."
+    waitForUploads: "Wait for photo uploads to finish before publishing.",
+    optionalTag: "(Optional)",
+    titleRequiredError: "Title is required.",
+    categoryRequiredError: "Please select a category."
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -116,7 +119,10 @@ const COPY = {
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة",
     publishing: "جارٍ النشر…",
-    waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر."
+    waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر.",
+    optionalTag: "(اختياري)",
+    titleRequiredError: "العنوان مطلوب.",
+    categoryRequiredError: "يرجى اختيار فئة."
   }
 };
 
@@ -126,6 +132,14 @@ function nextMarkId() {
 
 function nextPhotoId() {
   return `photo-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function RequirementTag({ required, optionalLabel }: { required: boolean; optionalLabel: string }) {
+  return required ? (
+    <span className="ml-1 text-[#ff9a8a]">*</span>
+  ) : (
+    <span className="ml-1 font-normal text-white/35">{optionalLabel}</span>
+  );
 }
 
 export function AddListingWizard({
@@ -151,9 +165,19 @@ export function AddListingWizard({
   const [swapPreferences, setSwapPreferences] = useState("");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [detailsStepAttempted, setDetailsStepAttempted] = useState(false);
   const [isPublishing, startPublishTransition] = useTransition();
 
+  const titleError = title.trim() ? null : copy.titleRequiredError;
+  const categoryError = categorySlug ? null : copy.categoryRequiredError;
+  const hasDetailsErrors = Boolean(titleError || categoryError);
+
   const handlePublish = () => {
+    if (hasDetailsErrors) {
+      setDetailsStepAttempted(true);
+      setStepIndex(2);
+      return;
+    }
     setPublishError(null);
     startPublishTransition(async () => {
       const uploadedPhotos = photos.filter(
@@ -256,7 +280,13 @@ export function AddListingWizard({
     { value: "BOTH", label: copy.both, activeClass: "border-white/30 bg-white/15 text-white" }
   ];
 
-  const goNext = () => setStepIndex((value) => Math.min(value + 1, steps.length - 1));
+  const goNext = () => {
+    if (stepIndex === 2 && hasDetailsErrors) {
+      setDetailsStepAttempted(true);
+      return;
+    }
+    setStepIndex((value) => Math.min(value + 1, steps.length - 1));
+  };
   const goBack = () => setStepIndex((value) => Math.max(value - 1, 0));
 
   const addMark = () => {
@@ -281,7 +311,10 @@ export function AddListingWizard({
           {stepIndex === 0 ? (
             <div className="space-y-3">
               <div>
-                <h2 className="text-lg font-bold text-white">{copy.photosTitle}</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {copy.photosTitle}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.photosHint}</p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -368,7 +401,10 @@ export function AddListingWizard({
           {stepIndex === 1 ? (
             <div className="space-y-3">
               <div>
-                <h2 className="text-lg font-bold text-white">{copy.conditionTitle}</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {copy.conditionTitle}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.conditionHint}</p>
               </div>
 
@@ -411,16 +447,25 @@ export function AddListingWizard({
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-white">{copy.detailsTitle}</h2>
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">{copy.titleLabel}</span>
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.titleLabel}
+                  <RequirementTag required optionalLabel={copy.optionalTag} />
+                </span>
                 <PremiumInput
                   type="text"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder={copy.titlePlaceholder}
                 />
+                {detailsStepAttempted && titleError ? (
+                  <p className="text-xs font-semibold text-[#ff9a8a]">{titleError}</p>
+                ) : null}
               </label>
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">{copy.categoryLabel}</span>
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.categoryLabel}
+                  <RequirementTag required optionalLabel={copy.optionalTag} />
+                </span>
                 <PremiumSelect value={categorySlug} onChange={(event) => setCategorySlug(event.target.value)}>
                   <option value="">{copy.categoryPlaceholder}</option>
                   {categories.map((category) => (
@@ -429,9 +474,15 @@ export function AddListingWizard({
                     </option>
                   ))}
                 </PremiumSelect>
+                {detailsStepAttempted && categoryError ? (
+                  <p className="text-xs font-semibold text-[#ff9a8a]">{categoryError}</p>
+                ) : null}
               </label>
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">{copy.descriptionLabel}</span>
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.descriptionLabel}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </span>
                 <PremiumTextarea
                   rows={4}
                   value={description}
@@ -463,7 +514,10 @@ export function AddListingWizard({
                 </div>
               </div>
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">{copy.priceLabel}</span>
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.priceLabel}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </span>
                 <PremiumInput
                   type="number"
                   inputMode="numeric"
@@ -474,7 +528,10 @@ export function AddListingWizard({
               </label>
               {mode === "SWAP" || mode === "BOTH" ? (
                 <label className="block space-y-1.5">
-                  <span className="text-xs font-semibold text-white/60">{copy.swapPreferencesLabel}</span>
+                  <span className="text-xs font-semibold text-white/60">
+                    {copy.swapPreferencesLabel}
+                    <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                  </span>
                   <PremiumInput
                     type="text"
                     maxLength={200}
@@ -485,7 +542,10 @@ export function AddListingWizard({
                 </label>
               ) : null}
               <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">{copy.cityLabel}</span>
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.cityLabel}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </span>
                 <PremiumInput
                   type="text"
                   value={city}
@@ -499,7 +559,10 @@ export function AddListingWizard({
           {stepIndex === 4 ? (
             <div className="space-y-3">
               <div>
-                <h2 className="text-lg font-bold text-white">{copy.availabilityTitle}</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {copy.availabilityTitle}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.availabilityHint}</p>
               </div>
               <AvailabilityCalendar dates={availabilityDates} lang={lang} onToggle={toggleAvailability} />
