@@ -13,11 +13,13 @@ import { isOwnedListingPhotoUrl } from "@/lib/storage/r2";
 const ERRORS = {
   en: {
     invalidInput: "Please fill in the required fields before publishing.",
-    invalidCategory: "Select a valid category before publishing."
+    invalidCategory: "Select a valid category before publishing.",
+    unexpected: "Something went wrong while publishing. Please try again."
   },
   ar: {
     invalidInput: "يرجى ملء الحقول المطلوبة قبل النشر.",
-    invalidCategory: "اختر فئة صحيحة قبل النشر."
+    invalidCategory: "اختر فئة صحيحة قبل النشر.",
+    unexpected: "حدث خطأ أثناء النشر. يرجى المحاولة مرة أخرى."
   }
 };
 
@@ -77,64 +79,75 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
   const mainPhotoUrl = photoRows.find((photo) => photo.isMain)?.url ?? null;
   const coverImageUrl = mainPhotoUrl ?? buildCategoryImageUrl(data.categorySlug);
 
-  const listing = await prisma.$transaction(async (tx) => {
-    // The wizard only collects a free-text city, not a separate governorate, so we
-    // duplicate the typed value into both fields rather than inventing a fake governorate.
-    const location = data.city
-      ? await tx.location.create({ data: { country: "Egypt", city: data.city, governorate: data.city } })
-      : null;
+  let listingId: string;
+  try {
+    const listing = await prisma.$transaction(async (tx) => {
+      // The wizard only collects a free-text city, not a separate governorate, so we
+      // duplicate the typed value into both fields rather than inventing a fake governorate.
+      const location = data.city
+        ? await tx.location.create({ data: { country: "Egypt", city: data.city, governorate: data.city } })
+        : null;
 
-    const created = await tx.listing.create({
-      data: {
-        ownerId: session.userId,
-        categoryId: category.id,
-        locationId: location?.id,
-        title: data.title,
-        description: data.description,
-        mode: data.mode as ListingMode,
-        status: ListingStatus.PUBLISHED,
-        visibility: ListingVisibility.PUBLIC,
-        priceAmount: data.priceAmount ?? undefined,
-        currencyCode: data.priceAmount ? "EGP" : undefined,
-        imageUrl: coverImageUrl,
-        swapPreferences: data.swapPreferences || null,
-        publishedAt: new Date()
+      const created = await tx.listing.create({
+        data: {
+          ownerId: session.userId,
+          categoryId: category.id,
+          locationId: location?.id,
+          title: data.title,
+          description: data.description,
+          mode: data.mode as ListingMode,
+          status: ListingStatus.PUBLISHED,
+          visibility: ListingVisibility.PUBLIC,
+          priceAmount: data.priceAmount ?? undefined,
+          currencyCode: data.priceAmount ? "EGP" : undefined,
+          imageUrl: coverImageUrl,
+          swapPreferences: data.swapPreferences || null,
+          publishedAt: new Date()
+        }
+      });
+
+      if (photoRows.length > 0) {
+        await tx.listingPhoto.createMany({
+          data: photoRows.map((photo) => ({
+            listingId: created.id,
+            url: photo.url,
+            sortOrder: photo.sortOrder,
+            isMain: photo.isMain
+          }))
+        });
       }
+
+      if (data.conditionMarks.length > 0) {
+        await tx.listingConditionMark.createMany({
+          data: data.conditionMarks.map((mark) => ({
+            listingId: created.id,
+            description: mark.description,
+            severity: SEVERITY_MAP[mark.severity]
+          }))
+        });
+      }
+
+      if (data.blockedDates.length > 0) {
+        await tx.availabilityDate.createMany({
+          data: data.blockedDates.map((iso) => ({
+            listingId: created.id,
+            date: new Date(iso),
+            status: "BLOCKED"
+          }))
+        });
+      }
+
+      return created;
     });
+    listingId = listing.id;
+  } catch (error) {
+    // redirect() below throws Next's internal navigation signal — keeping it OUTSIDE this
+    // try/catch means we only ever catch real DB/transaction failures here, never swallow
+    // the redirect. Without this, an unexpected failure previously surfaced as nothing at
+    // all: no redirect, no error, no client-visible signal.
+    console.error("createListingAction: failed to create listing", error);
+    return { error: copy.unexpected };
+  }
 
-    if (photoRows.length > 0) {
-      await tx.listingPhoto.createMany({
-        data: photoRows.map((photo) => ({
-          listingId: created.id,
-          url: photo.url,
-          sortOrder: photo.sortOrder,
-          isMain: photo.isMain
-        }))
-      });
-    }
-
-    if (data.conditionMarks.length > 0) {
-      await tx.listingConditionMark.createMany({
-        data: data.conditionMarks.map((mark) => ({
-          listingId: created.id,
-          description: mark.description,
-          severity: SEVERITY_MAP[mark.severity]
-        }))
-      });
-    }
-
-    if (data.blockedDates.length > 0) {
-      await tx.availabilityDate.createMany({
-        data: data.blockedDates.map((iso) => ({
-          listingId: created.id,
-          date: new Date(iso),
-          status: "BLOCKED"
-        }))
-      });
-    }
-
-    return created;
-  });
-
-  redirect(`/marketplace/${listing.id}` as Route);
+  redirect(`/marketplace/${listingId}` as Route);
 }

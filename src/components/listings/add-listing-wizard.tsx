@@ -69,7 +69,8 @@ const COPY = {
     availabilityTitle: "Set availability",
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview",
-    publishing: "Publishing…"
+    publishing: "Publishing…",
+    waitForUploads: "Wait for photo uploads to finish before publishing."
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -114,7 +115,8 @@ const COPY = {
     availabilityTitle: "حدد التوفر",
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة",
-    publishing: "جارٍ النشر…"
+    publishing: "جارٍ النشر…",
+    waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر."
   }
 };
 
@@ -502,6 +504,10 @@ export function AddListingWizard({
               </div>
               <AvailabilityCalendar dates={availabilityDates} lang={lang} onToggle={toggleAvailability} />
             </div>
+          ) : null}
+
+          {stepIndex === steps.length - 1 && hasUploadingPhoto ? (
+            <p className="text-center text-xs font-semibold text-white/55">{copy.waitForUploads}</p>
           ) : null}
 
           {stepIndex === steps.length - 1 && publishError ? (
