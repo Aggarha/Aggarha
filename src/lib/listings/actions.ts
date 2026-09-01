@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { buildCategoryImageUrl } from "@/lib/marketplace/demo-content";
+import { isOwnedListingPhotoUrl } from "@/lib/storage/r2";
 
 const ERRORS = {
   en: {
@@ -28,7 +29,12 @@ const createListingSchema = z.object({
   priceAmount: z.number().positive().nullable(),
   city: z.string().trim(),
   swapPreferences: z.string().trim().max(200).nullable(),
-  photoCount: z.number().int().min(0).max(4),
+  photos: z
+    .array(z.object({ url: z.string().url(), isMain: z.boolean() }))
+    .max(4)
+    .refine((photos) => photos.every((photo) => isOwnedListingPhotoUrl(photo.url)), {
+      message: "Photo URLs must come from a completed upload."
+    }),
   conditionMarks: z.array(
     z.object({
       description: z.string(),
@@ -62,7 +68,14 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
     return { error: copy.invalidCategory };
   }
 
-  const coverImageUrl = buildCategoryImageUrl(data.categorySlug);
+  const hasExplicitMain = data.photos.some((photo) => photo.isMain);
+  const photoRows = data.photos.map((photo, index) => ({
+    url: photo.url,
+    sortOrder: index,
+    isMain: hasExplicitMain ? photo.isMain : index === 0
+  }));
+  const mainPhotoUrl = photoRows.find((photo) => photo.isMain)?.url ?? null;
+  const coverImageUrl = mainPhotoUrl ?? buildCategoryImageUrl(data.categorySlug);
 
   const listing = await prisma.$transaction(async (tx) => {
     // The wizard only collects a free-text city, not a separate governorate, so we
@@ -89,12 +102,13 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
       }
     });
 
-    if (data.photoCount > 0) {
+    if (photoRows.length > 0) {
       await tx.listingPhoto.createMany({
-        data: Array.from({ length: data.photoCount }, (_, index) => ({
+        data: photoRows.map((photo) => ({
           listingId: created.id,
-          url: coverImageUrl,
-          sortOrder: index
+          url: photo.url,
+          sortOrder: photo.sortOrder,
+          isMain: photo.isMain
         }))
       });
     }
