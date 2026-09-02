@@ -1,5 +1,7 @@
 import type { ListingMode } from "@prisma/client";
+import { buildConditionRating, buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
 import { buildSellerName } from "@/lib/marketplace/demo-content";
+import type { Locale } from "@/lib/i18n/types";
 
 type RawListing = {
   id: string;
@@ -56,5 +58,52 @@ export function listingCardData(listing: RawListing) {
     verificationLevel: listing.owner.verificationLevel,
     ownerName: buildSellerName(listing.owner.id),
     viewCount: listing.viewCount
+  };
+}
+
+type RawListingQuickView = {
+  id: string;
+  title: string;
+  mode: ListingMode;
+  imageUrl: string | null;
+  priceAmount: unknown;
+  currencyCode: string | null;
+  category: { slug: string; name: string };
+  owner: {
+    id: string;
+    verificationLevel: string;
+    profile?: { avatarUrl: string | null } | null;
+  };
+  location: { city: string; governorate: string; latitude: unknown; longitude: unknown } | null;
+  photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
+  _count: { favorites: number };
+};
+
+/** Shapes a listing for the half-sheet quick-view — real photos, a derived condition rating, and a compact seller identity, without the reviews/bookings/availability weight of the full detail page. */
+export function listingQuickViewData(listing: RawListingQuickView, lang: Locale) {
+  const conditionRating = buildConditionRating(buildConditionReport({ id: listing.id }), lang);
+
+  return {
+    id: listing.id,
+    title: listing.title,
+    mode: listing.mode,
+    categorySlug: listing.category.slug,
+    categoryName: listing.category.name,
+    photos: buildListingGallery(listing),
+    favoriteCount: listing._count.favorites,
+    city: listing.location?.city ?? null,
+    governorate: listing.location?.governorate ?? null,
+    latitude: listing.location?.latitude != null ? toNumber(listing.location.latitude) : null,
+    longitude: listing.location?.longitude != null ? toNumber(listing.location.longitude) : null,
+    conditionRating,
+    seller: {
+      id: listing.owner.id,
+      name: buildSellerName(listing.owner.id),
+      avatarUrl: listing.owner.profile?.avatarUrl ?? null,
+      verificationLevel: listing.owner.verificationLevel,
+      // Seller's general area — we don't track a separate profile location, and the
+      // reference app shows the same value for item location and seller location.
+      location: listing.location?.city ?? null
+    }
   };
 }

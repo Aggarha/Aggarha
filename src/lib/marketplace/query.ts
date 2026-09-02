@@ -359,3 +359,29 @@ export async function getListingDetails(listingId: string) {
 
   return listing;
 }
+
+/**
+ * Lighter than getListingDetails — no reviews/bookings/availability, and no
+ * viewCount increment (a quick-view glance isn't a full page view). Backs the
+ * half-sheet quick-view, which opens from a card without navigating away.
+ */
+export async function getListingQuickView(listingId: string) {
+  return prisma.listing.findUnique({
+    where: { id: listingId },
+    include: {
+      category: true,
+      location: true,
+      owner: {
+        include: {
+          profile: true
+        }
+      },
+      photos: {
+        orderBy: { sortOrder: "asc" }
+      },
+      _count: {
+        select: { favorites: true }
+      }
+    }
+  });
+}
