@@ -8,6 +8,8 @@ import { ListingCard } from "@/components/marketplace/listing-card";
 import { EmptyState } from "@/components/premium/system";
 import { buildDemoImageUrl, isArabicText } from "@/lib/marketplace/demo-content";
 import { formatPrice } from "@/lib/marketplace/format";
+import { haversineKm } from "@/lib/marketplace/geo";
+import { useGeolocation } from "@/lib/marketplace/use-geolocation";
 import type { Locale } from "@/lib/i18n/types";
 import type { listingCardData } from "@/lib/marketplace/serializers";
 
@@ -25,16 +27,6 @@ type NearbyStrings = {
   nothingDescription: string;
 };
 
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
 export function NearbyExperience({
   listings,
   locale = "en",
@@ -44,9 +36,10 @@ export function NearbyExperience({
   locale?: Locale;
   nearby: NearbyStrings;
 }) {
-  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationStatus, setLocationStatus] = useState<"idle" | "pending" | "granted" | "denied">("idle");
   const [radiusKm, setRadiusKm] = useState<number>(Infinity);
+  const { position: userPos, status: locationStatus, request: requestLocation } = useGeolocation({
+    onSuccess: () => setRadiusKm(10)
+  });
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -111,23 +104,6 @@ export function NearbyExperience({
     left: `${((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng || 1)) * 100}%`,
     top: `${100 - ((lat - bounds.minLat) / (bounds.maxLat - bounds.minLat || 1)) * 100}%`
   });
-
-  const requestLocation = () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setLocationStatus("denied");
-      return;
-    }
-    setLocationStatus("pending");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserPos({ lat: position.coords.latitude, lng: position.coords.longitude });
-        setLocationStatus("granted");
-        setRadiusKm(10);
-      },
-      () => setLocationStatus("denied"),
-      { timeout: 8000 }
-    );
-  };
 
   return (
     <div className="space-y-5">

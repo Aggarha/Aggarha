@@ -6,6 +6,8 @@
  * realistic-looking, per-listing-stable demo defects from the listing's own id.
  */
 
+import type { Locale } from "@/lib/i18n/types";
+
 export type ListingGalleryPhoto = {
   id: string;
   url: string;
@@ -37,6 +39,14 @@ export type ConditionBadgeVariant = "verified" | "clean" | "damage" | "required"
 export type ConditionBadge = {
   variant: ConditionBadgeVariant;
   label: string;
+};
+
+export type ConditionRatingTier = "good" | "fair" | "undocumented";
+
+export type ConditionRating = {
+  tier: ConditionRatingTier;
+  label: string;
+  explanation: string;
 };
 
 const DEFECT_LABELS: Record<DefectType, string> = {
@@ -146,4 +156,37 @@ export function conditionBadges(report: ConditionReport): ConditionBadge[] {
     { variant: "verified", label: "Condition Verified" },
     { variant: "damage", label: "Damage Documented" }
   ];
+}
+
+const CONDITION_RATING_COPY: Record<Locale, Record<ConditionRatingTier, { label: string; explanation: string }>> = {
+  en: {
+    good: { label: "Good", explanation: "Fully functional with no visible damage." },
+    fair: {
+      label: "Fair",
+      explanation: "Gently used with some documented wear — see the condition evidence below."
+    },
+    undocumented: {
+      label: "Not yet documented",
+      explanation: "The owner hasn't documented this item's condition yet."
+    }
+  },
+  ar: {
+    good: { label: "جيدة", explanation: "تعمل بشكل كامل ولا يوجد بها أي ضرر ظاهر." },
+    fair: {
+      label: "متوسطة",
+      explanation: "مستخدمة استخدامًا خفيفًا مع بعض التآكل الموثّق — راجع أدلة الحالة أدناه."
+    },
+    undocumented: {
+      label: "غير موثقة بعد",
+      explanation: "لم يوثّق المالك حالة هذا المنتج بعد."
+    }
+  }
+};
+
+/** Maps the badge/defect-evidence system onto a single Good/Fair/Not-yet-documented rating + one-line explanation, matching how the reference app presents condition. No schema change — same ConditionReport data, different presentation. */
+export function buildConditionRating(report: ConditionReport, lang: Locale = "en"): ConditionRating {
+  const tier: ConditionRatingTier =
+    report.status === "verified_no_damage" ? "good" : report.status === "damage_documented" ? "fair" : "undocumented";
+  const copy = CONDITION_RATING_COPY[lang][tier];
+  return { tier, label: copy.label, explanation: copy.explanation };
 }
