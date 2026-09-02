@@ -9,7 +9,7 @@ A single-file component library (`src/components/premium/system.tsx`, 416 lines,
 | Category | Components |
 |---|---|
 | Actions | `PremiumButton` (primary/secondary/ghost tones) |
-| Surfaces | `PremiumCard`, `ModalPanel`, `BottomSheet` |
+| Surfaces | `PremiumCard`, `Sheet` (draggable half-sheet on mobile / centered modal on desktop, `src/components/premium/sheet.tsx`), `Carousel` (swipeable image carousel, `src/components/premium/carousel.tsx`) |
 | Layout/Section | `SectionHeader`, `HeroBanner`, `HeroAdsSlider`, `MobileBottomNav` |
 | Search & Filters | `SearchBar`, `FilterPanel`, `PremiumSelect`, `PremiumInput` |
 | Badges & Tags | `Tag`, `PremiumBadge`, `TrustBadge`, `VerificationBadgePill` |

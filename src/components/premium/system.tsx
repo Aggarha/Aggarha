@@ -510,24 +510,6 @@ export function PremiumTextarea({ className, ...props }: TextareaHTMLAttributes<
   );
 }
 
-export function BottomSheet({ title, children }: PropsWithChildren<{ title: string }>) {
-  return (
-    <div className="rounded-t-[1.75rem] border border-white/[0.1] bg-[#161616] p-4 shadow-[0_-14px_32px_rgba(0,0,0,0.45)]">
-      <p className="text-sm font-semibold text-white">{title}</p>
-      <div className="text-white/72 mt-2 text-sm">{children}</div>
-    </div>
-  );
-}
-
-export function ModalPanel({ title, children }: PropsWithChildren<{ title: string }>) {
-  return (
-    <div className="rounded-3xl border border-white/[0.1] bg-[#161616] p-5">
-      <p className="text-lg font-bold text-white">{title}</p>
-      <div className="text-white/72 mt-2 text-sm">{children}</div>
-    </div>
-  );
-}
-
 export function ComingSoonTag({ className }: { className?: string }) {
   return (
     <span
