@@ -75,7 +75,7 @@ export function ListingCard(props: ListingCardProps) {
   const title = props.title;
   const contentIsRtl = isArabicText(title);
 
-  const demoImage = buildDemoImageUrl(props.id, props.categorySlug);
+  const image = props.imageUrl ?? buildDemoImageUrl(props.id, props.categorySlug);
   const isFeatured = Boolean(props.featuredBadge) && (props.visibility === "FEATURED" || props.visibility === "BOOSTED");
   const sponsored = !props.featuredBadge && isSponsoredListing(props.id, props.verificationLevel);
   const textDir = isRtl ? "rtl" : "ltr";
@@ -96,9 +96,10 @@ export function ListingCard(props: ListingCardProps) {
       >
         <div className="relative h-72 w-full overflow-hidden bg-neutral-900 sm:h-80">
           <Image
-            src={demoImage}
+            src={image}
             alt={title}
             fill
+            unoptimized={props.imageUrl !== null}
             className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.045]"
             sizes="(max-width: 1024px) 100vw, 25vw"
           />
