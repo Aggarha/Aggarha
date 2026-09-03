@@ -1,15 +1,16 @@
 import type { Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AvailabilityCalendar } from "@/components/marketplace/availability-preview";
 import { ConditionDamageReport } from "@/components/marketplace/condition-report";
+import { ListingHeroGallery } from "@/components/marketplace/listing-hero-gallery";
+import { ListingLocationMeta } from "@/components/marketplace/listing-location-meta";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { ListingCard } from "@/components/marketplace/listing-card";
-import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
+import { SellerMiniCard } from "@/components/marketplace/seller-mini-card";
 import { OwnerCard, PremiumCard, ReviewCard } from "@/components/premium/system";
 import { runPricingForListing } from "@/lib/ai";
-import { buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
+import { buildConditionRating, buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
 import {
   buildCategoryLabel,
   buildLocationLabel,
@@ -39,7 +40,13 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
 
   const gallery = buildListingGallery(listing);
   const conditionReport = buildConditionReport(listing);
+  const conditionRating = buildConditionRating(conditionReport, locale);
   const ownerName = buildSellerName(listing.owner.id);
+  const uploadDateLabel = listing.createdAt.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
 
   const title = listing.title;
   const description = listing.description;
@@ -72,41 +79,21 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   const canRent = listing.mode === "RENT" || listing.mode === "BOTH";
   const canSwap = listing.mode === "SWAP" || listing.mode === "BOTH";
 
+  const categoryLabel = buildCategoryLabel(listing.category.slug, listing.category.name, locale);
+
   return (
-    <div dir={dir} className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-      {/* Fold: gallery, title, price, owner, primary actions */}
+    <div
+      dir={dir}
+      className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 pb-32 pt-6 sm:px-6 lg:px-8 lg:pb-16"
+    >
+      {/* Fold: gallery, title, price, condition, seller, primary actions */}
       <section className="space-y-5 rounded-[2rem] border border-white/[0.08] bg-[#121212] p-4 sm:p-6">
-        <div className="grid gap-3">
-          <div className="group relative h-80 overflow-hidden rounded-[1.75rem] border border-white/10 sm:h-96 md:h-[32rem]">
-            <Image
-              src={gallery[0].url}
-              alt={title}
-              fill
-              className="object-cover transition-transform duration-700 ease-[var(--ease-premium)] group-hover:scale-[1.03]"
-              sizes="100vw"
-              priority
-              unoptimized
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-            {gallery.slice(1).map((photo) => (
-              <div
-                key={photo.id}
-                className="group relative h-24 overflow-hidden rounded-xl border border-white/10 transition-colors duration-300 ease-[var(--ease-premium)] hover:border-white/25 sm:h-28"
-              >
-                <Image
-                  src={photo.url}
-                  alt={title}
-                  fill
-                  className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.05]"
-                  sizes="(max-width: 768px) 33vw, 16vw"
-                  unoptimized
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        <ListingHeroGallery
+          photos={gallery}
+          alt={title}
+          categoryLabel={categoryLabel}
+          favoriteCount={listing._count.favorites}
+        />
 
         <div className="space-y-2">
           <ListingModeBadge mode={listing.mode} lang={locale} />
@@ -116,18 +103,24 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           >
             {title}
           </h1>
-          <p className="text-sm text-white/55">{locationLine}</p>
+          <ListingLocationMeta
+            locationLine={locationLine}
+            latitude={listing.location?.latitude != null ? toNumber(listing.location.latitude) : null}
+            longitude={listing.location?.longitude != null ? toNumber(listing.location.longitude) : null}
+            lang={locale}
+            kmAwayLabel={t.listingDetail.kmAway}
+          />
+          <p className="text-xs text-white/40">{t.listingDetail.listedOn(uploadDateLabel)}</p>
         </div>
 
         <div className="flex flex-wrap items-end justify-between gap-4 border-t border-white/[0.08] pt-5">
           <div className="space-y-1">
             <p className="text-2xl font-bold text-[#ccff00] sm:text-3xl">{price}</p>
-            <p className="inline-flex items-center gap-1.5 text-sm text-white/60">
-              {ownerName}
-              <VerifiedSparkle level={listing.owner.verificationLevel} lang={locale} />
+            <p className="text-xs font-semibold text-white/55">
+              {t.listingDetail.condition}: {conditionRating.label}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden flex-wrap gap-2 md:flex">
             {canRent ? (
               <Link
                 href={`/rent?listingId=${listing.id}` as Route}
@@ -146,6 +139,16 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             ) : null}
           </div>
         </div>
+
+        <SellerMiniCard
+          name={ownerName}
+          location={locationLine}
+          avatarUrl={listing.owner.profile?.avatarUrl ?? null}
+          verificationLevel={listing.owner.verificationLevel}
+          lang={locale}
+          viewProfileLabel={t.listingDetail.viewProfile}
+          comingSoonTitle={t.nav.comingSoon}
+        />
       </section>
 
       {/* Overview */}
@@ -299,6 +302,30 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             ))}
           </div>
         </section>
+      ) : null}
+
+      {/* Sticky mobile action bar — desktop already has Rent/Swap in the fold above */}
+      {canRent || canSwap ? (
+        <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 mx-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-white/[0.1] bg-[#121212]/95 p-2 backdrop-blur md:hidden">
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            title={t.nav.comingSoon}
+            aria-label={t.listingDetail.startChat}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/55"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+            </svg>
+          </button>
+          <Link
+            href={(canSwap ? `/swap-proposal?listingId=${listing.id}` : `/rent?listingId=${listing.id}`) as Route}
+            className="flex h-12 flex-1 items-center justify-center rounded-xl bg-[#ccff00] text-sm font-bold text-black transition-all duration-200 ease-[var(--ease-premium)] hover:-translate-y-0.5 hover:bg-[#deff57] active:translate-y-0 active:scale-[0.97]"
+          >
+            {canSwap ? t.common.swap : t.common.rent}
+          </Link>
+        </div>
       ) : null}
     </div>
   );
