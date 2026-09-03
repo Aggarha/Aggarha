@@ -344,6 +344,9 @@ export async function getListingDetails(listingId: string) {
       },
       photos: {
         orderBy: { sortOrder: "asc" }
+      },
+      _count: {
+        select: { favorites: true }
       }
     }
   });

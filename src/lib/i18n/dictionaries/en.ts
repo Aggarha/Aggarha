@@ -85,7 +85,13 @@ const en = {
     reviewsCount: (count: number) => `${count} reviews`,
     noListingsTitle: "No PlayStation listings yet",
     message: "Message",
-    swapPreferences: (value: string) => `Looking to swap for: ${value}`
+    swapPreferences: (value: string) => `Looking to swap for: ${value}`,
+    kmAway: (km: number) => `${km < 1 ? "<1" : km.toFixed(0)} km away`,
+    listedOn: (date: string) => `Listed ${date}`,
+    condition: "Condition",
+    startChat: "Chat",
+    seller: "Seller",
+    viewProfile: "View profile"
   },
   nearby: {
     title: "Near You",

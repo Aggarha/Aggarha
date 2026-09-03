@@ -87,7 +87,13 @@ const ar: Dictionary = {
     reviewsCount: (count) => `${count} تقييم`,
     noListingsTitle: "لا توجد إعلانات بلايستيشن بعد",
     message: "مراسلة",
-    swapPreferences: (value) => `يرغب في استبداله بـ: ${value}`
+    swapPreferences: (value) => `يرغب في استبداله بـ: ${value}`,
+    kmAway: (km) => `${km < 1 ? "أقل من 1" : km.toFixed(0)} كم`,
+    listedOn: (date) => `أُدرج في ${date}`,
+    condition: "الحالة",
+    startChat: "محادثة",
+    seller: "البائع",
+    viewProfile: "عرض الملف الشخصي"
   },
   nearby: {
     title: "بالقرب منك",
