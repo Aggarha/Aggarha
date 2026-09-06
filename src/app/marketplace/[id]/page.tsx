@@ -108,7 +108,6 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
             latitude={listing.location?.latitude != null ? toNumber(listing.location.latitude) : null}
             longitude={listing.location?.longitude != null ? toNumber(listing.location.longitude) : null}
             lang={locale}
-            kmAwayLabel={t.listingDetail.kmAway}
           />
           <p className="text-xs text-white/40">{t.listingDetail.listedOn(uploadDateLabel)}</p>
         </div>
