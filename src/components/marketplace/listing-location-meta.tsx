@@ -5,6 +5,14 @@ import { haversineKm } from "@/lib/marketplace/geo";
 import { useGeolocation } from "@/lib/marketplace/use-geolocation";
 import type { Locale } from "@/lib/i18n/types";
 
+// Functions can't cross the server→client boundary, so this formatter lives here
+// rather than being passed down from the server-side i18n dictionary (same pattern
+// as the kmAway formatter in listing-quick-view.tsx).
+const COPY = {
+  en: { kmAway: (km: number) => `${km < 1 ? "<1" : km.toFixed(0)} km away` },
+  ar: { kmAway: (km: number) => `${km < 1 ? "أقل من 1" : km.toFixed(0)} كم` }
+};
+
 /**
  * Location line + live distance for the full detail page. Requests geolocation
  * on mount (same as the half-sheet quick-view) rather than waiting for a click
@@ -15,15 +23,14 @@ export function ListingLocationMeta({
   locationLine,
   latitude,
   longitude,
-  lang = "en",
-  kmAwayLabel
+  lang = "en"
 }: {
   locationLine: string;
   latitude: number | null;
   longitude: number | null;
   lang?: Locale;
-  kmAwayLabel: (km: number) => string;
 }) {
+  const copy = COPY[lang];
   const geolocation = useGeolocation();
 
   useEffect(() => {
@@ -39,7 +46,7 @@ export function ListingLocationMeta({
   return (
     <p dir={lang === "ar" ? "rtl" : "ltr"} className="text-sm text-white/55">
       {locationLine}
-      {distanceKm !== null ? <span> · {kmAwayLabel(distanceKm)}</span> : null}
+      {distanceKm !== null ? <span> · {copy.kmAway(distanceKm)}</span> : null}
     </p>
   );
 }
