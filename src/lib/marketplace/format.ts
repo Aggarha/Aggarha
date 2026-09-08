@@ -27,6 +27,24 @@ export function formatPrice(amount: number | null | undefined, currencyCode = "E
   }).format(amount);
 }
 
+export function formatPriceRange(
+  minPrice: number | null | undefined,
+  maxPrice: number | null | undefined,
+  currencyCode = "EGP",
+  locale: Locale = "en"
+) {
+  if (!minPrice && !maxPrice) {
+    return formatPrice(null, currencyCode, locale);
+  }
+  if (!maxPrice || maxPrice === minPrice) {
+    return formatPrice(minPrice ?? maxPrice, currencyCode, locale);
+  }
+  if (!minPrice) {
+    return formatPrice(maxPrice, currencyCode, locale);
+  }
+  return `${formatPrice(minPrice, currencyCode, locale)} – ${formatPrice(maxPrice, currencyCode, locale)}`;
+}
+
 export function modeLabel(mode: ListingMode, locale: Locale = "en"): string {
   if (locale === "ar") {
     if (mode === "RENT") return "إيجار";

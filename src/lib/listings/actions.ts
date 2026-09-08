@@ -28,7 +28,8 @@ const createListingSchema = z.object({
   description: z.string().trim(),
   categorySlug: z.string().min(1),
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
-  priceAmount: z.number().positive().nullable(),
+  minPrice: z.number().positive().nullable(),
+  maxPrice: z.number().positive().nullable(),
   city: z.string().trim(),
   swapPreferences: z.string().trim().max(200).nullable(),
   photos: z
@@ -44,6 +45,9 @@ const createListingSchema = z.object({
     })
   ),
   blockedDates: z.array(z.string())
+}).refine((data) => data.minPrice === null || data.maxPrice === null || data.maxPrice >= data.minPrice, {
+  message: "Max price must be greater than or equal to min price.",
+  path: ["maxPrice"]
 });
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
@@ -98,8 +102,12 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
           mode: data.mode as ListingMode,
           status: ListingStatus.PUBLISHED,
           visibility: ListingVisibility.PUBLIC,
-          priceAmount: data.priceAmount ?? undefined,
-          currencyCode: data.priceAmount ? "EGP" : undefined,
+          // priceAmount stays the single canonical rate used by rent booking totals and the
+          // AI engines; new listings derive it from the low end of the entered range.
+          priceAmount: data.minPrice ?? undefined,
+          minPrice: data.minPrice ?? undefined,
+          maxPrice: data.maxPrice ?? undefined,
+          currencyCode: data.minPrice || data.maxPrice ? "EGP" : undefined,
           imageUrl: coverImageUrl,
           swapPreferences: data.swapPreferences || null,
           publishedAt: new Date()

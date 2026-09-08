@@ -60,8 +60,10 @@ const COPY = {
     rent: "Rent",
     swap: "Swap",
     both: "Both",
-    priceLabel: "Price per day (EGP)",
-    pricePlaceholder: "e.g. 350",
+    priceLabel: "Value range per day (EGP)",
+    minPricePlaceholder: "Min, e.g. 300",
+    maxPricePlaceholder: "Max, e.g. 500",
+    priceRangeError: "Max must be greater than or equal to min.",
     swapPreferencesLabel: "What would you swap this for?",
     swapPreferencesPlaceholder: "e.g. Gaming Console, Clothes",
     cityLabel: "City",
@@ -109,8 +111,10 @@ const COPY = {
     rent: "إيجار",
     swap: "تبادل",
     both: "كلاهما",
-    priceLabel: "السعر لليوم (جنيه)",
-    pricePlaceholder: "مثال: 350",
+    priceLabel: "نطاق السعر لليوم (جنيه)",
+    minPricePlaceholder: "الحد الأدنى، مثال: 300",
+    maxPricePlaceholder: "الحد الأقصى، مثال: 500",
+    priceRangeError: "يجب أن يكون الحد الأقصى أكبر من أو يساوي الحد الأدنى.",
     swapPreferencesLabel: "بماذا تود استبداله؟",
     swapPreferencesPlaceholder: "مثال: جهاز ألعاب، ملابس",
     cityLabel: "المدينة",
@@ -160,7 +164,8 @@ export function AddListingWizard({
   const [categorySlug, setCategorySlug] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<ListingMode>("RENT");
-  const [price, setPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [city, setCity] = useState("");
   const [swapPreferences, setSwapPreferences] = useState("");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
@@ -171,11 +176,17 @@ export function AddListingWizard({
   const titleError = title.trim() ? null : copy.titleRequiredError;
   const categoryError = categorySlug ? null : copy.categoryRequiredError;
   const hasDetailsErrors = Boolean(titleError || categoryError);
+  const priceRangeError =
+    minPrice && maxPrice && Number(maxPrice) < Number(minPrice) ? copy.priceRangeError : null;
 
   const handlePublish = () => {
     if (hasDetailsErrors) {
       setDetailsStepAttempted(true);
       setStepIndex(2);
+      return;
+    }
+    if (priceRangeError) {
+      setStepIndex(3);
       return;
     }
     setPublishError(null);
@@ -188,7 +199,8 @@ export function AddListingWizard({
         description,
         categorySlug,
         mode,
-        priceAmount: price ? Number(price) : null,
+        minPrice: minPrice ? Number(minPrice) : null,
+        maxPrice: maxPrice ? Number(maxPrice) : null,
         city,
         swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
         photos: uploadedPhotos.map((photo) => ({ url: photo.uploadedUrl, isMain: photo.isMain })),
@@ -513,19 +525,29 @@ export function AddListingWizard({
                   ))}
                 </div>
               </div>
-              <label className="block space-y-1.5">
+              <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-white/60">
                   {copy.priceLabel}
                   <RequirementTag required={false} optionalLabel={copy.optionalTag} />
                 </span>
-                <PremiumInput
-                  type="number"
-                  inputMode="numeric"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder={copy.pricePlaceholder}
-                />
-              </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <PremiumInput
+                    type="number"
+                    inputMode="numeric"
+                    value={minPrice}
+                    onChange={(event) => setMinPrice(event.target.value)}
+                    placeholder={copy.minPricePlaceholder}
+                  />
+                  <PremiumInput
+                    type="number"
+                    inputMode="numeric"
+                    value={maxPrice}
+                    onChange={(event) => setMaxPrice(event.target.value)}
+                    placeholder={copy.maxPricePlaceholder}
+                  />
+                </div>
+                {priceRangeError ? <p className="text-xs font-semibold text-[#ff9a8a]">{priceRangeError}</p> : null}
+              </div>
               {mode === "SWAP" || mode === "BOTH" ? (
                 <label className="block space-y-1.5">
                   <span className="text-xs font-semibold text-white/60">
@@ -599,7 +621,8 @@ export function AddListingWizard({
             title={title}
             categorySlug={categorySlug || null}
             mode={mode}
-            priceAmount={price ? Number(price) : null}
+            minPrice={minPrice ? Number(minPrice) : null}
+            maxPrice={maxPrice ? Number(maxPrice) : null}
             city={city}
             photoCount={photoCount}
             mainPhotoUrl={mainPhotoUrl}

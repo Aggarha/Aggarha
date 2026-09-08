@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ListingModeBadge } from "@/components/marketplace/listing-mode-badge";
 import { buildCategoryImageUrl } from "@/lib/marketplace/demo-content";
-import { formatPrice } from "@/lib/marketplace/format";
+import { formatPriceRange } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 
 const COPY = {
@@ -13,7 +13,8 @@ export function ListingPreviewCard({
   title,
   categorySlug,
   mode,
-  priceAmount,
+  minPrice,
+  maxPrice,
   city,
   photoCount,
   mainPhotoUrl = null,
@@ -22,7 +23,8 @@ export function ListingPreviewCard({
   title: string;
   categorySlug: string | null;
   mode: "RENT" | "SWAP" | "BOTH";
-  priceAmount: number | null;
+  minPrice: number | null;
+  maxPrice: number | null;
   city: string;
   photoCount: number;
   mainPhotoUrl?: string | null;
@@ -60,7 +62,7 @@ export function ListingPreviewCard({
         <h3 className={`line-clamp-1 ${isRtl ? "text-right" : "text-left"} text-base font-bold leading-snug text-white`}>
           {title || copy.untitled}
         </h3>
-        <p className="text-sm font-bold text-[#ccff00]">{formatPrice(priceAmount, "EGP", lang)}</p>
+        <p className="text-sm font-bold text-[#ccff00]">{formatPriceRange(minPrice, maxPrice, "EGP", lang)}</p>
         <p className={`${isRtl ? "text-right" : "text-left"} truncate text-xs text-white/50`}>{city || copy.noCity}</p>
       </div>
     </div>
