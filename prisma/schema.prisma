@@ -207,6 +207,8 @@ model Listing {
   visibility          ListingVisibility  @default(PUBLIC)
   quantity            Int                @default(1)
   priceAmount         Decimal?           @db.Decimal(12, 2)
+  minPrice            Decimal?           @db.Decimal(12, 2)
+  maxPrice            Decimal?           @db.Decimal(12, 2)
   currencyCode        String?            @db.VarChar(3)
   minRentalDays       Int?               @default(1)
   maxRentalDays       Int?               @default(30)
