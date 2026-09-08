@@ -36,6 +36,8 @@ const COPY = {
     photosTitle: "Add photos",
     photosHint: "Add up to 4 photos. The first photo becomes the cover image.",
     slotAdd: "Add photo",
+    aiAutoFillLabel: "Auto-fill with Swap AI",
+    comingSoonLabel: "Coming soon",
     uploadingLabel: "Uploading…",
     mainBadgeLabel: "Main",
     setMainLabel: "Set as main",
@@ -89,6 +91,8 @@ const COPY = {
     photosTitle: "أضف الصور",
     photosHint: "أضف حتى 4 صور. الصورة الأولى ستكون صورة الغلاف.",
     slotAdd: "إضافة صورة",
+    aiAutoFillLabel: "تعبئة تلقائية بواسطة Swap AI",
+    comingSoonLabel: "قريبًا",
     uploadingLabel: "جارٍ الرفع…",
     mainBadgeLabel: "الرئيسية",
     setMainLabel: "تعيين كرئيسية",
@@ -346,6 +350,17 @@ export function AddListingWizard({
                 </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.photosHint}</p>
               </div>
+              <button
+                type="button"
+                disabled
+                aria-disabled
+                className="flex w-full cursor-not-allowed items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-2.5 text-sm font-semibold text-white/35"
+              >
+                <span>✨ {copy.aiAutoFillLabel}</span>
+                <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/40">
+                  {copy.comingSoonLabel}
+                </span>
+              </button>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {photos.map((photo, index) => (
                   <div
