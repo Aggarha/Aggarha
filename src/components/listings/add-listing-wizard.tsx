@@ -11,7 +11,7 @@ import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import { uploadListingPhoto } from "@/lib/listings/upload-client";
 import type { Locale } from "@/lib/i18n/types";
 
-type CategoryOption = { slug: string; name: string };
+type CategoryOption = { slug: string; name: string; children: CategoryOption[] };
 type ListingMode = "RENT" | "SWAP" | "BOTH";
 
 type PhotoDraft = {
@@ -480,11 +480,22 @@ export function AddListingWizard({
                 </span>
                 <PremiumSelect value={categorySlug} onChange={(event) => setCategorySlug(event.target.value)}>
                   <option value="">{copy.categoryPlaceholder}</option>
-                  {categories.map((category) => (
-                    <option key={category.slug} value={category.slug}>
-                      {buildCategoryLabel(category.slug, category.name, lang)}
-                    </option>
-                  ))}
+                  {categories.map((category) =>
+                    category.children.length > 0 ? (
+                      <optgroup key={category.slug} label={buildCategoryLabel(category.slug, category.name, lang)}>
+                        <option value={category.slug}>{buildCategoryLabel(category.slug, category.name, lang)}</option>
+                        {category.children.map((child) => (
+                          <option key={child.slug} value={child.slug}>
+                            {buildCategoryLabel(child.slug, child.name, lang)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      <option key={category.slug} value={category.slug}>
+                        {buildCategoryLabel(category.slug, category.name, lang)}
+                      </option>
+                    )
+                  )}
                 </PremiumSelect>
                 {detailsStepAttempted && categoryError ? (
                   <p className="text-xs font-semibold text-[#ff9a8a]">{categoryError}</p>

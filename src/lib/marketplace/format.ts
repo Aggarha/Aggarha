@@ -15,6 +15,16 @@ export function flattenCategories(nodes: CategoryNode[]): Array<{ slug: string; 
   return flat;
 }
 
+export type CategoryTreeOption = { slug: string; name: string; children: CategoryTreeOption[] };
+
+export function mapCategoryTree(nodes: CategoryNode[]): CategoryTreeOption[] {
+  return nodes.map((node) => ({
+    slug: node.slug,
+    name: node.name,
+    children: mapCategoryTree(node.children as CategoryNode[])
+  }));
+}
+
 export function formatPrice(amount: number | null | undefined, currencyCode = "EGP", locale: Locale = "en") {
   if (amount === null || amount === undefined) {
     return locale === "ar" ? "تواصل مع المالك" : "Contact owner";
