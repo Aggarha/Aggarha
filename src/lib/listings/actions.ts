@@ -158,5 +158,5 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
     return { error: copy.unexpected };
   }
 
-  redirect(`/marketplace/${listingId}` as Route);
+  redirect(`/listings/${listingId}/success` as Route);
 }
