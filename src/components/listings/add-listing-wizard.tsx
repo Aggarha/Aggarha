@@ -78,6 +78,7 @@ const COPY = {
     optionalTag: "(Optional)",
     titleRequiredError: "Title is required.",
     categoryRequiredError: "Please select a category.",
+    photoRequiredError: "Add at least one photo before publishing.",
     charCount: (count: number, max: number) => `${count}/${max}`
   },
   ar: {
@@ -130,6 +131,7 @@ const COPY = {
     optionalTag: "(اختياري)",
     titleRequiredError: "العنوان مطلوب.",
     categoryRequiredError: "يرجى اختيار فئة.",
+    photoRequiredError: "أضف صورة واحدة على الأقل قبل النشر.",
     charCount: (count: number, max: number) => `${count}/${max}`
   }
 };
@@ -175,8 +177,13 @@ export function AddListingWizard({
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [detailsStepAttempted, setDetailsStepAttempted] = useState(false);
+  const [photoStepAttempted, setPhotoStepAttempted] = useState(false);
   const [isPublishing, startPublishTransition] = useTransition();
 
+  const uploadedPhotos = photos.filter(
+    (photo): photo is PhotoDraft & { uploadedUrl: string } => photo.status === "done" && photo.uploadedUrl !== null
+  );
+  const photoError = uploadedPhotos.length > 0 ? null : copy.photoRequiredError;
   const titleError = title.trim() ? null : copy.titleRequiredError;
   const categoryError = categorySlug ? null : copy.categoryRequiredError;
   const hasDetailsErrors = Boolean(titleError || categoryError);
@@ -184,6 +191,11 @@ export function AddListingWizard({
     minPrice && maxPrice && Number(maxPrice) < Number(minPrice) ? copy.priceRangeError : null;
 
   const handlePublish = () => {
+    if (photoError) {
+      setPhotoStepAttempted(true);
+      setStepIndex(0);
+      return;
+    }
     if (hasDetailsErrors) {
       setDetailsStepAttempted(true);
       setStepIndex(2);
@@ -195,9 +207,6 @@ export function AddListingWizard({
     }
     setPublishError(null);
     startPublishTransition(async () => {
-      const uploadedPhotos = photos.filter(
-        (photo): photo is PhotoDraft & { uploadedUrl: string } => photo.status === "done" && photo.uploadedUrl !== null
-      );
       const result = await createListingAction({
         title,
         description,
@@ -297,6 +306,10 @@ export function AddListingWizard({
   ];
 
   const goNext = () => {
+    if (stepIndex === 0 && photoError) {
+      setPhotoStepAttempted(true);
+      return;
+    }
     if (stepIndex === 2 && hasDetailsErrors) {
       setDetailsStepAttempted(true);
       return;
@@ -329,7 +342,7 @@ export function AddListingWizard({
               <div>
                 <h2 className="text-lg font-bold text-white">
                   {copy.photosTitle}
-                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                  <RequirementTag required optionalLabel={copy.optionalTag} />
                 </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.photosHint}</p>
               </div>
@@ -411,6 +424,9 @@ export function AddListingWizard({
                   </label>
                 ) : null}
               </div>
+              {photoStepAttempted && photoError ? (
+                <p className="text-xs font-semibold text-[#ff9a8a]">{photoError}</p>
+              ) : null}
             </div>
           ) : null}
 

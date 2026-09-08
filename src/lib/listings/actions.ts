@@ -34,6 +34,7 @@ const createListingSchema = z.object({
   swapPreferences: z.string().trim().max(200).nullable(),
   photos: z
     .array(z.object({ url: z.string().url(), isMain: z.boolean() }))
+    .min(1)
     .max(4)
     .refine((photos) => photos.every((photo) => isOwnedListingPhotoUrl(photo.url)), {
       message: "Photo URLs must come from a completed upload."
