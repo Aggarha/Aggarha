@@ -24,8 +24,8 @@ const ERRORS = {
 };
 
 const createListingSchema = z.object({
-  title: z.string().trim().min(1),
-  description: z.string().trim(),
+  title: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(500),
   categorySlug: z.string().min(1),
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
   minPrice: z.number().positive().nullable(),

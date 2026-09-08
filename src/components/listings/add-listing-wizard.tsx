@@ -24,6 +24,8 @@ type PhotoDraft = {
 };
 
 const MAX_PHOTOS = 4;
+const MAX_TITLE_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 500;
 
 const COPY = {
   en: {
@@ -75,7 +77,8 @@ const COPY = {
     waitForUploads: "Wait for photo uploads to finish before publishing.",
     optionalTag: "(Optional)",
     titleRequiredError: "Title is required.",
-    categoryRequiredError: "Please select a category."
+    categoryRequiredError: "Please select a category.",
+    charCount: (count: number, max: number) => `${count}/${max}`
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -126,7 +129,8 @@ const COPY = {
     waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر.",
     optionalTag: "(اختياري)",
     titleRequiredError: "العنوان مطلوب.",
-    categoryRequiredError: "يرجى اختيار فئة."
+    categoryRequiredError: "يرجى اختيار فئة.",
+    charCount: (count: number, max: number) => `${count}/${max}`
   }
 };
 
@@ -466,9 +470,13 @@ export function AddListingWizard({
                 <PremiumInput
                   type="text"
                   value={title}
+                  maxLength={MAX_TITLE_LENGTH}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder={copy.titlePlaceholder}
                 />
+                <p className={`${isRtl ? "text-left" : "text-right"} text-[11px] text-white/35`}>
+                  {copy.charCount(title.length, MAX_TITLE_LENGTH)}
+                </p>
                 {detailsStepAttempted && titleError ? (
                   <p className="text-xs font-semibold text-[#ff9a8a]">{titleError}</p>
                 ) : null}
@@ -509,9 +517,13 @@ export function AddListingWizard({
                 <PremiumTextarea
                   rows={4}
                   value={description}
+                  maxLength={MAX_DESCRIPTION_LENGTH}
                   onChange={(event) => setDescription(event.target.value)}
                   placeholder={copy.descriptionPlaceholder}
                 />
+                <p className={`${isRtl ? "text-left" : "text-right"} text-[11px] text-white/35`}>
+                  {copy.charCount(description.length, MAX_DESCRIPTION_LENGTH)}
+                </p>
               </label>
             </div>
           ) : null}
