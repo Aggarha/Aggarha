@@ -11,7 +11,7 @@ import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import { uploadListingPhoto } from "@/lib/listings/upload-client";
 import type { Locale } from "@/lib/i18n/types";
 
-type CategoryOption = { slug: string; name: string };
+type CategoryOption = { slug: string; name: string; children: CategoryOption[] };
 type ListingMode = "RENT" | "SWAP" | "BOTH";
 
 type PhotoDraft = {
@@ -24,6 +24,8 @@ type PhotoDraft = {
 };
 
 const MAX_PHOTOS = 4;
+const MAX_TITLE_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 500;
 
 const COPY = {
   en: {
@@ -34,6 +36,8 @@ const COPY = {
     photosTitle: "Add photos",
     photosHint: "Add up to 4 photos. The first photo becomes the cover image.",
     slotAdd: "Add photo",
+    aiAutoFillLabel: "Auto-fill with Swap AI",
+    comingSoonLabel: "Coming soon",
     uploadingLabel: "Uploading…",
     mainBadgeLabel: "Main",
     setMainLabel: "Set as main",
@@ -60,8 +64,10 @@ const COPY = {
     rent: "Rent",
     swap: "Swap",
     both: "Both",
-    priceLabel: "Price per day (EGP)",
-    pricePlaceholder: "e.g. 350",
+    priceLabel: "Value range per day (EGP)",
+    minPricePlaceholder: "Min, e.g. 300",
+    maxPricePlaceholder: "Max, e.g. 500",
+    priceRangeError: "Max must be greater than or equal to min.",
     swapPreferencesLabel: "What would you swap this for?",
     swapPreferencesPlaceholder: "e.g. Gaming Console, Clothes",
     cityLabel: "City",
@@ -73,7 +79,9 @@ const COPY = {
     waitForUploads: "Wait for photo uploads to finish before publishing.",
     optionalTag: "(Optional)",
     titleRequiredError: "Title is required.",
-    categoryRequiredError: "Please select a category."
+    categoryRequiredError: "Please select a category.",
+    photoRequiredError: "Add at least one photo before publishing.",
+    charCount: (count: number, max: number) => `${count}/${max}`
   },
   ar: {
     steps: ["الصور", "الحالة", "التفاصيل", "السعر والنمط", "التوفر"],
@@ -83,6 +91,8 @@ const COPY = {
     photosTitle: "أضف الصور",
     photosHint: "أضف حتى 4 صور. الصورة الأولى ستكون صورة الغلاف.",
     slotAdd: "إضافة صورة",
+    aiAutoFillLabel: "تعبئة تلقائية بواسطة Swap AI",
+    comingSoonLabel: "قريبًا",
     uploadingLabel: "جارٍ الرفع…",
     mainBadgeLabel: "الرئيسية",
     setMainLabel: "تعيين كرئيسية",
@@ -109,8 +119,10 @@ const COPY = {
     rent: "إيجار",
     swap: "تبادل",
     both: "كلاهما",
-    priceLabel: "السعر لليوم (جنيه)",
-    pricePlaceholder: "مثال: 350",
+    priceLabel: "نطاق السعر لليوم (جنيه)",
+    minPricePlaceholder: "الحد الأدنى، مثال: 300",
+    maxPricePlaceholder: "الحد الأقصى، مثال: 500",
+    priceRangeError: "يجب أن يكون الحد الأقصى أكبر من أو يساوي الحد الأدنى.",
     swapPreferencesLabel: "بماذا تود استبداله؟",
     swapPreferencesPlaceholder: "مثال: جهاز ألعاب، ملابس",
     cityLabel: "المدينة",
@@ -122,7 +134,9 @@ const COPY = {
     waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر.",
     optionalTag: "(اختياري)",
     titleRequiredError: "العنوان مطلوب.",
-    categoryRequiredError: "يرجى اختيار فئة."
+    categoryRequiredError: "يرجى اختيار فئة.",
+    photoRequiredError: "أضف صورة واحدة على الأقل قبل النشر.",
+    charCount: (count: number, max: number) => `${count}/${max}`
   }
 };
 
@@ -160,35 +174,50 @@ export function AddListingWizard({
   const [categorySlug, setCategorySlug] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<ListingMode>("RENT");
-  const [price, setPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [city, setCity] = useState("");
   const [swapPreferences, setSwapPreferences] = useState("");
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [detailsStepAttempted, setDetailsStepAttempted] = useState(false);
+  const [photoStepAttempted, setPhotoStepAttempted] = useState(false);
   const [isPublishing, startPublishTransition] = useTransition();
 
+  const uploadedPhotos = photos.filter(
+    (photo): photo is PhotoDraft & { uploadedUrl: string } => photo.status === "done" && photo.uploadedUrl !== null
+  );
+  const photoError = uploadedPhotos.length > 0 ? null : copy.photoRequiredError;
   const titleError = title.trim() ? null : copy.titleRequiredError;
   const categoryError = categorySlug ? null : copy.categoryRequiredError;
   const hasDetailsErrors = Boolean(titleError || categoryError);
+  const priceRangeError =
+    minPrice && maxPrice && Number(maxPrice) < Number(minPrice) ? copy.priceRangeError : null;
 
   const handlePublish = () => {
+    if (photoError) {
+      setPhotoStepAttempted(true);
+      setStepIndex(0);
+      return;
+    }
     if (hasDetailsErrors) {
       setDetailsStepAttempted(true);
       setStepIndex(2);
       return;
     }
+    if (priceRangeError) {
+      setStepIndex(3);
+      return;
+    }
     setPublishError(null);
     startPublishTransition(async () => {
-      const uploadedPhotos = photos.filter(
-        (photo): photo is PhotoDraft & { uploadedUrl: string } => photo.status === "done" && photo.uploadedUrl !== null
-      );
       const result = await createListingAction({
         title,
         description,
         categorySlug,
         mode,
-        priceAmount: price ? Number(price) : null,
+        minPrice: minPrice ? Number(minPrice) : null,
+        maxPrice: maxPrice ? Number(maxPrice) : null,
         city,
         swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
         photos: uploadedPhotos.map((photo) => ({ url: photo.uploadedUrl, isMain: photo.isMain })),
@@ -281,6 +310,10 @@ export function AddListingWizard({
   ];
 
   const goNext = () => {
+    if (stepIndex === 0 && photoError) {
+      setPhotoStepAttempted(true);
+      return;
+    }
     if (stepIndex === 2 && hasDetailsErrors) {
       setDetailsStepAttempted(true);
       return;
@@ -313,10 +346,21 @@ export function AddListingWizard({
               <div>
                 <h2 className="text-lg font-bold text-white">
                   {copy.photosTitle}
-                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                  <RequirementTag required optionalLabel={copy.optionalTag} />
                 </h2>
                 <p className="mt-1 text-sm text-white/55">{copy.photosHint}</p>
               </div>
+              <button
+                type="button"
+                disabled
+                aria-disabled
+                className="flex w-full cursor-not-allowed items-center justify-between gap-2 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-2.5 text-sm font-semibold text-white/35"
+              >
+                <span>✨ {copy.aiAutoFillLabel}</span>
+                <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white/40">
+                  {copy.comingSoonLabel}
+                </span>
+              </button>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {photos.map((photo, index) => (
                   <div
@@ -395,6 +439,9 @@ export function AddListingWizard({
                   </label>
                 ) : null}
               </div>
+              {photoStepAttempted && photoError ? (
+                <p className="text-xs font-semibold text-[#ff9a8a]">{photoError}</p>
+              ) : null}
             </div>
           ) : null}
 
@@ -454,9 +501,13 @@ export function AddListingWizard({
                 <PremiumInput
                   type="text"
                   value={title}
+                  maxLength={MAX_TITLE_LENGTH}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder={copy.titlePlaceholder}
                 />
+                <p className={`${isRtl ? "text-left" : "text-right"} text-[11px] text-white/35`}>
+                  {copy.charCount(title.length, MAX_TITLE_LENGTH)}
+                </p>
                 {detailsStepAttempted && titleError ? (
                   <p className="text-xs font-semibold text-[#ff9a8a]">{titleError}</p>
                 ) : null}
@@ -468,11 +519,22 @@ export function AddListingWizard({
                 </span>
                 <PremiumSelect value={categorySlug} onChange={(event) => setCategorySlug(event.target.value)}>
                   <option value="">{copy.categoryPlaceholder}</option>
-                  {categories.map((category) => (
-                    <option key={category.slug} value={category.slug}>
-                      {buildCategoryLabel(category.slug, category.name, lang)}
-                    </option>
-                  ))}
+                  {categories.map((category) =>
+                    category.children.length > 0 ? (
+                      <optgroup key={category.slug} label={buildCategoryLabel(category.slug, category.name, lang)}>
+                        <option value={category.slug}>{buildCategoryLabel(category.slug, category.name, lang)}</option>
+                        {category.children.map((child) => (
+                          <option key={child.slug} value={child.slug}>
+                            {buildCategoryLabel(child.slug, child.name, lang)}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ) : (
+                      <option key={category.slug} value={category.slug}>
+                        {buildCategoryLabel(category.slug, category.name, lang)}
+                      </option>
+                    )
+                  )}
                 </PremiumSelect>
                 {detailsStepAttempted && categoryError ? (
                   <p className="text-xs font-semibold text-[#ff9a8a]">{categoryError}</p>
@@ -486,9 +548,13 @@ export function AddListingWizard({
                 <PremiumTextarea
                   rows={4}
                   value={description}
+                  maxLength={MAX_DESCRIPTION_LENGTH}
                   onChange={(event) => setDescription(event.target.value)}
                   placeholder={copy.descriptionPlaceholder}
                 />
+                <p className={`${isRtl ? "text-left" : "text-right"} text-[11px] text-white/35`}>
+                  {copy.charCount(description.length, MAX_DESCRIPTION_LENGTH)}
+                </p>
               </label>
             </div>
           ) : null}
@@ -513,19 +579,29 @@ export function AddListingWizard({
                   ))}
                 </div>
               </div>
-              <label className="block space-y-1.5">
+              <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-white/60">
                   {copy.priceLabel}
                   <RequirementTag required={false} optionalLabel={copy.optionalTag} />
                 </span>
-                <PremiumInput
-                  type="number"
-                  inputMode="numeric"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder={copy.pricePlaceholder}
-                />
-              </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <PremiumInput
+                    type="number"
+                    inputMode="numeric"
+                    value={minPrice}
+                    onChange={(event) => setMinPrice(event.target.value)}
+                    placeholder={copy.minPricePlaceholder}
+                  />
+                  <PremiumInput
+                    type="number"
+                    inputMode="numeric"
+                    value={maxPrice}
+                    onChange={(event) => setMaxPrice(event.target.value)}
+                    placeholder={copy.maxPricePlaceholder}
+                  />
+                </div>
+                {priceRangeError ? <p className="text-xs font-semibold text-[#ff9a8a]">{priceRangeError}</p> : null}
+              </div>
               {mode === "SWAP" || mode === "BOTH" ? (
                 <label className="block space-y-1.5">
                   <span className="text-xs font-semibold text-white/60">
@@ -599,7 +675,8 @@ export function AddListingWizard({
             title={title}
             categorySlug={categorySlug || null}
             mode={mode}
-            priceAmount={price ? Number(price) : null}
+            minPrice={minPrice ? Number(minPrice) : null}
+            maxPrice={maxPrice ? Number(maxPrice) : null}
             city={city}
             photoCount={photoCount}
             mainPhotoUrl={mainPhotoUrl}

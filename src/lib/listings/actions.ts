@@ -24,15 +24,17 @@ const ERRORS = {
 };
 
 const createListingSchema = z.object({
-  title: z.string().trim().min(1),
-  description: z.string().trim(),
+  title: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(500),
   categorySlug: z.string().min(1),
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
-  priceAmount: z.number().positive().nullable(),
+  minPrice: z.number().positive().nullable(),
+  maxPrice: z.number().positive().nullable(),
   city: z.string().trim(),
   swapPreferences: z.string().trim().max(200).nullable(),
   photos: z
     .array(z.object({ url: z.string().url(), isMain: z.boolean() }))
+    .min(1)
     .max(4)
     .refine((photos) => photos.every((photo) => isOwnedListingPhotoUrl(photo.url)), {
       message: "Photo URLs must come from a completed upload."
@@ -44,6 +46,9 @@ const createListingSchema = z.object({
     })
   ),
   blockedDates: z.array(z.string())
+}).refine((data) => data.minPrice === null || data.maxPrice === null || data.maxPrice >= data.minPrice, {
+  message: "Max price must be greater than or equal to min price.",
+  path: ["maxPrice"]
 });
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
@@ -98,8 +103,12 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
           mode: data.mode as ListingMode,
           status: ListingStatus.PUBLISHED,
           visibility: ListingVisibility.PUBLIC,
-          priceAmount: data.priceAmount ?? undefined,
-          currencyCode: data.priceAmount ? "EGP" : undefined,
+          // priceAmount stays the single canonical rate used by rent booking totals and the
+          // AI engines; new listings derive it from the low end of the entered range.
+          priceAmount: data.minPrice ?? undefined,
+          minPrice: data.minPrice ?? undefined,
+          maxPrice: data.maxPrice ?? undefined,
+          currencyCode: data.minPrice || data.maxPrice ? "EGP" : undefined,
           imageUrl: coverImageUrl,
           swapPreferences: data.swapPreferences || null,
           publishedAt: new Date()
@@ -149,5 +158,5 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
     return { error: copy.unexpected };
   }
 
-  redirect(`/marketplace/${listingId}` as Route);
+  redirect(`/listings/${listingId}/success` as Route);
 }
