@@ -14,9 +14,9 @@ import { buildConditionRating, buildConditionReport, buildListingGallery } from 
 import {
   buildCategoryLabel,
   buildLocationLabel,
-  buildSellerName,
   isArabicText
 } from "@/lib/marketplace/demo-content";
+import { resolveDisplayName } from "@/lib/profile/identity";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { formatPrice } from "@/lib/marketplace/format";
 import { getListingDetails, getHomepageShowcase } from "@/lib/marketplace/query";
@@ -41,7 +41,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   const gallery = buildListingGallery(listing);
   const conditionReport = buildConditionReport(listing);
   const conditionRating = buildConditionRating(conditionReport, locale);
-  const ownerName = buildSellerName(listing.owner.id);
+  const ownerName = resolveDisplayName(listing.owner.profile, locale);
   const uploadDateLabel = listing.createdAt.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
     month: "short",
     day: "numeric",
@@ -253,7 +253,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               listing.reviews.map((review) => (
                 <ReviewCard
                   key={review.id}
-                  author={buildSellerName(review.reviewer.id)}
+                  author={resolveDisplayName(review.reviewer.profile, locale)}
                   verificationLevel={review.reviewer.verificationLevel}
                   lang={locale}
                   rating={review.rating}
@@ -294,7 +294,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
                 }
                 level={item.ownerLevelSnapshot ?? item.owner.level}
                 verificationLevel={item.owner.verificationLevel}
-                ownerName={buildSellerName(item.owner.id)}
+                ownerName={resolveDisplayName(item.owner.profile, locale)}
                 viewCount={item.viewCount}
                 lang={locale}
               />

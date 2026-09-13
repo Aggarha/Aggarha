@@ -336,34 +336,6 @@ export function buildDemoDescription(listingId: string, categorySlug: string): s
   return CATALOG[categorySlug]?.description[lang] ?? GENERIC_DESCRIPTION[lang];
 }
 
-const SELLER_NAMES = [
-  "Ahmed Nabil",
-  "Mona Farouk",
-  "Youssef Adel",
-  "Salma Ibrahim",
-  "Karim El-Sayed",
-  "Nour Hassan",
-  "Omar Zaki",
-  "Yasmin Adel",
-  "Mostafa Ali",
-  "Heba Mahmoud",
-  "Amr Khaled",
-  "Dina Samir",
-  "Tarek Youssef",
-  "Rania Fathy",
-  "Hassan Farid",
-  "Mariam Sobhy",
-  "Sherif Nasser",
-  "Aya Gamal",
-  "Khaled Mansour",
-  "Farida Wael"
-];
-
-/** Believable Egyptian seller display name, stable per real owner id (not per listing). */
-export function buildSellerName(ownerId: string): string {
-  return SELLER_NAMES[hashSeed(`${ownerId}-seller`) % SELLER_NAMES.length];
-}
-
 const CITY_LABELS_AR: Record<string, string> = {
   Cairo: "القاهرة",
   Giza: "الجيزة",

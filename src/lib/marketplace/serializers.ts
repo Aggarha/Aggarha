@@ -1,6 +1,6 @@
 import type { ListingMode } from "@prisma/client";
 import { buildConditionRating, buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
-import { buildSellerName } from "@/lib/marketplace/demo-content";
+import { resolveDisplayName } from "@/lib/profile/identity";
 import type { Locale } from "@/lib/i18n/types";
 
 type RawListing = {
@@ -56,7 +56,7 @@ export function listingCardData(listing: RawListing) {
     trustScore: toNumber(listing.owner.trustScore),
     level: listing.owner.level,
     verificationLevel: listing.owner.verificationLevel,
-    ownerName: buildSellerName(listing.owner.id),
+    ownerName: resolveDisplayName(listing.owner.profile),
     viewCount: listing.viewCount
   };
 }
@@ -72,7 +72,7 @@ type RawListingQuickView = {
   owner: {
     id: string;
     verificationLevel: string;
-    profile?: { avatarUrl: string | null } | null;
+    profile?: { displayName: string | null; avatarUrl: string | null } | null;
   };
   location: { city: string; governorate: string; latitude: unknown; longitude: unknown } | null;
   photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
@@ -98,7 +98,7 @@ export function listingQuickViewData(listing: RawListingQuickView, lang: Locale)
     conditionRating,
     seller: {
       id: listing.owner.id,
-      name: buildSellerName(listing.owner.id),
+      name: resolveDisplayName(listing.owner.profile, lang),
       avatarUrl: listing.owner.profile?.avatarUrl ?? null,
       verificationLevel: listing.owner.verificationLevel,
       // Seller's general area — we don't track a separate profile location, and the
