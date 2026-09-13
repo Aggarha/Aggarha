@@ -125,6 +125,8 @@ model User {
   sessions                    Session[]
   favorites                   Favorite[]
   savedListings               SavedListing[]
+  following                   Follow[]          @relation("FollowFollower")
+  followers                   Follow[]          @relation("FollowFollowing")
   savedSearches               SavedSearch[]
   recentlyViewed              RecentlyViewed[]
   bookingsAsRequester         Booking[]         @relation("BookingRequester")
@@ -429,6 +431,26 @@ model SavedListing {
 
   @@unique([userId, listingId])
   @@index([listingId])
+}
+
+/**
+ * Directed social edge: `follower` follows `following`. Two named relations to
+ * User because both sides point at the same model — Prisma needs them
+ * disambiguated. Self-follows are rejected in the action layer rather than the
+ * schema, since Postgres cannot express "followerId != followingId" as a
+ * column constraint without a CHECK that Prisma does not model.
+ */
+model Follow {
+  id           String   @id @default(cuid())
+  followerId   String
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  follower     User     @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following    User     @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
 model SavedSearch {

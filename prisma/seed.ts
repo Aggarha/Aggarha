@@ -204,6 +204,7 @@ async function clearDatabase() {
   await prisma.savedSearch.deleteMany();
   await prisma.savedListing.deleteMany();
   await prisma.favorite.deleteMany();
+  await prisma.follow.deleteMany();
   await prisma.recentlyViewed.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
@@ -313,6 +314,30 @@ async function main() {
 
     users.push({ id: user.id, trustScore, level, verification });
   }
+
+  // Asymmetric follow graph: each user follows a cyclic run of 2-6 others, and
+  // the first three users additionally collect followers from most of the set.
+  // Asymmetry is the point — a symmetric graph would make every profile show
+  // identical Following and Followers counts, which reads as placeholder data.
+  const followEdges: Array<{ followerId: string; followingId: string }> = [];
+  for (let i = 0; i < users.length; i += 1) {
+    const runLength = 2 + (i % 5);
+    for (let step = 1; step <= runLength; step += 1) {
+      followEdges.push({
+        followerId: users[i].id,
+        followingId: users[(i + step) % users.length].id
+      });
+    }
+    for (const popularIndex of [0, 1, 2]) {
+      if (i !== popularIndex && (i + popularIndex) % 2 === 0) {
+        followEdges.push({ followerId: users[i].id, followingId: users[popularIndex].id });
+      }
+    }
+  }
+  await prisma.follow.createMany({
+    data: followEdges.filter((edge) => edge.followerId !== edge.followingId),
+    skipDuplicates: true
+  });
 
   const categoryIds = Array.from(categoryMap.values());
 
