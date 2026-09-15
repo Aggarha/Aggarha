@@ -11,11 +11,13 @@ import { isOwnedAvatarUrl } from "@/lib/storage/r2";
 const ERRORS = {
   en: {
     invalidInput: "Check the fields and try again.",
+    cannotFollowSelf: "You can't follow yourself.",
     invalidAvatar: "That photo didn't finish uploading. Try again.",
     unexpected: "Something went wrong. Try again."
   },
   ar: {
     invalidInput: "راجع الحقول وحاول مرة أخرى.",
+    cannotFollowSelf: "لا يمكنك متابعة نفسك.",
     invalidAvatar: "لم يكتمل رفع الصورة. حاول مرة أخرى.",
     unexpected: "حدث خطأ. حاول مرة أخرى."
   }
@@ -63,6 +65,51 @@ export async function updateProfileAction(input: UpdateProfileInput): Promise<Up
 
     revalidatePath(buildProfilePath(profile.handle));
     return { ok: true, handle: profile.handle };
+  } catch {
+    return { error: copy.unexpected };
+  }
+}
+
+export type ToggleFollowResult = { error: string } | { following: boolean; followerCount: number };
+
+/**
+ * Idempotent by construction: the unique index on (followerId, followingId)
+ * means a double-tap can never create two edges, and deleteMany on an absent
+ * edge is a no-op rather than an error. Returns the recounted follower total
+ * so the caller can settle its optimistic number against the real one.
+ */
+export async function toggleFollowAction(targetUserId: string): Promise<ToggleFollowResult> {
+  const [session, locale] = await Promise.all([requireSession(), getLocale()]);
+  const copy = ERRORS[locale];
+
+  if (targetUserId === session.userId) {
+    return { error: copy.cannotFollowSelf };
+  }
+
+  try {
+    const existing = await prisma.follow.findUnique({
+      where: { followerId_followingId: { followerId: session.userId, followingId: targetUserId } },
+      select: { id: true }
+    });
+
+    if (existing) {
+      await prisma.follow.delete({ where: { id: existing.id } });
+    } else {
+      await prisma.follow.create({
+        data: { followerId: session.userId, followingId: targetUserId }
+      });
+    }
+
+    const [followerCount, profile] = await Promise.all([
+      prisma.follow.count({ where: { followingId: targetUserId } }),
+      prisma.profile.findUnique({ where: { userId: targetUserId }, select: { handle: true } })
+    ]);
+
+    if (profile) {
+      revalidatePath(buildProfilePath(profile.handle));
+    }
+
+    return { following: !existing, followerCount };
   } catch {
     return { error: copy.unexpected };
   }

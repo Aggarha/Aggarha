@@ -91,7 +91,10 @@ const en = {
     condition: "Condition",
     startChat: "Chat",
     seller: "Seller",
-    viewProfile: "View profile"
+    viewProfile: "View profile",
+    like: "Like",
+    save: "Save",
+    unsave: "Saved",
   },
   nearby: {
     title: "Near You",

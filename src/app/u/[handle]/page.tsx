@@ -8,6 +8,7 @@ import {
   BioEditButton,
   EditProfileButton
 } from "@/components/profile/edit-profile-triggers";
+import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileListingGrid } from "@/components/profile/profile-listing-grid";
 import { ProfileTabs, type ProfileTabKey } from "@/components/profile/profile-tabs";
@@ -118,7 +119,31 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
               <p className="text-sm leading-relaxed text-white/72">{profile.bio}</p>
             ) : null
           }
-          actionsSlot={profile.isSelf ? <EditProfileButton label={t.profile.editProfile} /> : null}
+          actionsSlot={
+            profile.isSelf ? (
+              <EditProfileButton label={t.profile.editProfile} />
+            ) : (
+              <div className="flex items-center gap-2">
+                <FollowButton
+                  targetUserId={profile.userId}
+                  initialFollowing={profile.isFollowing}
+                  followLabel={t.profile.follow}
+                  followingLabel={t.profile.unfollow}
+                />
+                {/* Chat is out of scope, so Message stays the same disabled
+                    stub the listing detail page already uses. */}
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title={t.nav.comingSoon}
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-2xl border border-white/12 px-5 text-sm font-semibold text-white/40"
+                >
+                  {t.profile.message}
+                </button>
+              </div>
+            )
+          }
         />
       </EditProfileProvider>
 

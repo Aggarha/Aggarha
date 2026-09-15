@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Route } from "next";
 import { Carousel } from "@/components/premium/carousel";
 import { Sheet } from "@/components/premium/sheet";
+import { FavoriteButton } from "@/components/marketplace/favorite-button";
+import { SaveButton } from "@/components/marketplace/save-button";
 import { SellerMiniCard } from "@/components/marketplace/seller-mini-card";
 import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import { haversineKm } from "@/lib/marketplace/geo";
@@ -19,6 +21,8 @@ type QuickViewData = {
   categoryName: string;
   photos: Array<{ id: string; url: string }>;
   favoriteCount: number;
+  favorited: boolean;
+  saved: boolean;
   city: string | null;
   governorate: string | null;
   latitude: number | null;
@@ -46,6 +50,9 @@ const COPY = {
     rent: "Rent",
     swap: "Swap",
     viewProfile: "View profile",
+    like: "Like",
+    save: "Save",
+    unsave: "Saved",
     kmAway: (km: number) => `${km < 1 ? "<1" : km.toFixed(0)} km away`
   },
   ar: {
@@ -59,6 +66,9 @@ const COPY = {
     rent: "إيجار",
     swap: "تبادل",
     viewProfile: "عرض الملف الشخصي",
+    like: "إعجاب",
+    save: "حفظ",
+    unsave: "محفوظ",
     kmAway: (km: number) => `${km < 1 ? "أقل من 1" : km.toFixed(0)} كم`
   }
 };
@@ -147,12 +157,20 @@ export function ListingQuickView({
               <span className="pointer-events-none absolute bottom-3 left-3 inline-flex items-center rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white/80">
                 {buildCategoryLabel(data.categorySlug, data.categoryName, lang)}
               </span>
-              <span className="pointer-events-none absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white/80">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <path d="M12 21s-6.7-4.35-9.3-8.1C1.1 10.4 1.6 7 4.4 5.5c2.2-1.2 4.6-.5 6.1 1.2l1.5 1.7 1.5-1.7c1.5-1.7 3.9-2.4 6.1-1.2 2.8 1.5 3.3 4.9 1.7 7.4C18.7 16.65 12 21 12 21Z" />
-                </svg>
-                {data.favoriteCount}
-              </span>
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <SaveButton
+                  listingId={data.id}
+                  initialActive={data.saved}
+                  saveLabel={copy.save}
+                  savedLabel={copy.unsave}
+                />
+                <FavoriteButton
+                  listingId={data.id}
+                  initialActive={data.favorited}
+                  initialCount={data.favoriteCount}
+                  label={copy.like}
+                />
+              </div>
             </div>
 
             <div className="space-y-4 p-4">

@@ -93,7 +93,10 @@ const ar: Dictionary = {
     condition: "الحالة",
     startChat: "محادثة",
     seller: "البائع",
-    viewProfile: "عرض الملف الشخصي"
+    viewProfile: "عرض الملف الشخصي",
+    like: "إعجاب",
+    save: "حفظ",
+    unsave: "محفوظ",
   },
   nearby: {
     title: "بالقرب منك",
