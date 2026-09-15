@@ -153,6 +153,7 @@ const ar: Dictionary = {
     noBio: "لا يوجد شيء بعد.",
     editProfile: "تعديل الملف",
     editAvatar: "تغيير الصورة",
+    removePhoto: "إزالة الصورة",
     follow: "متابعة",
     unfollow: "تتابعه",
     message: "رسالة",

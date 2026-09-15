@@ -151,6 +151,7 @@ const en = {
     noBio: "Nothing here yet.",
     editProfile: "Edit profile",
     editAvatar: "Change photo",
+    removePhoto: "Remove photo",
     follow: "Follow",
     unfollow: "Following",
     message: "Message",

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EditProfileProvider } from "@/components/profile/edit-profile-provider";
+import {
+  AvatarEditButton,
+  BioEditButton,
+  EditProfileButton
+} from "@/components/profile/edit-profile-triggers";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileListingGrid } from "@/components/profile/profile-listing-grid";
 import { ProfileTabs, type ProfileTabKey } from "@/components/profile/profile-tabs";
@@ -76,12 +82,45 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
       dir={locale === "ar" ? "rtl" : "ltr"}
       className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pb-28 pt-6 sm:px-6 lg:px-8 lg:pb-16"
     >
-      <ProfileHeader
-        profile={profile}
-        t={t}
-        lang={locale}
-        bioSlot={profile.bio ? <p className="text-sm leading-relaxed text-white/72">{profile.bio}</p> : null}
-      />
+      <EditProfileProvider
+        copy={{
+          editProfile: t.profile.editProfile,
+          editAvatar: t.profile.editAvatar,
+          removePhoto: t.profile.removePhoto,
+          displayNameLabel: t.profile.displayNameLabel,
+          bioLabel: t.profile.bioLabel,
+          cityLabel: t.profile.cityLabel,
+          save: t.profile.save,
+          saving: t.profile.saving,
+          cancel: t.profile.cancel,
+          uploadFailed: t.profile.uploadFailed
+        }}
+        initial={
+          profile.isSelf
+            ? {
+                displayName: profile.displayName,
+                bio: profile.bio ?? "",
+                city: profile.city ?? "",
+                avatarUrl: profile.avatarUrl
+              }
+            : null
+        }
+      >
+        <ProfileHeader
+          profile={profile}
+          t={t}
+          lang={locale}
+          avatarSlot={profile.isSelf ? <AvatarEditButton label={t.profile.editAvatar} /> : null}
+          bioSlot={
+            profile.isSelf ? (
+              <BioEditButton bio={profile.bio ?? ""} addLabel={t.profile.addBio} />
+            ) : profile.bio ? (
+              <p className="text-sm leading-relaxed text-white/72">{profile.bio}</p>
+            ) : null
+          }
+          actionsSlot={profile.isSelf ? <EditProfileButton label={t.profile.editProfile} /> : null}
+        />
+      </EditProfileProvider>
 
       {profile.isSelf ? (
         <ProfileTabs
