@@ -12,12 +12,14 @@ const ERRORS = {
   en: {
     invalidInput: "Check the fields and try again.",
     cannotFollowSelf: "You can't follow yourself.",
+    cannotBlockSelf: "You can't block yourself.",
     invalidAvatar: "That photo didn't finish uploading. Try again.",
     unexpected: "Something went wrong. Try again."
   },
   ar: {
     invalidInput: "راجع الحقول وحاول مرة أخرى.",
     cannotFollowSelf: "لا يمكنك متابعة نفسك.",
+    cannotBlockSelf: "لا يمكنك حظر نفسك.",
     invalidAvatar: "لم يكتمل رفع الصورة. حاول مرة أخرى.",
     unexpected: "حدث خطأ. حاول مرة أخرى."
   }
@@ -110,6 +112,97 @@ export async function toggleFollowAction(targetUserId: string): Promise<ToggleFo
     }
 
     return { following: !existing, followerCount };
+  } catch {
+    return { error: copy.unexpected };
+  }
+}
+
+export type ToggleBlockResult = { error: string } | { blocked: boolean };
+
+/**
+ * Blocking also tears down the follow edges in both directions — leaving a
+ * follow in place would keep the blocked account in the blocker's Following
+ * list, which is not what "block" means to anyone.
+ */
+export async function toggleBlockAction(targetUserId: string): Promise<ToggleBlockResult> {
+  const [session, locale] = await Promise.all([requireSession(), getLocale()]);
+  const copy = ERRORS[locale];
+
+  if (targetUserId === session.userId) {
+    return { error: copy.cannotBlockSelf };
+  }
+
+  try {
+    const existing = await prisma.block.findUnique({
+      where: { blockerId_blockedId: { blockerId: session.userId, blockedId: targetUserId } },
+      select: { id: true }
+    });
+
+    if (existing) {
+      await prisma.block.delete({ where: { id: existing.id } });
+    } else {
+      await prisma.$transaction([
+        prisma.block.create({ data: { blockerId: session.userId, blockedId: targetUserId } }),
+        prisma.follow.deleteMany({
+          where: {
+            OR: [
+              { followerId: session.userId, followingId: targetUserId },
+              { followerId: targetUserId, followingId: session.userId }
+            ]
+          }
+        })
+      ]);
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { userId: targetUserId },
+      select: { handle: true }
+    });
+    if (profile) {
+      revalidatePath(buildProfilePath(profile.handle));
+    }
+
+    return { blocked: !existing };
+  } catch {
+    return { error: copy.unexpected };
+  }
+}
+
+const reportSchema = z.object({
+  targetUserId: z.string().min(1),
+  reason: z.enum(["scam", "fake_listings", "harassment", "other"]),
+  details: z.string().trim().max(500)
+});
+
+export type ReportUserInput = z.infer<typeof reportSchema>;
+export type ReportUserResult = { error: string } | { ok: true };
+
+/**
+ * Files into the existing FraudReport queue rather than a profile-specific
+ * table, so moderation keeps one inbox for listing and account reports alike.
+ */
+export async function reportUserAction(input: ReportUserInput): Promise<ReportUserResult> {
+  const [session, locale] = await Promise.all([requireSession(), getLocale()]);
+  const copy = ERRORS[locale];
+
+  const parsed = reportSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: copy.invalidInput };
+  }
+  if (parsed.data.targetUserId === session.userId) {
+    return { error: copy.invalidInput };
+  }
+
+  try {
+    await prisma.fraudReport.create({
+      data: {
+        reporterId: session.userId,
+        targetUserId: parsed.data.targetUserId,
+        reason: parsed.data.reason,
+        details: parsed.data.details.length > 0 ? parsed.data.details : null
+      }
+    });
+    return { ok: true };
   } catch {
     return { error: copy.unexpected };
   }

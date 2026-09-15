@@ -76,8 +76,27 @@ export async function getProfileByHandle(handle: string, viewerId: string | null
   const userId = profile.userId;
   const isSelf = viewerId !== null && viewerId === userId;
 
+  // Enforced mutually: whichever side blocked, neither sees the other's
+  // listings, so a blocked user cannot detect the block by watching content
+  // reappear. Checked before the counts so a blocked profile reports zero.
+  const blockEdge =
+    viewerId && !isSelf
+      ? await prisma.block.findFirst({
+          where: {
+            OR: [
+              { blockerId: viewerId, blockedId: userId },
+              { blockerId: userId, blockedId: viewerId }
+            ]
+          },
+          select: { blockerId: true }
+        })
+      : null;
+
+  const blockedByViewer = blockEdge?.blockerId === viewerId;
+  const isBlocked = blockEdge !== null;
+
   const [listingCount, followerCount, followingCount, rating, followEdge] = await Promise.all([
-    prisma.listing.count({ where: publicListingFilter(userId, isSelf) }),
+    isBlocked ? Promise.resolve(0) : prisma.listing.count({ where: publicListingFilter(userId, isSelf) }),
     prisma.follow.count({ where: { followingId: userId } }),
     prisma.follow.count({ where: { followerId: userId } }),
     prisma.review.aggregate({
@@ -85,7 +104,7 @@ export async function getProfileByHandle(handle: string, viewerId: string | null
       _avg: { rating: true },
       _count: { _all: true }
     }),
-    viewerId && !isSelf
+    viewerId && !isSelf && !isBlocked
       ? prisma.follow.findUnique({
           where: { followerId_followingId: { followerId: viewerId, followingId: userId } },
           select: { id: true }
@@ -113,14 +132,26 @@ export async function getProfileByHandle(handle: string, viewerId: string | null
     ratingAverage: rating._count._all > 0 ? Number(rating._avg.rating ?? 0) : null,
     reviewCount: rating._count._all,
     isSelf,
-    isFollowing: followEdge !== null
+    isFollowing: followEdge !== null,
+    /** True either way round — see the mutual-enforcement note above. */
+    isBlocked,
+    /** Only the blocker gets an Unblock control; the blocked side is told nothing. */
+    blockedByViewer
   };
 }
 
 export type ProfileSummary = NonNullable<Awaited<ReturnType<typeof getProfileByHandle>>>;
 
 /** The Listings tab. Newest first, and scoped to public statuses unless the viewer owns the profile. */
-export async function getProfileListings(ownerId: string, viewerIsOwner: boolean): Promise<ProfileListingRow[]> {
+export async function getProfileListings(
+  ownerId: string,
+  viewerIsOwner: boolean,
+  blocked = false
+): Promise<ProfileListingRow[]> {
+  if (blocked) {
+    return [];
+  }
+
   return prisma.listing.findMany({
     where: publicListingFilter(ownerId, viewerIsOwner),
     orderBy: { createdAt: "desc" },

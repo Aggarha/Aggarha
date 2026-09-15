@@ -205,6 +205,7 @@ async function clearDatabase() {
   await prisma.savedListing.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.follow.deleteMany();
+  await prisma.block.deleteMany();
   await prisma.recentlyViewed.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();

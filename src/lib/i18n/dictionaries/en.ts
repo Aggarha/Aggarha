@@ -194,6 +194,7 @@ const en = {
     reportReasonOther: "Something else",
     blockConfirm: (name: string) => `Block ${name}? You won't see each other's listings.`,
     blocked: (name: string) => `${name} is blocked.`,
+    blockedHint: "You won't see their listings, and they won't see yours. Unblock from the menu above.",
     yourProfile: "Your profile"
   },
   myListings: {

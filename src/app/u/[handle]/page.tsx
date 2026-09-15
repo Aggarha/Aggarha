@@ -10,6 +10,8 @@ import {
 } from "@/components/profile/edit-profile-triggers";
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { ProfileOverflowMenu } from "@/components/profile/profile-overflow-menu";
+import { EmptyState } from "@/components/premium/system";
 import { ProfileListingGrid } from "@/components/profile/profile-listing-grid";
 import { ProfileTabs, type ProfileTabKey } from "@/components/profile/profile-tabs";
 import { getOptionalSession } from "@/lib/auth/session";
@@ -48,7 +50,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   // Liked and Saved are the viewer's own lists, so they are only fetched — and
   // only shown — on the viewer's own profile. What someone hearted is private.
   const [listings, favorites, saved] = await Promise.all([
-    getProfileListings(profile.userId, profile.isSelf),
+    getProfileListings(profile.userId, profile.isSelf, profile.isBlocked),
     profile.isSelf ? getViewerFavorites(profile.userId) : Promise.resolve([]),
     profile.isSelf ? getViewerSavedListings(profile.userId) : Promise.resolve([])
   ]);
@@ -124,23 +126,52 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
               <EditProfileButton label={t.profile.editProfile} />
             ) : (
               <div className="flex items-center gap-2">
-                <FollowButton
-                  targetUserId={profile.userId}
-                  initialFollowing={profile.isFollowing}
-                  followLabel={t.profile.follow}
-                  followingLabel={t.profile.unfollow}
-                />
+                {/* A blocked pair gets no Follow or Message — only the menu,
+                    so the blocker can undo it. */}
+                {profile.isBlocked ? null : (
+                  <FollowButton
+                    targetUserId={profile.userId}
+                    initialFollowing={profile.isFollowing}
+                    followLabel={t.profile.follow}
+                    followingLabel={t.profile.unfollow}
+                  />
+                )}
                 {/* Chat is out of scope, so Message stays the same disabled
                     stub the listing detail page already uses. */}
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  title={t.nav.comingSoon}
-                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-2xl border border-white/12 px-5 text-sm font-semibold text-white/40"
-                >
-                  {t.profile.message}
-                </button>
+                {profile.isBlocked ? null : (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title={t.nav.comingSoon}
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-2xl border border-white/12 px-5 text-sm font-semibold text-white/40"
+                  >
+                    {t.profile.message}
+                  </button>
+                )}
+                <ProfileOverflowMenu
+                  targetUserId={profile.userId}
+                  blockedByViewer={profile.blockedByViewer}
+                  copy={{
+                    moreActions: t.profile.moreActions,
+                    block: t.profile.block,
+                    unblock: t.profile.unblock,
+                    report: t.profile.report,
+                    reportReasonLabel: t.profile.reportReasonLabel,
+                    reportDetailsLabel: t.profile.reportDetailsLabel,
+                    reportSubmit: t.profile.reportSubmit,
+                    reportSent: t.profile.reportSent,
+                    reasons: {
+                      scam: t.profile.reportReasonScam,
+                      fake_listings: t.profile.reportReasonFake,
+                      harassment: t.profile.reportReasonHarassment,
+                      other: t.profile.reportReasonOther
+                    },
+                    blockConfirm: t.profile.blockConfirm(profile.displayName),
+                    cancel: t.profile.cancel,
+                    saving: t.profile.saving
+                  }}
+                />
               </div>
             )
           }
@@ -188,10 +219,19 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         />
       ) : (
         <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-white/70">
-            {t.profile.tabListings} · {t.profile.listingsCount(profile.listingCount)}
-          </h2>
-          {listingsGrid}
+          {profile.isBlocked ? (
+            <EmptyState
+              title={profile.blockedByViewer ? t.profile.blocked(profile.displayName) : t.profile.listingsEmptyOther(profile.displayName)}
+              description={profile.blockedByViewer ? t.profile.blockedHint : t.profile.listingsEmptyOtherHint}
+            />
+          ) : (
+            <>
+              <h2 className="text-sm font-semibold text-white/70">
+                {t.profile.tabListings} · {t.profile.listingsCount(profile.listingCount)}
+              </h2>
+              {listingsGrid}
+            </>
+          )}
         </section>
       )}
     </div>

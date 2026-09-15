@@ -196,6 +196,7 @@ const ar: Dictionary = {
     reportReasonOther: "شيء آخر",
     blockConfirm: (name: string) => `حظر ${name}؟ لن يرى أي منكما إعلانات الآخر.`,
     blocked: (name: string) => `تم حظر ${name}.`,
+    blockedHint: "لن ترى إعلاناته ولن يرى إعلاناتك. يمكنك إلغاء الحظر من القائمة أعلاه.",
     yourProfile: "ملفك الشخصي"
   },
   myListings: {
