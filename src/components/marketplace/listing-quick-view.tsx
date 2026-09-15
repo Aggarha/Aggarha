@@ -26,6 +26,7 @@ type QuickViewData = {
   conditionRating: { tier: "good" | "fair" | "undocumented"; label: string; explanation: string };
   seller: {
     id: string;
+    handle: string | null;
     name: string;
     avatarUrl: string | null;
     verificationLevel: string;
@@ -171,6 +172,7 @@ export function ListingQuickView({
                 lang={lang}
                 viewProfileLabel={copy.viewProfile}
                 comingSoonTitle={copy.comingSoon}
+                profileHandle={data.seller.handle}
               />
 
               <div className="space-y-2">

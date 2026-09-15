@@ -72,7 +72,7 @@ type RawListingQuickView = {
   owner: {
     id: string;
     verificationLevel: string;
-    profile?: { displayName: string | null; avatarUrl: string | null } | null;
+    profile?: { displayName: string | null; avatarUrl: string | null; handle: string } | null;
   };
   location: { city: string; governorate: string; latitude: unknown; longitude: unknown } | null;
   photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
@@ -98,6 +98,7 @@ export function listingQuickViewData(listing: RawListingQuickView, lang: Locale)
     conditionRating,
     seller: {
       id: listing.owner.id,
+      handle: listing.owner.profile?.handle ?? null,
       name: resolveDisplayName(listing.owner.profile, lang),
       avatarUrl: listing.owner.profile?.avatarUrl ?? null,
       verificationLevel: listing.owner.verificationLevel,

@@ -147,6 +147,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           lang={locale}
           viewProfileLabel={t.listingDetail.viewProfile}
           comingSoonTitle={t.nav.comingSoon}
+          profileHandle={listing.owner.profile?.handle ?? null}
         />
       </section>
 
