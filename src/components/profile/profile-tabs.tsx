@@ -1,9 +1,9 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type ProfileTabKey = "listings" | "liked" | "saved";
+export type ProfileTabKey = "listings" | "liked" | "saved" | "bookings" | "reviews" | "requests";
 
 function BoxIcon() {
   return (
@@ -32,10 +32,39 @@ function SavedIcon() {
   );
 }
 
+function CalendarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="16" rx="2.5" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+      <path d="m12 3.6 2.7 5.5 6 .87-4.35 4.23 1.03 6-5.38-2.83-5.38 2.83 1.03-6L3.3 9.97l6-.87Z" />
+    </svg>
+  );
+}
+
+function InboxIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 13h4l1.6 2.6h6.8L17 13h4" />
+      <path d="M5.3 5.5 3 13v4.5A1.5 1.5 0 0 0 4.5 19h15a1.5 1.5 0 0 0 1.5-1.5V13l-2.3-7.5A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.9 1.5Z" />
+    </svg>
+  );
+}
+
 const ICONS: Record<ProfileTabKey, () => ReactNode> = {
   listings: BoxIcon,
   liked: HeartIcon,
-  saved: SavedIcon
+  saved: SavedIcon,
+  bookings: CalendarIcon,
+  reviews: StarIcon,
+  requests: InboxIcon
 };
 
 /**
@@ -56,23 +85,46 @@ export function ProfileTabs({
 }) {
   const [active, setActive] = useState<ProfileTabKey>(tabs[0]?.key ?? "listings");
   const baseId = useId();
-  const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.key === active));
+  const listRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(null);
+
+  /**
+   * Six tabs will not fit as equal columns on a phone, so the bar scrolls and
+   * each tab is content-width. That means the indicator cannot be a fraction
+   * of the container — it is measured from the active button and follows it,
+   * which also keeps it correct in RTL without a mirrored transform.
+   */
+  const measure = useCallback(() => {
+    const list = listRef.current;
+    const el = list?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!list || !el) return;
+    setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+    el.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, []);
+
+  useLayoutEffect(measure, [measure, active, tabs.length]);
+
+  useEffect(() => {
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
 
   return (
     <div className="space-y-4">
       <div
+        ref={listRef}
         role="tablist"
         aria-label="Profile sections"
-        className="relative grid rounded-2xl border border-white/[0.08] bg-[#171717] p-1"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        className="relative flex overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#171717] p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-1 left-1 rounded-xl bg-[#ccff00] transition-transform duration-300 ease-[var(--ease-premium)] motion-reduce:transition-none"
-          style={{
-            width: `calc((100% - 0.5rem) / ${tabs.length})`,
-            transform: `translateX(calc(${activeIndex} * 100%))`
-          }}
+          className="pointer-events-none absolute inset-y-1 rounded-xl bg-[#ccff00] transition-all duration-300 ease-[var(--ease-premium)] motion-reduce:transition-none"
+          style={
+            indicator
+              ? { left: indicator.left, width: indicator.width, opacity: 1 }
+              : { left: 0, width: 0, opacity: 0 }
+          }
         />
         {tabs.map((tab) => {
           const Icon = ICONS[tab.key];
@@ -87,12 +139,12 @@ export function ProfileTabs({
               aria-controls={`${baseId}-panel-${tab.key}`}
               onClick={() => setActive(tab.key)}
               className={cn(
-                "relative z-10 flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl px-2 text-[13px] font-semibold transition-colors duration-200 ease-[var(--ease-premium)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70",
+                "relative z-10 flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl px-3.5 text-[13px] font-semibold transition-colors duration-200 ease-[var(--ease-premium)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70",
                 isActive ? "text-black" : "text-white/60 hover:text-white"
               )}
             >
               <Icon />
-              <span className="truncate">{tab.label}</span>
+              <span className="whitespace-nowrap">{tab.label}</span>
               {tab.count !== null ? <span className="tabular-nums opacity-70">{tab.count}</span> : null}
             </button>
           );

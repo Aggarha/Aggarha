@@ -1,4 +1,4 @@
-import { ListingStatus, ListingVisibility, Prisma } from "@prisma/client";
+import { BookingStatus, ListingStatus, ListingVisibility, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 /**
@@ -194,4 +194,61 @@ export async function getOwnHandle(userId: string): Promise<string | null> {
     select: { handle: true }
   });
   return profile?.handle ?? null;
+}
+
+/** The Bookings tab: rentals and swaps this viewer requested, newest first. */
+export async function getViewerBookings(viewerId: string) {
+  return prisma.booking.findMany({
+    where: { requesterId: viewerId },
+    orderBy: { requestedAt: "desc" },
+    take: 30,
+    select: {
+      id: true,
+      status: true,
+      mode: true,
+      startDate: true,
+      endDate: true,
+      totalDays: true,
+      requestedAt: true,
+      listing: { select: { id: true, title: true } }
+    }
+  });
+}
+
+/** The Reviews tab: reviews this viewer received, not the ones they wrote. */
+export async function getViewerReceivedReviews(viewerId: string) {
+  return prisma.review.findMany({
+    where: { revieweeId: viewerId, isHidden: false },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      reviewer: { select: { id: true, profile: { select: { displayName: true } } } }
+    }
+  });
+}
+
+/**
+ * The Requests tab: bookings waiting on THIS viewer as the owner. Only
+ * REQUESTED rows appear — once answered a request becomes the other party's
+ * booking, and respondToBookingAction refuses anything not still pending.
+ */
+export async function getViewerIncomingRequests(viewerId: string) {
+  return prisma.booking.findMany({
+    where: { ownerId: viewerId, status: BookingStatus.REQUESTED },
+    orderBy: { requestedAt: "desc" },
+    take: 30,
+    select: {
+      id: true,
+      mode: true,
+      startDate: true,
+      endDate: true,
+      requestedAt: true,
+      listing: { select: { id: true, title: true } },
+      requester: { select: { id: true, profile: { select: { displayName: true, handle: true } } } }
+    }
+  });
 }

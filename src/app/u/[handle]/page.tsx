@@ -12,10 +12,13 @@ import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileOverflowMenu } from "@/components/profile/profile-overflow-menu";
 import { ProfileProgress } from "@/components/profile/profile-progress";
+import { BookingList, ReviewList, formatRange } from "@/components/profile/profile-activity-lists";
+import { IncomingRequestList } from "@/components/profile/incoming-request-list";
 import { EmptyState } from "@/components/premium/system";
 import { ProfileListingGrid } from "@/components/profile/profile-listing-grid";
 import { ProfileTabs, type ProfileTabKey } from "@/components/profile/profile-tabs";
 import { getOptionalSession } from "@/lib/auth/session";
+import { resolveDisplayName } from "@/lib/profile/identity";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import {
   buildAchievements,
@@ -26,7 +29,10 @@ import {
 import {
   getProfileByHandle,
   getProfileListings,
+  getViewerBookings,
   getViewerFavorites,
+  getViewerIncomingRequests,
+  getViewerReceivedReviews,
   getViewerSavedListings
 } from "@/lib/profile/query";
 import { profileListingCardData } from "@/lib/profile/serializers";
@@ -58,12 +64,25 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   // only shown — on the viewer's own profile. What someone hearted is private.
   // The dashboard block is own-profile only: someone else's XP, unfinished
   // tasks and locked badges are their business, not a visitor's.
-  const [listings, favorites, saved, activity] = await Promise.all([
+  const [listings, favorites, saved, activity, bookings, receivedReviews, requests] = await Promise.all([
     getProfileListings(profile.userId, profile.isSelf, profile.isBlocked),
     profile.isSelf ? getViewerFavorites(profile.userId) : Promise.resolve([]),
     profile.isSelf ? getViewerSavedListings(profile.userId) : Promise.resolve([]),
-    profile.isSelf ? getProfileActivity(profile.userId) : Promise.resolve(null)
+    profile.isSelf ? getProfileActivity(profile.userId) : Promise.resolve(null),
+    profile.isSelf ? getViewerBookings(profile.userId) : Promise.resolve([]),
+    profile.isSelf ? getViewerReceivedReviews(profile.userId) : Promise.resolve([]),
+    profile.isSelf ? getViewerIncomingRequests(profile.userId) : Promise.resolve([])
   ]);
+
+  const bookingStatusLabel = (status: string) =>
+    ({
+      REQUESTED: t.profile.statusPending,
+      APPROVED: t.profile.statusAccepted,
+      REJECTED: t.profile.statusDeclined,
+      CANCELED: t.profile.statusDeclined,
+      EXPIRED: t.profile.statusDeclined,
+      COMPLETED: t.profile.statusCompleted
+    })[status] ?? status;
 
   const listingsGrid = (
     <ProfileListingGrid
@@ -87,7 +106,10 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const tabs: Array<{ key: ProfileTabKey; label: string; count: number | null }> = [
     { key: "listings", label: t.profile.tabListings, count: profile.listingCount },
     { key: "liked", label: t.profile.tabLiked, count: favorites.length },
-    { key: "saved", label: t.profile.tabSaved, count: saved.length }
+    { key: "saved", label: t.profile.tabSaved, count: saved.length },
+    { key: "bookings", label: t.profile.tabBookings, count: bookings.length },
+    { key: "reviews", label: t.profile.tabReviews, count: receivedReviews.length },
+    { key: "requests", label: t.profile.tabRequests, count: requests.length }
   ];
 
   return (
@@ -232,6 +254,41 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                     {t.common.browseMarketplace}
                   </Link>
                 }
+              />
+            ),
+            bookings: (
+              <BookingList
+                bookings={bookings}
+                lang={locale}
+                statusLabel={bookingStatusLabel}
+                emptyTitle={t.profile.bookingsEmpty}
+                emptyDescription={t.profile.bookingsEmptyHint}
+              />
+            ),
+            reviews: (
+              <ReviewList
+                reviews={receivedReviews}
+                lang={locale}
+                emptyTitle={t.profile.reviewsEmpty}
+                emptyDescription={t.profile.reviewsEmptyHint}
+              />
+            ),
+            requests: (
+              <IncomingRequestList
+                requests={requests.map((request) => ({
+                  id: request.id,
+                  mode: request.mode,
+                  dateLabel: formatRange(request.startDate, request.endDate, locale),
+                  listingTitle: request.listing.title,
+                  requesterName: resolveDisplayName(request.requester.profile, locale),
+                  requesterHandle: request.requester.profile?.handle ?? null
+                }))}
+                copy={{
+                  accept: t.profile.accept,
+                  decline: t.profile.decline,
+                  emptyTitle: t.profile.requestsEmpty,
+                  emptyDescription: t.profile.requestsEmptyHint
+                }}
               />
             )
           }}
