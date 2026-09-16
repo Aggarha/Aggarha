@@ -62,6 +62,7 @@ export async function getProfileByHandle(handle: string, viewerId: string | null
           trustScore: true,
           trustTier: true,
           level: true,
+          xp: true,
           createdAt: true,
           isBanned: true
         }
@@ -124,6 +125,7 @@ export async function getProfileByHandle(handle: string, viewerId: string | null
     verificationLevel: profile.user.verificationLevel,
     trustScore: Number(profile.user.trustScore),
     level: profile.user.level,
+    xp: profile.user.xp,
     listingCount,
     followerCount,
     followingCount,

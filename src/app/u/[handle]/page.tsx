@@ -11,11 +11,18 @@ import {
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileOverflowMenu } from "@/components/profile/profile-overflow-menu";
+import { ProfileProgress } from "@/components/profile/profile-progress";
 import { EmptyState } from "@/components/premium/system";
 import { ProfileListingGrid } from "@/components/profile/profile-listing-grid";
 import { ProfileTabs, type ProfileTabKey } from "@/components/profile/profile-tabs";
 import { getOptionalSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
+import {
+  buildAchievements,
+  buildDailyTasks,
+  buildLevelProgress,
+  getProfileActivity
+} from "@/lib/profile/gamification";
 import {
   getProfileByHandle,
   getProfileListings,
@@ -49,10 +56,13 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
   // Liked and Saved are the viewer's own lists, so they are only fetched — and
   // only shown — on the viewer's own profile. What someone hearted is private.
-  const [listings, favorites, saved] = await Promise.all([
+  // The dashboard block is own-profile only: someone else's XP, unfinished
+  // tasks and locked badges are their business, not a visitor's.
+  const [listings, favorites, saved, activity] = await Promise.all([
     getProfileListings(profile.userId, profile.isSelf, profile.isBlocked),
     profile.isSelf ? getViewerFavorites(profile.userId) : Promise.resolve([]),
-    profile.isSelf ? getViewerSavedListings(profile.userId) : Promise.resolve([])
+    profile.isSelf ? getViewerSavedListings(profile.userId) : Promise.resolve([]),
+    profile.isSelf ? getProfileActivity(profile.userId) : Promise.resolve(null)
   ]);
 
   const listingsGrid = (
@@ -177,6 +187,15 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           }
         />
       </EditProfileProvider>
+
+      {activity ? (
+        <ProfileProgress
+          progress={buildLevelProgress(profile.xp, profile.level, locale)}
+          achievements={buildAchievements(activity, locale)}
+          tasks={buildDailyTasks(activity, locale)}
+          t={t}
+        />
+      ) : null}
 
       {profile.isSelf ? (
         <ProfileTabs
