@@ -14,25 +14,29 @@ import { buildConditionRating, buildConditionReport, buildListingGallery } from 
 import {
   buildCategoryLabel,
   buildLocationLabel,
-  buildSellerName,
   isArabicText
 } from "@/lib/marketplace/demo-content";
+import { resolveDisplayName } from "@/lib/profile/identity";
+import { getOptionalSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { formatPrice } from "@/lib/marketplace/format";
-import { getListingDetails, getHomepageShowcase } from "@/lib/marketplace/query";
+import { getListingDetails, getHomepageShowcase, getViewerListingFlags } from "@/lib/marketplace/query";
 import { toNumber } from "@/lib/marketplace/serializers";
 
 export default async function ListingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [listing, showcase, { locale, t }] = await Promise.all([
+  const [listing, showcase, { locale, t }, session] = await Promise.all([
     getListingDetails(id),
     getHomepageShowcase(),
-    getLocaleAndDictionary()
+    getLocaleAndDictionary(),
+    getOptionalSession()
   ]);
 
   if (!listing) {
     notFound();
   }
+
+  const viewerFlags = await getViewerListingFlags(session?.userId ?? null, listing.id);
 
   const pricing = await runPricingForListing(listing.id);
   const isRtl = locale === "ar";
@@ -41,7 +45,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   const gallery = buildListingGallery(listing);
   const conditionReport = buildConditionReport(listing);
   const conditionRating = buildConditionRating(conditionReport, locale);
-  const ownerName = buildSellerName(listing.owner.id);
+  const ownerName = resolveDisplayName(listing.owner.profile, locale);
   const uploadDateLabel = listing.createdAt.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
     month: "short",
     day: "numeric",
@@ -92,7 +96,10 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           photos={gallery}
           alt={title}
           categoryLabel={categoryLabel}
+          listingId={listing.id}
           favoriteCount={listing._count.favorites}
+          favorited={viewerFlags.favorited}
+          favoriteLabel={t.listingDetail.like}
         />
 
         <div className="space-y-2">
@@ -147,6 +154,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
           lang={locale}
           viewProfileLabel={t.listingDetail.viewProfile}
           comingSoonTitle={t.nav.comingSoon}
+          profileHandle={listing.owner.profile?.handle ?? null}
         />
       </section>
 
@@ -253,7 +261,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
               listing.reviews.map((review) => (
                 <ReviewCard
                   key={review.id}
-                  author={buildSellerName(review.reviewer.id)}
+                  author={resolveDisplayName(review.reviewer.profile, locale)}
                   verificationLevel={review.reviewer.verificationLevel}
                   lang={locale}
                   rating={review.rating}
@@ -294,7 +302,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
                 }
                 level={item.ownerLevelSnapshot ?? item.owner.level}
                 verificationLevel={item.owner.verificationLevel}
-                ownerName={buildSellerName(item.owner.id)}
+                ownerName={resolveDisplayName(item.owner.profile, locale)}
                 viewCount={item.viewCount}
                 lang={locale}
               />

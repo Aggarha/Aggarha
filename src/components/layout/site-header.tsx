@@ -52,6 +52,12 @@ export function SiteHeader({
             {isAuthenticated ? (
               <>
                 <Link
+                  href={"/profile" as Route}
+                  className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
+                >
+                  {t.nav.profile}
+                </Link>
+                <Link
                   href={"/listings/mine" as Route}
                   className="text-[13px] font-medium text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:text-[#ccff00]"
                 >

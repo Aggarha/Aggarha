@@ -204,6 +204,8 @@ async function clearDatabase() {
   await prisma.savedSearch.deleteMany();
   await prisma.savedListing.deleteMany();
   await prisma.favorite.deleteMany();
+  await prisma.follow.deleteMany();
+  await prisma.block.deleteMany();
   await prisma.recentlyViewed.deleteMany();
   await prisma.review.deleteMany();
   await prisma.booking.deleteMany();
@@ -219,6 +221,34 @@ async function clearDatabase() {
   await prisma.location.deleteMany();
   await prisma.category.deleteMany();
 }
+
+/**
+ * Profile identity now drives every owner name in the UI — cards, quick-view,
+ * detail page, profile page all read Profile.displayName. Previously the UI
+ * hashed a name out of the owner id while the seed wrote "Aggarha Seller N",
+ * so a card and the profile behind it disagreed. Names live here, once.
+ *
+ * Handles are derived from the names and hand-checked unique, so a seeded
+ * profile URL reads like /u/ahmed-nabil rather than /u/aggarha-user-1.
+ */
+const seedProfiles = [
+  { handle: "ahmed-nabil", displayName: "Ahmed Nabil", bio: "Camera gear I actually use. Ask me anything before you book." },
+  { handle: "mona-farouk", displayName: "Mona Farouk", bio: "Renting out what sits idle. Fast replies, Maadi pickup." },
+  { handle: "youssef-adel", displayName: "Youssef Adel", bio: "Audio and studio kit. I test everything before handover." },
+  { handle: "salma-ibrahim", displayName: "Salma Ibrahim", bio: "Swaps welcome. Mostly books, boards and camping gear." },
+  { handle: "karim-elsayed", displayName: "Karim El-Sayed", bio: "Tools and power equipment. Weekend rates available." },
+  { handle: "nour-hassan", displayName: "Nour Hassan", bio: "Collector. Happy to talk trades on anything retro." },
+  { handle: "omar-zaki", displayName: "Omar Zaki", bio: "Drones and action cams. Licensed operator, Zamalek based." },
+  { handle: "yasmin-adel", displayName: "Yasmin Adel", bio: "Event and party gear. Delivery across Cairo for larger orders." },
+  { handle: "mostafa-ali", displayName: "Mostafa Ali", bio: "Bikes, scooters and spares. I keep everything serviced." },
+  { handle: "heba-mahmoud", displayName: "Heba Mahmoud", bio: "Kitchen and catering equipment. Clean, counted, ready." },
+  { handle: "amr-khaled", displayName: "Amr Khaled", bio: "Console and PC gaming. Swap-first, rent if you prefer." },
+  { handle: "dina-samir", displayName: "Dina Samir", bio: "Photography lighting. I can set it up with you on site." },
+  { handle: "tarek-youssef", displayName: "Tarek Youssef", bio: "Alexandria. Watersports and beach gear through summer." },
+  { handle: "rania-fathy", displayName: "Rania Fathy", bio: "Designer pieces for occasions. Dry-cleaned between bookings." },
+  { handle: "hassan-farid", displayName: "Hassan Farid", bio: "Site and survey instruments. Deposit required, no exceptions." },
+  { handle: "mariam-sobhy", displayName: "Mariam Sobhy", bio: "Musical instruments. Beginners very welcome to ask first." }
+];
 
 async function main() {
   await clearDatabase();
@@ -257,7 +287,7 @@ async function main() {
   const seedPasswordHash = await hashPassword(SEED_TEST_PASSWORD);
 
   const users = [] as Array<{ id: string; trustScore: number; level: number; verification: VerificationLevel }>;
-  for (let i = 0; i < 16; i += 1) {
+  for (let i = 0; i < seedProfiles.length; i += 1) {
     const trustScore = 55 + (i % 9) * 4.2;
     const level = 2 + (i % 10);
     const verification = pick(
@@ -295,9 +325,9 @@ async function main() {
         aiFraudScore: decimal(8 + i * 1.1),
         profile: {
           create: {
-            handle: `aggarha-user-${i + 1}`,
-            displayName: `Aggarha Seller ${i + 1}`,
-            bio: "Trusted Egyptian marketplace participant.",
+            handle: seedProfiles[i].handle,
+            displayName: seedProfiles[i].displayName,
+            bio: seedProfiles[i].bio,
             city: pick(locationRecords, i).city,
             country: "Egypt",
             responseRate: decimal(74 + (i % 5) * 4),
@@ -313,6 +343,30 @@ async function main() {
 
     users.push({ id: user.id, trustScore, level, verification });
   }
+
+  // Asymmetric follow graph: each user follows a cyclic run of 2-6 others, and
+  // the first three users additionally collect followers from most of the set.
+  // Asymmetry is the point — a symmetric graph would make every profile show
+  // identical Following and Followers counts, which reads as placeholder data.
+  const followEdges: Array<{ followerId: string; followingId: string }> = [];
+  for (let i = 0; i < users.length; i += 1) {
+    const runLength = 2 + (i % 5);
+    for (let step = 1; step <= runLength; step += 1) {
+      followEdges.push({
+        followerId: users[i].id,
+        followingId: users[(i + step) % users.length].id
+      });
+    }
+    for (const popularIndex of [0, 1, 2]) {
+      if (i !== popularIndex && (i + popularIndex) % 2 === 0) {
+        followEdges.push({ followerId: users[i].id, followingId: users[popularIndex].id });
+      }
+    }
+  }
+  await prisma.follow.createMany({
+    data: followEdges.filter((edge) => edge.followerId !== edge.followingId),
+    skipDuplicates: true
+  });
 
   const categoryIds = Array.from(categoryMap.values());
 
@@ -518,7 +572,7 @@ async function main() {
     });
   }
 
-  for (let i = 0; i < 16; i += 1) {
+  for (let i = 0; i < users.length; i += 1) {
     await prisma.suspiciousUserSignal.create({
       data: {
         userId: pick(users, i + 1).id,

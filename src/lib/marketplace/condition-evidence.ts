@@ -93,17 +93,31 @@ function hashSeed(input: string): number {
 }
 
 /** Real photos first (main photo pinned to the front), falling back to the listing's cover image for listings with no uploaded photos yet. */
+type UploadedPhoto = { id: string; url: string; isMain: boolean; sortOrder: number };
+
+/** Main photo first, then the owner's chosen order. */
+function orderPhotos(photos: UploadedPhoto[]): UploadedPhoto[] {
+  return [...photos].sort((a, b) => (a.isMain === b.isMain ? a.sortOrder - b.sortOrder : a.isMain ? -1 : 1));
+}
+
 export function buildListingGallery(listing: {
   imageUrl: string | null;
-  photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
+  photos: UploadedPhoto[];
 }): ListingGalleryPhoto[] {
   if (listing.photos.length > 0) {
-    return [...listing.photos]
-      .sort((a, b) => (a.isMain === b.isMain ? a.sortOrder - b.sortOrder : a.isMain ? -1 : 1))
-      .map((photo) => ({ id: photo.id, url: photo.url }));
+    return orderPhotos(listing.photos).map((photo) => ({ id: photo.id, url: photo.url }));
   }
 
   return [{ id: "cover", url: listing.imageUrl ?? "/demo/products/generic.jpg" }];
+}
+
+/**
+ * Cover image for a card, or null when the owner uploaded no photos — the
+ * caller then keeps its own fallback (ListingCard picks a category-specific
+ * demo image, which reads better than the one generic placeholder).
+ */
+export function buildListingCoverUrl(listing: { photos: UploadedPhoto[] }): string | null {
+  return listing.photos.length > 0 ? orderPhotos(listing.photos)[0].url : null;
 }
 
 export function buildConditionReport(listing: { id: string }): ConditionReport {

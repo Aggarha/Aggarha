@@ -655,9 +655,9 @@ export function MobileBottomNav({ locale, t }: { locale: Locale; t: Dictionary }
         <BottomNavIcon name="messages" />
         {t.nav.messages}
       </span>
-      <Link href="/bookings" className={cn(itemClass, "hover:bg-white/10 hover:text-white")}>
+      <Link href="/profile" className={cn(itemClass, "hover:bg-white/10 hover:text-white")}>
         <BottomNavIcon name="profile" />
-        {t.nav.requests}
+        {t.nav.profile}
       </Link>
     </nav>
   );

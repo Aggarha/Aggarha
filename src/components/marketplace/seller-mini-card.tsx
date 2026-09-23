@@ -1,14 +1,19 @@
+import type { Route } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
+import { buildProfilePath } from "@/lib/profile/identity";
 import type { Locale } from "@/lib/i18n/types";
 
 /**
  * Compact avatar + name + location + chevron, distinct from the stats-heavy
  * OwnerCard (response rate, trust score, completed rentals) used on the full
  * detail page's Owner section. This is the quick-glance identity strip for
- * the half-sheet and the full page's hero — no seller profile page exists
- * yet, so the chevron is a visual affordance only (disabled, "Coming Soon"),
- * matching the existing convention already used for the message button.
+ * the half-sheet and the full page's hero.
+ *
+ * The chevron now navigates to /u/[handle]. It falls back to the old disabled
+ * "Coming Soon" stub only when the seller has no Profile row, since there is
+ * nothing to link to in that case.
  */
 export function SellerMiniCard({
   name,
@@ -17,7 +22,8 @@ export function SellerMiniCard({
   verificationLevel,
   lang = "en",
   viewProfileLabel,
-  comingSoonTitle
+  comingSoonTitle,
+  profileHandle
 }: {
   name: string;
   location: string;
@@ -26,6 +32,8 @@ export function SellerMiniCard({
   lang?: Locale;
   viewProfileLabel: string;
   comingSoonTitle: string;
+  /** Seller's profile handle. When absent the chevron stays a disabled stub. */
+  profileHandle?: string | null;
 }) {
   const isRtl = lang === "ar";
 
@@ -53,18 +61,30 @@ export function SellerMiniCard({
         <p className="truncate text-xs text-white/55">{location}</p>
       </div>
 
-      <button
-        type="button"
-        disabled
-        aria-disabled="true"
-        title={comingSoonTitle}
-        aria-label={viewProfileLabel}
-        className="flex h-11 w-11 shrink-0 items-center justify-center text-white/40"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d={isRtl ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
-        </svg>
-      </button>
+      {profileHandle ? (
+        <Link
+          href={buildProfilePath(profileHandle) as Route}
+          aria-label={viewProfileLabel}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/55 transition-colors duration-200 ease-[var(--ease-premium)] hover:bg-white/[0.06] hover:text-[#ccff00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ccff00]/70"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={isRtl ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
+          </svg>
+        </Link>
+      ) : (
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          title={comingSoonTitle}
+          aria-label={viewProfileLabel}
+          className="flex h-11 w-11 shrink-0 items-center justify-center text-white/40"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={isRtl ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

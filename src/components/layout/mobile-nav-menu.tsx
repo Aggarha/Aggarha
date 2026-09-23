@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/types";
 
 type NavStrings = {
+  profile: string;
   login: string;
   logout: string;
   listItem: string;
@@ -73,6 +74,9 @@ export function MobileNavMenu({
           <nav className="flex flex-col gap-1">
             {isAuthenticated ? (
               <>
+                <Link href={"/profile" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
+                  {nav.profile}
+                </Link>
                 <Link href={"/listings/mine" as Route} onClick={() => setOpen(false)} className={itemLinkClass}>
                   {nav.myListings}
                 </Link>

@@ -388,3 +388,30 @@ export async function getListingQuickView(listingId: string) {
     }
   });
 }
+
+/**
+ * Whether this viewer has liked or saved a listing. Kept out of
+ * getListingDetails so that query stays viewer-independent and cacheable —
+ * only these two booleans depend on who is looking.
+ */
+export async function getViewerListingFlags(
+  viewerId: string | null,
+  listingId: string
+): Promise<{ favorited: boolean; saved: boolean }> {
+  if (!viewerId) {
+    return { favorited: false, saved: false };
+  }
+
+  const [favorite, saved] = await Promise.all([
+    prisma.favorite.findUnique({
+      where: { userId_listingId: { userId: viewerId, listingId } },
+      select: { id: true }
+    }),
+    prisma.savedListing.findUnique({
+      where: { userId_listingId: { userId: viewerId, listingId } },
+      select: { id: true }
+    })
+  ]);
+
+  return { favorited: favorite !== null, saved: saved !== null };
+}
