@@ -35,7 +35,7 @@ export function VerifiedSparkle({
     return null;
   }
 
-  const color = isPremium ? "#ff8a1f" : "#ccff00";
+  const color = isPremium ? "#d4af37" : "#4fe3c1";
   const label = isPremium ? LABELS[lang].premium : LABELS[lang].verified;
 
   return (
