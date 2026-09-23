@@ -9,6 +9,17 @@ import type { Locale } from "@/lib/i18n/types";
  * that's literally true. Same shape everywhere; only the color changes
  * between the verified and premium tiers. Presentation-only, derived from
  * the existing verificationLevel enum — no new backend field.
+ *
+ * RTL: unlike the seller-mini-card chevron, this mark carries no directional
+ * meaning, so — unlike that chevron — it never needs a mirrored path. The
+ * ring is point-symmetric about its own center, so it renders identically
+ * regardless of document direction. Placement relative to the name it sits
+ * next to is handled by the caller via `dir` on the surrounding flex row
+ * (see listing-card.tsx, seller-mini-card.tsx) or inherited from the root
+ * `<html dir>` set per-locale in app/layout.tsx (profile-header.tsx,
+ * system.tsx's OwnerCard/ReviewCard) — all five render sites use `gap-*`
+ * for spacing rather than directional margins, so no changes were needed
+ * here for RTL. Audited 2026-09-23.
  */
 const PREMIUM_LEVELS = new Set(["BUSINESS_VERIFIED", "PROFESSIONAL_SELLER"]);
 const VERIFIED_LEVELS = new Set(["PHONE_VERIFIED", "EMAIL_VERIFIED", "ID_VERIFIED"]);
