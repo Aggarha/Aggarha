@@ -2,11 +2,13 @@ import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/types";
 
 /**
- * Aggarha's signature trust mark — a custom four-point sparkle/diamond,
- * drawn from scratch (not a star-rating glyph, bookmark, medal, or ribbon,
- * and not sourced from any icon library). Same shape everywhere; only the
- * color changes between the verified and premium tiers. Presentation-only,
- * derived from the existing verificationLevel enum — no new backend field.
+ * Aggarha's signature trust mark — "Handover": two arcs chasing each other
+ * into a ring that never quite closes, drawn from scratch (not a star-rating
+ * glyph, checkmark, bookmark, medal, or ribbon, and not sourced from any icon
+ * library). The object goes out and comes back — the only marketplace where
+ * that's literally true. Same shape everywhere; only the color changes
+ * between the verified and premium tiers. Presentation-only, derived from
+ * the existing verificationLevel enum — no new backend field.
  */
 const PREMIUM_LEVELS = new Set(["BUSINESS_VERIFIED", "PROFESSIONAL_SELLER"]);
 const VERIFIED_LEVELS = new Set(["PHONE_VERIFIED", "EMAIL_VERIFIED", "ID_VERIFIED"]);
@@ -47,8 +49,11 @@ export function VerifiedSparkle({
       )}
       style={{ filter: `drop-shadow(0 0 2.5px ${color}80)` }}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill={color} aria-hidden="true">
-        <path d="M12 1 C12.6 7.2 14.6 9.4 23 12 C14.6 14.6 12.6 16.8 12 23 C11.4 16.8 9.4 14.6 1 12 C9.4 9.4 11.4 7.2 12 1 Z" />
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 9.1A8.5 8.5 0 0 1 20 9.1" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M20 14.9A8.5 8.5 0 0 1 4 14.9" stroke={color} strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx="20" cy="9.1" r="2.5" fill={color} />
+        <circle cx="4" cy="14.9" r="2.5" fill={color} />
       </svg>
     </span>
   );
