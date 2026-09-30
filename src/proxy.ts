@@ -8,7 +8,18 @@ import { SESSION_COOKIE } from "@/lib/auth/constants";
  * validation happens in requireSession() (src/lib/auth/session.ts) on each protected page.
  */
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const hasSessionCookie = request.cookies.has(SESSION_COOKIE);
+
+  if (pathname.startsWith("/admin")) {
+    if (pathname === "/admin/login") {
+      return NextResponse.next();
+    }
+    if (!hasSessionCookie) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    return NextResponse.next();
+  }
 
   if (!hasSessionCookie) {
     const loginUrl = new URL("/login", request.url);
@@ -20,5 +31,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/listings/new", "/listings/mine", "/bookings", "/swap-proposal", "/rent"]
+  matcher: ["/listings/new", "/listings/mine", "/bookings", "/swap-proposal", "/rent", "/admin/:path*"]
 };
