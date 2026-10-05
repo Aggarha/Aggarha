@@ -14,6 +14,7 @@ import {
   isArabicText,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
+import { getCategoryCover } from "@/lib/marketplace/category-covers";
 import { flattenCategories } from "@/lib/marketplace/format";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { getCategoryTree, getHomepageShowcase } from "@/lib/marketplace/query";
@@ -75,11 +76,17 @@ export default async function HomePage() {
     8
   );
 
-  const categoryTiles = showcase.topCategories.slice(0, 8).map((category) => ({
-    slug: category.slug,
-    label: buildCategoryLabel(category.slug, category.name, locale),
-    imageUrl: buildCategoryImageUrl(category.slug)
-  }));
+  const categoryTiles = showcase.topCategories.slice(0, 8).map((category) => {
+    const cover = getCategoryCover(category.slug);
+    return {
+      slug: category.slug,
+      label: buildCategoryLabel(category.slug, category.name, locale),
+      cover,
+      imageUrl: buildCategoryImageUrl(category.slug)
+    };
+  });
+  // Tiles with curated cover art lead; the rest keep their popularity order.
+  categoryTiles.sort((a, b) => Number(b.cover !== null) - Number(a.cover !== null));
 
   const isRtl = locale === "ar";
 
@@ -125,8 +132,9 @@ export default async function HomePage() {
                 className="group relative aspect-square overflow-hidden rounded-2xl border border-white/[0.07] transition-all duration-300 ease-[var(--ease-premium)] hover:-translate-y-1 hover:border-[#ccff00]/40 hover:shadow-[0_20px_40px_rgba(0,0,0,0.45)]"
               >
                 <Image
-                  src={category.imageUrl}
+                  src={category.cover ?? category.imageUrl}
                   alt={category.label}
+                  placeholder={category.cover ? "blur" : "empty"}
                   fill
                   className="object-cover transition-transform duration-500 ease-[var(--ease-premium)] group-hover:scale-[1.06]"
                   sizes="(max-width: 640px) 50vw, 25vw"
