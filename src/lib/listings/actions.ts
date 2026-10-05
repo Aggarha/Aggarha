@@ -70,8 +70,12 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
   }
   const data = parsed.data;
 
-  const category = await prisma.category.findUnique({ where: { slug: data.categorySlug } });
-  if (!category) {
+  const category = await prisma.category.findUnique({
+    where: { slug: data.categorySlug },
+    include: { _count: { select: { children: true } } }
+  });
+  // Listings belong to a leaf: a parent that has subcategories is not selectable.
+  if (!category || category._count.children > 0) {
     return { error: copy.invalidCategory };
   }
 

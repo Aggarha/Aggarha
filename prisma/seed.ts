@@ -12,18 +12,12 @@ import {
   Prisma
 } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth/password";
+import { CATEGORY_TREE } from "../src/lib/marketplace/category-tree";
 
 const prisma = new PrismaClient();
 
 /** Every seeded user shares this password so demo/review accounts are actually usable for login testing. */
 const SEED_TEST_PASSWORD = "Test1234!";
-
-type CategorySeed = {
-  slug: string;
-  name: string;
-  description: string;
-  parentSlug?: string;
-};
 
 type EgyptLocationSeed = {
   country: string;
@@ -33,34 +27,6 @@ type EgyptLocationSeed = {
   latitude: number;
   longitude: number;
 };
-
-const categories: CategorySeed[] = [
-  { slug: "electronics", name: "Electronics", description: "Phones, laptops, tablets, and accessories." },
-  { slug: "gaming", name: "Gaming", description: "Consoles, PCs, VR, and peripherals." },
-  { slug: "photography", name: "Photography", description: "Cameras, lenses, and production accessories." },
-  { slug: "furniture", name: "Furniture", description: "Home and office furniture assets." },
-  { slug: "cars", name: "Cars", description: "Car rental and temporary usage listings." },
-  { slug: "motorcycles", name: "Motorcycles", description: "Motorbike rental and swap listings." },
-  { slug: "fashion", name: "Fashion", description: "Designer items, costumes, and occasion wear." },
-  { slug: "wedding", name: "Wedding", description: "Wedding assets and event essentials." },
-  { slug: "kids", name: "Kids", description: "Kids toys, strollers, and child accessories." },
-  { slug: "camping", name: "Camping", description: "Outdoor, camping, and travel gear." },
-  { slug: "sports", name: "Sports", description: "Fitness and sports equipment." },
-  { slug: "construction", name: "Construction", description: "Heavy and light construction tools." },
-  { slug: "professional-equipment", name: "Professional Equipment", description: "Industry-grade tools and systems." },
-  { slug: "event-equipment", name: "Event Equipment", description: "Audio, lighting, and staging gear." },
-  { slug: "musical-instruments", name: "Musical Instruments", description: "Instruments, amps, and studio tools." },
-  { slug: "books", name: "Books", description: "Educational and collectible books." },
-  { slug: "pets", name: "Pets", description: "Pet accessories and care equipment." },
-  { slug: "real-estate", name: "Real Estate", description: "Property and hospitality assets." },
-  { slug: "services", name: "Services", description: "Bookable service-oriented assets.", parentSlug: "professional-equipment" },
-  { slug: "experiences", name: "Experiences", description: "Experience and event-ready bundles.", parentSlug: "event-equipment" },
-  { slug: "gaming-consoles", name: "Gaming Consoles", description: "Console systems and bundles.", parentSlug: "gaming" },
-  { slug: "camera-lenses", name: "Camera Lenses", description: "Prime and zoom lens assets.", parentSlug: "photography" },
-  { slug: "wedding-dresses", name: "Wedding Dresses", description: "Bridal dresses and accessories.", parentSlug: "wedding" },
-  { slug: "dj-systems", name: "DJ Systems", description: "Mixers, decks, and PA sets.", parentSlug: "event-equipment" },
-  { slug: "power-tools", name: "Power Tools", description: "Drills, saws, and concrete tools.", parentSlug: "construction" }
-];
 
 const egyptLocations: EgyptLocationSeed[] = [
   { country: "Egypt", governorate: "Cairo", city: "Cairo", district: "Nasr City", latitude: 30.0665, longitude: 31.3068 },
@@ -253,18 +219,21 @@ const seedProfiles = [
 async function main() {
   await clearDatabase();
 
-  const categoryMap = new Map<string, string>();
-  for (const category of categories) {
-    const parentId = category.parentSlug ? categoryMap.get(category.parentSlug) : undefined;
-    const created = await prisma.category.create({
-      data: {
-        slug: category.slug,
-        name: category.name,
-        description: category.description,
-        parentId
-      }
+  // Listings only go to selectable categories: leaves, or top-levels without children.
+  const leafCategoryIds: string[] = [];
+  for (const top of CATEGORY_TREE) {
+    const parent = await prisma.category.create({
+      data: { slug: top.slug, name: top.name, description: top.description }
     });
-    categoryMap.set(category.slug, created.id);
+    if (!top.children?.length) {
+      leafCategoryIds.push(parent.id);
+    }
+    for (const child of top.children ?? []) {
+      const created = await prisma.category.create({
+        data: { slug: child.slug, name: child.name, description: child.description, parentId: parent.id }
+      });
+      leafCategoryIds.push(created.id);
+    }
   }
 
   const locationRecords = await Promise.all(
@@ -368,13 +337,11 @@ async function main() {
     skipDuplicates: true
   });
 
-  const categoryIds = Array.from(categoryMap.values());
-
   const listings = [] as Array<{ id: string; ownerId: string }>;
   for (let i = 0; i < 55; i += 1) {
     const owner = pick(users, i);
     const location = pick(locationRecords, i);
-    const categoryId = pick(categoryIds, i);
+    const categoryId = pick(leafCategoryIds, i);
     const status = randomStatus(i);
     const visibility = randomVisibility(i);
     const mode = randomMode(i);
@@ -595,7 +562,7 @@ async function main() {
     });
   }
 
-  console.log("Seed complete: 16 users, 25 categories, 20 Egyptian locations, and 55 listings with bookings/trust/fraud showcase data.");
+  console.log("Seed complete: 16 users, 32 categories (15 top-level), 20 Egyptian locations, and 55 listings with bookings/trust/fraud showcase data.");
 }
 
 main()

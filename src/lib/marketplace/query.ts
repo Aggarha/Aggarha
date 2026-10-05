@@ -7,6 +7,7 @@ import {
   VerificationLevel
 } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { TOP_LEVEL_CATEGORY_ORDER } from "@/lib/marketplace/category-tree";
 
 export type ListingSort = "newest" | "nearest" | "featured" | "most_trusted" | "most_viewed" | "price_low" | "price_high";
 
@@ -133,7 +134,8 @@ export async function searchListings(filters: SearchFilters) {
   }
 
   if (filters.category) {
-    where.category = { slug: filters.category };
+    // A top-level category also matches its subcategories' listings.
+    where.category = { OR: [{ slug: filters.category }, { parent: { slug: filters.category } }] };
   }
 
   if (filters.mode) {
@@ -254,6 +256,26 @@ export async function getCategoryTree() {
   return build(null);
 }
 
+/**
+ * Top-level categories ranked by listings including their subcategories';
+ * ties fall back to the fixed TOP_LEVEL_CATEGORY_ORDER, unknown slugs last.
+ */
+function rankTopLevelCategories<
+  T extends { slug: string; _count: { listings: number }; children: Array<{ _count: { listings: number } }> }
+>(categories: T[]) {
+  const orderIndex = (slug: string) => {
+    const index = TOP_LEVEL_CATEGORY_ORDER.indexOf(slug);
+    return index === -1 ? TOP_LEVEL_CATEGORY_ORDER.length : index;
+  };
+  return categories
+    .map((category) => ({
+      ...category,
+      totalListings: category._count.listings + category.children.reduce((sum, child) => sum + child._count.listings, 0)
+    }))
+    .sort((a, b) => b.totalListings - a.totalListings || orderIndex(a.slug) - orderIndex(b.slug))
+    .slice(0, 8);
+}
+
 export async function getHomepageShowcase() {
   const [featured, newest, topCategories, topLocations] = await Promise.all([
     prisma.listing.findMany({
@@ -280,9 +302,11 @@ export async function getHomepageShowcase() {
       include: { category: true, location: true, owner: { include: { profile: true } } }
     }),
     prisma.category.findMany({
-      orderBy: { listings: { _count: "desc" } },
-      take: 8,
-      include: { _count: { select: { listings: true } } }
+      where: { parentId: null },
+      include: {
+        _count: { select: { listings: true } },
+        children: { select: { _count: { select: { listings: true } } } }
+      }
     }),
     prisma.location.findMany({
       orderBy: { listings: { _count: "desc" } },
@@ -294,7 +318,7 @@ export async function getHomepageShowcase() {
   return {
     featured,
     newest,
-    topCategories,
+    topCategories: rankTopLevelCategories(topCategories),
     topLocations
   };
 }

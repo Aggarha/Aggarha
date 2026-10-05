@@ -1,8 +1,9 @@
 /**
  * Curated category cover art (public/images/categories), statically imported
  * so next/image gets intrinsic size and a blur placeholder. Keyed by exact
- * category slug — subcategories deliberately do NOT inherit a parent's cover;
- * categories without one keep the demo product photo from demo-content.
+ * category slug. A subcategory without its own cover falls back to its
+ * parent's (e.g. apartments -> real-estate); anything still uncovered keeps
+ * the demo product photo from demo-content.
  */
 import type { StaticImageData } from "next/image";
 import books from "../../../public/images/categories/books.webp";
@@ -56,9 +57,15 @@ const CATEGORY_COVERS: Record<string, StaticImageData> = {
   services,
   sports,
   wedding,
-  "wedding-dresses": weddingDresses
+  "wedding-dresses": weddingDresses,
+  // Top-level groupings borrow the art of their most representative child.
+  vehicles: cars,
+  "weddings-events": wedding,
+  "music-dj": djSystems,
+  "tools-construction": construction,
+  "sports-outdoors": camping
 };
 
-export function getCategoryCover(categorySlug: string): StaticImageData | null {
-  return CATEGORY_COVERS[categorySlug] ?? null;
+export function getCategoryCover(categorySlug: string, parentSlug?: string | null): StaticImageData | null {
+  return CATEGORY_COVERS[categorySlug] ?? (parentSlug ? CATEGORY_COVERS[parentSlug] : undefined) ?? null;
 }

@@ -76,7 +76,8 @@ export default async function HomePage() {
     8
   );
 
-  const categoryTiles = showcase.topCategories.slice(0, 8).map((category) => {
+  // Top-level only, already ranked by listing count with the fixed tie-break order.
+  const categoryTiles = showcase.topCategories.map((category) => {
     const cover = getCategoryCover(category.slug);
     return {
       slug: category.slug,
@@ -85,8 +86,6 @@ export default async function HomePage() {
       imageUrl: buildCategoryImageUrl(category.slug)
     };
   });
-  // Tiles with curated cover art lead; the rest keep their popularity order.
-  categoryTiles.sort((a, b) => Number(b.cover !== null) - Number(a.cover !== null));
 
   const isRtl = locale === "ar";
 

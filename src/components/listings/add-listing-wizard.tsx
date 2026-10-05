@@ -521,8 +521,8 @@ export function AddListingWizard({
                   <option value="">{copy.categoryPlaceholder}</option>
                   {categories.map((category) =>
                     category.children.length > 0 ? (
+                      // A parent with subcategories is a group heading only; the listing goes in a subcategory.
                       <optgroup key={category.slug} label={buildCategoryLabel(category.slug, category.name, lang)}>
-                        <option value={category.slug}>{buildCategoryLabel(category.slug, category.name, lang)}</option>
                         {category.children.map((child) => (
                           <option key={child.slug} value={child.slug}>
                             {buildCategoryLabel(child.slug, child.name, lang)}
