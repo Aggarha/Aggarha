@@ -12,7 +12,7 @@ import {
   isArabicText,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
-import { formatPrice } from "@/lib/marketplace/format";
+import { formatDailyPrice } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 
 type ListingCardProps = {
@@ -24,6 +24,9 @@ type ListingCardProps = {
   imageUrl: string | null;
   categorySlug: string;
   priceAmount: number | null;
+  /** Daily price range; when absent the card falls back to priceAmount as a single rate. */
+  minPrice?: number | null;
+  maxPrice?: number | null;
   currencyCode: string | null;
   city: string | null;
   governorate: string | null;
@@ -162,7 +165,7 @@ export function ListingCard(props: ListingCardProps) {
           </h3>
 
           <p className={`${priceClass} font-bold text-[#ccff00]`}>
-            {formatPrice(props.priceAmount, props.currencyCode ?? "EGP", lang)}
+            {formatDailyPrice(props.minPrice ?? props.priceAmount, props.maxPrice, props.currencyCode ?? "EGP", lang)}
           </p>
 
           <p dir={textDir} className={`${textAlign} flex items-center gap-1 text-xs text-white/50`}>

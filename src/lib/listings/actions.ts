@@ -16,6 +16,7 @@ const ERRORS = {
   en: {
     invalidInput: "Please fill in the required fields before publishing.",
     invalidCategory: "Select a valid category before publishing.",
+    priceRequired: "Enter a daily price for rent listings.",
     unexpected: "Something went wrong while publishing. Please try again.",
     notFound: "This listing no longer exists.",
     notAuthorized: "You can only manage your own listings.",
@@ -25,6 +26,7 @@ const ERRORS = {
   ar: {
     invalidInput: "يرجى ملء الحقول المطلوبة قبل النشر.",
     invalidCategory: "اختر فئة صحيحة قبل النشر.",
+    priceRequired: "أدخل سعر اليوم لإعلانات الإيجار.",
     unexpected: "حدث خطأ أثناء النشر. يرجى المحاولة مرة أخرى.",
     notFound: "هذا الإعلان لم يعد موجودًا.",
     notAuthorized: "يمكنك إدارة إعلاناتك فقط.",
@@ -61,6 +63,9 @@ const listingFieldsSchema = z.object({
 const isValidPriceRange = (data: { minPrice: number | null; maxPrice: number | null }) =>
   data.minPrice === null || data.maxPrice === null || data.maxPrice >= data.minPrice;
 const priceRangeIssue = { message: "Max price must be greater than or equal to min price.", path: ["maxPrice"] };
+// Anything rentable needs at least the daily (min) price; swap-only listings may leave it empty.
+const hasRequiredPrice = (data: { mode: string; minPrice: number | null }) => data.mode === "SWAP" || data.minPrice !== null;
+const priceRequiredIssue = { message: "A daily price is required for rent listings.", path: ["minPrice"] };
 
 const createListingSchema = listingFieldsSchema
   .extend({
@@ -68,10 +73,17 @@ const createListingSchema = listingFieldsSchema
       message: "Photo URLs must come from a completed upload."
     })
   })
-  .refine(isValidPriceRange, priceRangeIssue);
+  .refine(isValidPriceRange, priceRangeIssue)
+  .refine(hasRequiredPrice, priceRequiredIssue);
 // Edits may keep photos already on the listing (checked against the DB in the action), so
 // the upload-origin check happens there rather than in the schema.
-const updateListingSchema = listingFieldsSchema.refine(isValidPriceRange, priceRangeIssue);
+const updateListingSchema = listingFieldsSchema
+  .refine(isValidPriceRange, priceRangeIssue)
+  .refine(hasRequiredPrice, priceRequiredIssue);
+
+function parseErrorMessage(error: z.ZodError, copy: (typeof ERRORS)["en"]) {
+  return error.issues.some((issue) => issue.message === priceRequiredIssue.message) ? copy.priceRequired : copy.invalidInput;
+}
 
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type CreateListingResult = { error: string } | { listingId: string };
@@ -167,7 +179,7 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
 
   const parsed = createListingSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: copy.invalidInput };
+    return { error: parseErrorMessage(parsed.error, copy) };
   }
   const data = parsed.data;
 
@@ -251,7 +263,7 @@ export async function updateListingAction(listingId: string, input: CreateListin
 
   const parsed = updateListingSchema.safeParse(input);
   if (!parsed.success) {
-    return { error: copy.invalidInput };
+    return { error: parseErrorMessage(parsed.error, copy) };
   }
   const data = parsed.data;
 

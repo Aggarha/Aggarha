@@ -84,8 +84,9 @@ const COPY = {
     swap: "Swap",
     both: "Both",
     priceLabel: "Value range per day (EGP)",
-    minPricePlaceholder: "Min, e.g. 300",
-    maxPricePlaceholder: "Max, e.g. 500",
+    minPricePlaceholder: "Daily price, e.g. 300",
+    maxPricePlaceholder: "Max (optional), e.g. 500",
+    minPriceRequiredError: "Enter a daily price for rent listings.",
     priceRangeError: "Max must be greater than or equal to min.",
     swapPreferencesLabel: "What would you swap this for?",
     swapPreferencesPlaceholder: "e.g. Gaming Console, Clothes",
@@ -144,8 +145,9 @@ const COPY = {
     swap: "تبادل",
     both: "كلاهما",
     priceLabel: "نطاق السعر لليوم (جنيه)",
-    minPricePlaceholder: "الحد الأدنى، مثال: 300",
-    maxPricePlaceholder: "الحد الأقصى، مثال: 500",
+    minPricePlaceholder: "سعر اليوم، مثال: 300",
+    maxPricePlaceholder: "الحد الأقصى (اختياري)، مثال: 500",
+    minPriceRequiredError: "أدخل سعر اليوم لإعلانات الإيجار.",
     priceRangeError: "يجب أن يكون الحد الأقصى أكبر من أو يساوي الحد الأدنى.",
     swapPreferencesLabel: "بماذا تود استبداله؟",
     swapPreferencesPlaceholder: "مثال: جهاز ألعاب، ملابس",
@@ -228,6 +230,7 @@ export function AddListingWizard({
   const [publishError, setPublishError] = useState<string | null>(null);
   const [detailsStepAttempted, setDetailsStepAttempted] = useState(false);
   const [photoStepAttempted, setPhotoStepAttempted] = useState(false);
+  const [pricingStepAttempted, setPricingStepAttempted] = useState(false);
   const [isPublishing, startPublishTransition] = useTransition();
 
   const uploadedPhotos = photos.filter(
@@ -238,6 +241,9 @@ export function AddListingWizard({
   const categoryError = categorySlug ? null : copy.categoryRequiredError;
   const governorateError = governorate ? null : copy.governorateRequiredError;
   const hasDetailsErrors = Boolean(titleError || categoryError || governorateError);
+  // RENT and BOTH need at least the daily (min) price; swap-only listings may leave it empty.
+  const priceRequired = mode !== "SWAP";
+  const minPriceError = priceRequired && !(Number(minPrice) > 0) ? copy.minPriceRequiredError : null;
   const priceRangeError =
     minPrice && maxPrice && Number(maxPrice) < Number(minPrice) ? copy.priceRangeError : null;
 
@@ -252,7 +258,8 @@ export function AddListingWizard({
       setStepIndex(2);
       return;
     }
-    if (priceRangeError) {
+    if (minPriceError || priceRangeError) {
+      setPricingStepAttempted(true);
       setStepIndex(3);
       return;
     }
@@ -374,6 +381,10 @@ export function AddListingWizard({
     }
     if (stepIndex === 2 && hasDetailsErrors) {
       setDetailsStepAttempted(true);
+      return;
+    }
+    if (stepIndex === 3 && (minPriceError || priceRangeError)) {
+      setPricingStepAttempted(true);
       return;
     }
     setStepIndex((value) => Math.min(value + 1, steps.length - 1));
@@ -670,7 +681,7 @@ export function AddListingWizard({
               <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-white/60">
                   {copy.priceLabel}
-                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                  <RequirementTag required={priceRequired} optionalLabel={copy.optionalTag} />
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   <PremiumInput
@@ -688,6 +699,9 @@ export function AddListingWizard({
                     placeholder={copy.maxPricePlaceholder}
                   />
                 </div>
+                {pricingStepAttempted && minPriceError ? (
+                  <p className="text-xs font-semibold text-[#ff9a8a]">{minPriceError}</p>
+                ) : null}
                 {priceRangeError ? <p className="text-xs font-semibold text-[#ff9a8a]">{priceRangeError}</p> : null}
               </div>
               {mode === "SWAP" || mode === "BOTH" ? (

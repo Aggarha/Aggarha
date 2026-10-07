@@ -293,6 +293,8 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
                 imageUrl={item.imageUrl}
                 categorySlug={item.category.slug}
                 priceAmount={item.priceAmount ? toNumber(item.priceAmount) : null}
+                minPrice={item.minPrice ? toNumber(item.minPrice) : null}
+                maxPrice={item.maxPrice ? toNumber(item.maxPrice) : null}
                 currencyCode={item.currencyCode}
                 city={item.location?.city ?? null}
                 governorate={item.location?.governorate ?? null}

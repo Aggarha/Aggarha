@@ -13,6 +13,8 @@ type RawListing = {
   visibility: string;
   imageUrl: string | null;
   priceAmount: unknown;
+  minPrice?: unknown;
+  maxPrice?: unknown;
   currencyCode: string | null;
   viewCount: number;
   category: {
@@ -52,6 +54,8 @@ export function listingCardData(listing: RawListing) {
     imageUrl: listing.imageUrl,
     categorySlug: listing.category.slug,
     priceAmount: listing.priceAmount ? toNumber(listing.priceAmount) : null,
+    minPrice: listing.minPrice ? toNumber(listing.minPrice) : null,
+    maxPrice: listing.maxPrice ? toNumber(listing.maxPrice) : null,
     currencyCode: listing.currencyCode,
     // Null (not a placeholder) when the listing has no location, so cards can hide the line.
     city: listing.location?.city ?? null,

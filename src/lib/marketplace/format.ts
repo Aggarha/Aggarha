@@ -55,6 +55,22 @@ export function formatPriceRange(
   return `${formatPrice(minPrice, currencyCode, locale)} – ${formatPrice(maxPrice, currencyCode, locale)}`;
 }
 
+/**
+ * Card price for a daily rate: "EGP 300 / day" for a single number, otherwise the range
+ * ("EGP 300 – EGP 500 / day"). Falls back to the no-price label when nothing is set.
+ */
+export function formatDailyPrice(
+  minPrice: number | null | undefined,
+  maxPrice: number | null | undefined,
+  currencyCode = "EGP",
+  locale: Locale = "en"
+) {
+  if (!minPrice && !maxPrice) {
+    return formatPrice(null, currencyCode, locale);
+  }
+  return `${formatPriceRange(minPrice, maxPrice, currencyCode, locale)} / ${locale === "ar" ? "يوم" : "day"}`;
+}
+
 export function modeLabel(mode: ListingMode, locale: Locale = "en"): string {
   if (locale === "ar") {
     if (mode === "RENT") return "إيجار";
