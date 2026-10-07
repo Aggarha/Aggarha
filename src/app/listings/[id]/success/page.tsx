@@ -40,8 +40,15 @@ export default async function ListingPublishedPage({ params }: { params: Promise
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
       <PremiumCard className="space-y-6 bg-[#171717] text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#ccff00]/40 bg-[#ccff00]/10 text-3xl">
-          🎉
+        <div
+          className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#ccff00]/40 bg-[#ccff00]/10"
+          style={{ filter: "drop-shadow(0 0 6px #ccff0055)" }}
+        >
+          {/* Same stroke language as the Handover mark (rounded 2.4 strokes on a 24 grid). */}
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="#ccff00" strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M8 12.4l2.7 2.7L16.2 9.4" stroke="#ccff00" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
         <div className="space-y-1.5">
           <h1 className="text-xl font-bold text-white">{copy.title}</h1>
