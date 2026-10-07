@@ -322,6 +322,8 @@ model Booking {
   startDate          DateTime?
   endDate            DateTime?
   totalDays          Int?
+  dailyPrice         Decimal?      @db.Decimal(12, 2)
+  currencyCode       String?       @db.VarChar(3)
   requestedAt        DateTime      @default(now())
   approvedAt         DateTime?
   rejectedAt         DateTime?

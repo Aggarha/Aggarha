@@ -6,7 +6,7 @@ import { toNumber } from "@/lib/marketplace/serializers";
 
 const bookingInclude = {
   listing: {
-    select: { id: true, title: true, imageUrl: true, priceAmount: true, currencyCode: true, mode: true }
+    select: { id: true, title: true, imageUrl: true, mode: true }
   },
   offeredListings: { include: { listing: { select: { id: true, title: true } } } },
   owner: { select: { phone: true, email: true } },
@@ -21,7 +21,9 @@ function serializeBooking(
     mode: string;
     requestedAt: Date;
     totalDays: number | null;
-    listing: { id: string; title: string; imageUrl: string | null; priceAmount: unknown; currencyCode: string | null; mode: string };
+    dailyPrice: unknown;
+    currencyCode: string | null;
+    listing: { id: string; title: string; imageUrl: string | null; mode: string };
     offeredListings: { listing: { id: string; title: string } }[];
     owner: { phone: string | null; email: string | null };
     requester: { phone: string | null; email: string | null };
@@ -39,8 +41,9 @@ function serializeBooking(
       id: booking.listing.id,
       title: booking.listing.title,
       imageUrl: booking.listing.imageUrl,
-      priceAmount: booking.listing.priceAmount ? toNumber(booking.listing.priceAmount) : null,
-      currencyCode: booking.listing.currencyCode ?? "EGP",
+      // The rate captured when the booking was made, not the listing's current price.
+      priceAmount: booking.dailyPrice ? toNumber(booking.dailyPrice) : null,
+      currencyCode: booking.currencyCode ?? "EGP",
       mode: booking.listing.mode as "RENT" | "SWAP" | "BOTH"
     },
     offeredListingTitles: booking.offeredListings.map((offer) => offer.listing.title),

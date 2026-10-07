@@ -77,6 +77,11 @@ export async function createBookingRequestAction(
     return { error: copy.ownListing };
   }
 
+  // Snapshot the daily rate at request time (low end of a range, falling back to the
+  // legacy single price) so later listing price edits never rewrite this booking.
+  const dailyPrice = listing.minPrice ?? listing.priceAmount;
+  const priceSnapshot = dailyPrice ? { dailyPrice, currencyCode: listing.currencyCode ?? "EGP" } : {};
+
   if (data.mode === "RENT") {
     if (!(listing.mode === ListingMode.RENT || listing.mode === ListingMode.BOTH)) {
       return { error: copy.modeNotSupported };
@@ -100,6 +105,7 @@ export async function createBookingRequestAction(
         startDate,
         endDate,
         totalDays,
+        ...priceSnapshot,
         requesterMessage: data.message || undefined
       }
     });
@@ -126,6 +132,7 @@ export async function createBookingRequestAction(
           requesterId: session.userId,
           ownerId: listing.ownerId,
           mode: ListingMode.SWAP,
+          ...priceSnapshot,
           requesterMessage: data.message || undefined
         }
       });
