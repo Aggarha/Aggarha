@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth/session";
+import { canViewListing } from "@/lib/listings/access";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getListingQuickView, getViewerListingFlags } from "@/lib/marketplace/query";
 import { listingQuickViewData } from "@/lib/marketplace/serializers";
@@ -12,7 +13,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
     getOptionalSession()
   ]);
 
-  if (!listing) {
+  if (!listing || !(await canViewListing(listing, session?.userId ?? null))) {
     return NextResponse.json({ status: "error", message: "Listing not found" }, { status: 404 });
   }
 

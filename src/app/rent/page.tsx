@@ -3,6 +3,7 @@ import { RentRequestForm } from "@/components/marketplace/rent-request-form";
 import { requireSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { prisma } from "@/lib/db";
+import { isListingPubliclyVisible } from "@/lib/listings/access";
 import { toNumber } from "@/lib/marketplace/serializers";
 
 export default async function RentPage({
@@ -26,12 +27,15 @@ export default async function RentPage({
       priceAmount: true,
       currencyCode: true,
       mode: true,
+      status: true,
+      visibility: true,
       minRentalDays: true,
       maxRentalDays: true
     }
   });
 
-  if (!listing || !(listing.mode === "RENT" || listing.mode === "BOTH")) {
+  // Paused or archived listings take no new requests.
+  if (!listing || !isListingPubliclyVisible(listing) || !(listing.mode === "RENT" || listing.mode === "BOTH")) {
     notFound();
   }
 

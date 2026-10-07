@@ -68,13 +68,15 @@ export async function runIntelligentSearch(query: string, userSignals?: UserSign
 
   const [trendingRows, nearbyRows] = await Promise.all([
     prisma.listing.findMany({
-      where: { status: { in: ["PUBLISHED", "RESERVED", "RENTED", "SWAPPED", "COMPLETED"] } },
+      where: { status: { in: ["PUBLISHED", "RESERVED", "RENTED", "SWAPPED", "COMPLETED"] }, visibility: { not: "HIDDEN" } },
       orderBy: { viewCount: "desc" },
       take: 6,
       select: { title: true }
     }),
     prisma.listing.findMany({
       where: {
+        status: { not: "ARCHIVED" },
+        visibility: { not: "HIDDEN" },
         location: {
           is: {
             governorate: userSignals?.location?.governorate,

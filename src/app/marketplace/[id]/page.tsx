@@ -18,6 +18,7 @@ import {
 } from "@/lib/marketplace/demo-content";
 import { resolveDisplayName } from "@/lib/profile/identity";
 import { getOptionalSession } from "@/lib/auth/session";
+import { canViewListing } from "@/lib/listings/access";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { formatPrice } from "@/lib/marketplace/format";
 import { getListingDetails, getHomepageShowcase, getViewerListingFlags } from "@/lib/marketplace/query";
@@ -32,7 +33,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
     getOptionalSession()
   ]);
 
-  if (!listing) {
+  if (!listing || !(await canViewListing(listing, session?.userId ?? null))) {
     notFound();
   }
 

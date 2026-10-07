@@ -8,6 +8,8 @@ export type ConditionMarkDraft = {
   description: string;
   severity: DefectSeverity;
   hasPhoto: boolean;
+  /** Id of the stored mark when editing an existing listing, so its saved photo is kept. */
+  existingId?: string;
 };
 
 const SEVERITY_STYLES: Record<DefectSeverity, string> = {

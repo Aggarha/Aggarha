@@ -1,18 +1,35 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { AvailabilityCalendar } from "@/components/marketplace/availability-preview";
 import { ConditionMarkInput, type ConditionMarkDraft } from "@/components/listings/condition-mark-input";
 import { ListingPreviewCard } from "@/components/listings/listing-preview-card";
 import { StepIndicator } from "@/components/listings/step-indicator";
 import { PremiumButton, PremiumCard, PremiumInput, PremiumSelect, PremiumTextarea } from "@/components/premium/system";
-import { createListingAction } from "@/lib/listings/actions";
+import { createListingAction, updateListingAction } from "@/lib/listings/actions";
 import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
 import { uploadListingPhoto } from "@/lib/listings/upload-client";
 import type { Locale } from "@/lib/i18n/types";
 
 type CategoryOption = { slug: string; name: string; children: CategoryOption[] };
 type ListingMode = "RENT" | "SWAP" | "BOTH";
+
+/** Current values of a listing being edited; the wizard opens pre-filled with them. */
+export type ListingWizardInitialValues = {
+  title: string;
+  description: string;
+  categorySlug: string;
+  mode: ListingMode;
+  minPrice: number | null;
+  maxPrice: number | null;
+  city: string;
+  swapPreferences: string;
+  photos: Array<{ url: string; isMain: boolean }>;
+  conditionMarks: ConditionMarkDraft[];
+  blockedDates: string[];
+};
 
 type PhotoDraft = {
   id: string;
@@ -76,6 +93,8 @@ const COPY = {
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview",
     publishing: "Publishing…",
+    saveChanges: "Save changes",
+    saving: "Saving…",
     waitForUploads: "Wait for photo uploads to finish before publishing.",
     optionalTag: "(Optional)",
     titleRequiredError: "Title is required.",
@@ -131,6 +150,8 @@ const COPY = {
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة",
     publishing: "جارٍ النشر…",
+    saveChanges: "حفظ التعديلات",
+    saving: "جارٍ الحفظ…",
     waitForUploads: "يرجى الانتظار حتى تنتهي عمليات رفع الصور قبل النشر.",
     optionalTag: "(اختياري)",
     titleRequiredError: "العنوان مطلوب.",
@@ -158,27 +179,43 @@ function RequirementTag({ required, optionalLabel }: { required: boolean; option
 
 export function AddListingWizard({
   categories,
-  lang = "en"
+  lang = "en",
+  listingId,
+  initialValues
 }: {
   categories: CategoryOption[];
   lang?: Locale;
+  /** Set together with initialValues to edit an existing listing instead of publishing a new one. */
+  listingId?: string;
+  initialValues?: ListingWizardInitialValues;
 }) {
   const copy = COPY[lang];
   const isRtl = lang === "ar";
+  const isEditing = Boolean(listingId);
+  const router = useRouter();
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const [photos, setPhotos] = useState<PhotoDraft[]>(() =>
+    (initialValues?.photos ?? []).map((photo) => ({
+      id: nextPhotoId(),
+      previewUrl: photo.url,
+      status: "done" as const,
+      uploadedUrl: photo.url,
+      errorMessage: null,
+      isMain: photo.isMain
+    }))
+  );
   const [skipDamage, setSkipDamage] = useState(false);
-  const [marks, setMarks] = useState<ConditionMarkDraft[]>([]);
-  const [title, setTitle] = useState("");
-  const [categorySlug, setCategorySlug] = useState("");
-  const [description, setDescription] = useState("");
-  const [mode, setMode] = useState<ListingMode>("RENT");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [city, setCity] = useState("");
-  const [swapPreferences, setSwapPreferences] = useState("");
-  const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [marks, setMarks] = useState<ConditionMarkDraft[]>(initialValues?.conditionMarks ?? []);
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [categorySlug, setCategorySlug] = useState(initialValues?.categorySlug ?? "");
+  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [mode, setMode] = useState<ListingMode>(initialValues?.mode ?? "RENT");
+  const [minPrice, setMinPrice] = useState(initialValues?.minPrice != null ? String(initialValues.minPrice) : "");
+  const [maxPrice, setMaxPrice] = useState(initialValues?.maxPrice != null ? String(initialValues.maxPrice) : "");
+  const [city, setCity] = useState(initialValues?.city ?? "");
+  const [swapPreferences, setSwapPreferences] = useState(initialValues?.swapPreferences ?? "");
+  const [blockedDates, setBlockedDates] = useState<string[]>(initialValues?.blockedDates ?? []);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [detailsStepAttempted, setDetailsStepAttempted] = useState(false);
   const [photoStepAttempted, setPhotoStepAttempted] = useState(false);
@@ -211,7 +248,7 @@ export function AddListingWizard({
     }
     setPublishError(null);
     startPublishTransition(async () => {
-      const result = await createListingAction({
+      const input = {
         title,
         description,
         categorySlug,
@@ -221,11 +258,21 @@ export function AddListingWizard({
         city,
         swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
         photos: uploadedPhotos.map((photo) => ({ url: photo.uploadedUrl, isMain: photo.isMain })),
-        conditionMarks: marks.map((mark) => ({ description: mark.description, severity: mark.severity })),
+        conditionMarks: marks.map((mark) => ({
+          id: mark.existingId,
+          description: mark.description,
+          severity: mark.severity
+        })),
         blockedDates
-      });
+      };
+      const result = listingId ? await updateListingAction(listingId, input) : await createListingAction(input);
       if ("error" in result) {
         setPublishError(result.error);
+        return;
+      }
+      if (listingId) {
+        router.push("/listings/mine" as Route);
+        router.refresh();
       }
     });
   };
@@ -659,7 +706,7 @@ export function AddListingWizard({
             </PremiumButton>
             {stepIndex === steps.length - 1 ? (
               <PremiumButton type="button" tone="primary" onClick={handlePublish} disabled={isPublishing || hasUploadingPhoto}>
-                {isPublishing ? copy.publishing : copy.publish}
+                {isEditing ? (isPublishing ? copy.saving : copy.saveChanges) : isPublishing ? copy.publishing : copy.publish}
               </PremiumButton>
             ) : (
               <PremiumButton type="button" tone="primary" onClick={goNext}>

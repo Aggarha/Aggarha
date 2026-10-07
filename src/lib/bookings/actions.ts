@@ -10,6 +10,7 @@ import { requireSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { sendBookingRequestedEmail, sendBookingApprovedEmail, sendBookingRejectedEmail } from "@/lib/email/send";
 import { calculateTotalDays } from "@/lib/bookings/format";
+import { isListingPubliclyVisible } from "@/lib/listings/access";
 
 const ERRORS = {
   en: {
@@ -70,7 +71,7 @@ export async function createBookingRequestAction(
   const data = parsed.data;
 
   const listing = await prisma.listing.findUnique({ where: { id: data.listingId } });
-  if (!listing) {
+  if (!listing || !isListingPubliclyVisible(listing)) {
     return { error: copy.listingNotFound };
   }
   if (listing.ownerId === session.userId) {
@@ -119,7 +120,12 @@ export async function createBookingRequestAction(
     }
 
     const ownedCount = await prisma.listing.count({
-      where: { id: { in: data.offeredListingIds }, ownerId: session.userId }
+      where: {
+        id: { in: data.offeredListingIds },
+        ownerId: session.userId,
+        status: { not: "ARCHIVED" },
+        visibility: { not: "HIDDEN" }
+      }
     });
     if (ownedCount !== data.offeredListingIds.length) {
       return { error: copy.invalidInput };

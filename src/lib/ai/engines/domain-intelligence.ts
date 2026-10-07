@@ -6,6 +6,7 @@ const activeStatuses: ListingStatus[] = ["PUBLISHED", "RESERVED", "RENTED", "SWA
 export async function buildNearbyDiscovery(input: { city?: string; governorate?: string }) {
   const where = {
     status: { in: activeStatuses },
+    visibility: { not: "HIDDEN" as const },
     location: {
       is: {
         city: input.city,
@@ -41,6 +42,7 @@ export async function buildPlaystationIntelligence(userWishlistKeywords: string[
   const listings = await prisma.listing.findMany({
     where: {
       status: { in: activeStatuses },
+      visibility: { not: "HIDDEN" },
       OR: [
         { title: { contains: "playstation", mode: "insensitive" } },
         { description: { contains: "playstation", mode: "insensitive" } },
@@ -76,6 +78,7 @@ export async function buildCollectiblesIntelligence() {
   const listings = await prisma.listing.findMany({
     where: {
       status: { in: activeStatuses },
+      visibility: { not: "HIDDEN" },
       OR: [
         { title: { contains: "collector", mode: "insensitive" } },
         { title: { contains: "limited", mode: "insensitive" } },

@@ -14,7 +14,7 @@ type ListingWithSignals = Prisma.ListingGetPayload<{
 
 async function basePool(limit = 40): Promise<ListingWithSignals[]> {
   return prisma.listing.findMany({
-    where: { status: { in: activeStatuses } },
+    where: { status: { in: activeStatuses }, visibility: { not: "HIDDEN" } },
     orderBy: [{ featuredUntil: "desc" }, { viewCount: "desc" }, { createdAt: "desc" }],
     take: limit,
     include: {

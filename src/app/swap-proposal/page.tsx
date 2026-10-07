@@ -3,6 +3,7 @@ import { SwapProposalForm } from "@/components/marketplace/swap-proposal-form";
 import { requireSession } from "@/lib/auth/session";
 import { getLocaleAndDictionary } from "@/lib/i18n/get-locale";
 import { prisma } from "@/lib/db";
+import { isListingPubliclyVisible } from "@/lib/listings/access";
 import { toNumber } from "@/lib/marketplace/serializers";
 
 export default async function SwapProposalPage({
@@ -20,20 +21,22 @@ export default async function SwapProposalPage({
   const [targetListing, ownListings] = await Promise.all([
     prisma.listing.findUnique({
       where: { id: listingId },
-      select: { id: true, title: true, imageUrl: true, mode: true }
+      select: { id: true, title: true, imageUrl: true, mode: true, status: true, visibility: true }
     }),
     prisma.listing.findMany({
       where: {
         ownerId: session.userId,
         id: { not: listingId },
         mode: { in: ["SWAP", "BOTH"] },
-        status: "PUBLISHED"
+        status: "PUBLISHED",
+        visibility: { not: "HIDDEN" }
       },
       select: { id: true, title: true, imageUrl: true, mode: true, priceAmount: true, currencyCode: true }
     })
   ]);
 
-  if (!targetListing || !(targetListing.mode === "SWAP" || targetListing.mode === "BOTH")) {
+  // Paused or archived listings take no new requests.
+  if (!targetListing || !isListingPubliclyVisible(targetListing) || !(targetListing.mode === "SWAP" || targetListing.mode === "BOTH")) {
     notFound();
   }
 
