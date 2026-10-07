@@ -8,7 +8,7 @@ import { ListingQuickView } from "@/components/marketplace/listing-quick-view";
 import { VerifiedSparkle } from "@/components/premium/verified-sparkle";
 import {
   buildDemoImageUrl,
-  buildLocationLabel,
+  formatListingLocation,
   isArabicText,
   isSponsoredListing
 } from "@/lib/marketplace/demo-content";
@@ -25,8 +25,9 @@ type ListingCardProps = {
   categorySlug: string;
   priceAmount: number | null;
   currencyCode: string | null;
-  city: string;
-  governorate: string;
+  city: string | null;
+  governorate: string | null;
+  district?: string | null;
   trustScore: number;
   level: number;
   verificationLevel: string;
@@ -86,6 +87,10 @@ export function ListingCard(props: ListingCardProps) {
   const isFeatured = Boolean(props.featuredBadge) && (props.visibility === "FEATURED" || props.visibility === "BOOSTED");
   const sponsored = !props.featuredBadge && isSponsoredListing(props.id, props.verificationLevel);
   const textDir = isRtl ? "rtl" : "ltr";
+  const locationLine = formatListingLocation(
+    { city: props.city, governorate: props.governorate, district: props.district },
+    lang
+  );
   const textAlign = isRtl ? "text-right" : "text-left";
   const compact = Boolean(props.compact);
   const imageHeightClass = compact ? "h-44 sm:h-52" : "h-72 sm:h-80";
@@ -162,7 +167,7 @@ export function ListingCard(props: ListingCardProps) {
 
           <p dir={textDir} className={`${textAlign} flex items-center gap-1 text-xs text-white/50`}>
             <span className="truncate">
-              {buildLocationLabel(props.city, lang)}, {buildLocationLabel(props.governorate, lang, "governorate")} ·{" "}
+              {locationLine ? `${locationLine} · ` : null}
               {props.ownerName}
             </span>
             <VerifiedSparkle level={props.verificationLevel} lang={lang} className="shrink-0" />

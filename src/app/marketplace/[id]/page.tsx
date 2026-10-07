@@ -13,7 +13,7 @@ import { runPricingForListing } from "@/lib/ai";
 import { buildConditionRating, buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
 import {
   buildCategoryLabel,
-  buildLocationLabel,
+  formatListingLocation,
   isArabicText
 } from "@/lib/marketplace/demo-content";
 import { resolveDisplayName } from "@/lib/profile/identity";
@@ -58,9 +58,7 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
   const titleDir = isArabicText(title) ? "rtl" : "ltr";
   const descriptionDir = isArabicText(description) ? "rtl" : "ltr";
 
-  const locationLine = listing.location
-    ? `${buildLocationLabel(listing.location.city, locale)}, ${buildLocationLabel(listing.location.governorate, locale, "governorate")}`
-    : t.marketplace.locationPlaceholder;
+  const locationLine = formatListingLocation(listing.location, locale) ?? t.marketplace.locationPlaceholder;
 
   const averageRating =
     listing.reviews.length === 0
@@ -296,8 +294,9 @@ export default async function ListingDetailsPage({ params }: { params: Promise<{
                 categorySlug={item.category.slug}
                 priceAmount={item.priceAmount ? toNumber(item.priceAmount) : null}
                 currencyCode={item.currencyCode}
-                city={item.location?.city ?? "City"}
-                governorate={item.location?.governorate ?? "Governorate"}
+                city={item.location?.city ?? null}
+                governorate={item.location?.governorate ?? null}
+                district={item.location?.district ?? null}
                 trustScore={
                   item.trustScoreSnapshot ? toNumber(item.trustScoreSnapshot) : toNumber(item.owner.trustScore)
                 }

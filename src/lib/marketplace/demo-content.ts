@@ -19,6 +19,7 @@
  */
 
 import type { Locale } from "@/lib/i18n/types";
+import { EGYPT_GOVERNORATE_LABELS_AR } from "@/lib/locations/egypt-governorates";
 
 /** Stable, non-cryptographic string hash — same approach as condition-evidence.ts. */
 function hashSeed(input: string): number {
@@ -345,13 +346,7 @@ const CITY_LABELS_AR: Record<string, string> = {
   "6th of October": "٦ أكتوبر"
 };
 
-const GOVERNORATE_LABELS_AR: Record<string, string> = {
-  Cairo: "القاهرة",
-  Giza: "الجيزة",
-  Alexandria: "الإسكندرية",
-  Dakahlia: "الدقهلية",
-  Sharqia: "الشرقية"
-};
+const GOVERNORATE_LABELS_AR: Record<string, string> = EGYPT_GOVERNORATE_LABELS_AR;
 
 /** City/governorate names follow the INTERFACE locale (like currency formatting), not the listing's content language. */
 export function buildLocationLabel(name: string, locale: Locale, kind: "city" | "governorate" = "city"): string {
@@ -359,7 +354,31 @@ export function buildLocationLabel(name: string, locale: Locale, kind: "city" | 
     return name;
   }
   const table = kind === "city" ? CITY_LABELS_AR : GOVERNORATE_LABELS_AR;
-  return table[name] ?? name;
+  // New listings store the governorate in `city` too, so fall back to the governorate table.
+  return table[name] ?? GOVERNORATE_LABELS_AR[name] ?? name;
+}
+
+/**
+ * One display line for a listing's location: "Area, Governorate", or just the
+ * governorate when there's no area. Listings stored with city === governorate don't
+ * repeat it, and listings with no location at all return null so callers can hide the line.
+ */
+export function formatListingLocation(
+  location: { city?: string | null; governorate?: string | null; district?: string | null } | null | undefined,
+  locale: Locale
+): string | null {
+  if (!location) {
+    return null;
+  }
+  const governorate = location.governorate?.trim() || null;
+  const city = location.city?.trim() || null;
+  const district = location.district?.trim() || null;
+  const parts = [
+    district,
+    city && city !== governorate ? buildLocationLabel(city, locale) : null,
+    governorate ? buildLocationLabel(governorate, locale, "governorate") : null
+  ].filter((part): part is string => Boolean(part));
+  return parts.length > 0 ? parts.join(locale === "ar" ? "، " : ", ") : null;
 }
 
 const CATEGORY_IMAGE_FILES: Record<string, string> = {

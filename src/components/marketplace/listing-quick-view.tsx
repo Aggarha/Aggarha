@@ -25,6 +25,7 @@ type QuickViewData = {
   saved: boolean;
   city: string | null;
   governorate: string | null;
+  locationLabel: string | null;
   latitude: number | null;
   longitude: number | null;
   conditionRating: { tier: "good" | "fair" | "undocumented"; label: string; explanation: string };
@@ -177,8 +178,8 @@ export function ListingQuickView({
               <div>
                 <h2 className="text-lg font-bold leading-snug text-white">{data.title}</h2>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-white/55">
-                  {[data.city, data.governorate].filter(Boolean).join(", ")}
-                  {distanceKm !== null ? <span>· {copy.kmAway(distanceKm)}</span> : null}
+                  {data.locationLabel}
+                  {distanceKm !== null ? <span>{data.locationLabel ? "· " : null}{copy.kmAway(distanceKm)}</span> : null}
                 </p>
               </div>
 

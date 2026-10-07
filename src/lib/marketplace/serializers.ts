@@ -1,5 +1,6 @@
 import type { ListingMode } from "@prisma/client";
 import { buildConditionRating, buildConditionReport, buildListingGallery } from "@/lib/marketplace/condition-evidence";
+import { formatListingLocation } from "@/lib/marketplace/demo-content";
 import { resolveDisplayName } from "@/lib/profile/identity";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -29,6 +30,7 @@ type RawListing = {
   location: {
     city: string;
     governorate: string;
+    district?: string | null;
   } | null;
 };
 
@@ -51,8 +53,10 @@ export function listingCardData(listing: RawListing) {
     categorySlug: listing.category.slug,
     priceAmount: listing.priceAmount ? toNumber(listing.priceAmount) : null,
     currencyCode: listing.currencyCode,
-    city: listing.location?.city ?? "Unknown",
-    governorate: listing.location?.governorate ?? "Unknown",
+    // Null (not a placeholder) when the listing has no location, so cards can hide the line.
+    city: listing.location?.city ?? null,
+    governorate: listing.location?.governorate ?? null,
+    district: listing.location?.district ?? null,
     trustScore: toNumber(listing.owner.trustScore),
     level: listing.owner.level,
     verificationLevel: listing.owner.verificationLevel,
@@ -74,7 +78,7 @@ type RawListingQuickView = {
     verificationLevel: string;
     profile?: { displayName: string | null; avatarUrl: string | null; handle: string } | null;
   };
-  location: { city: string; governorate: string; latitude: unknown; longitude: unknown } | null;
+  location: { city: string; governorate: string; district?: string | null; latitude: unknown; longitude: unknown } | null;
   photos: Array<{ id: string; url: string; isMain: boolean; sortOrder: number }>;
   _count: { favorites: number };
 };
@@ -93,6 +97,7 @@ export function listingQuickViewData(listing: RawListingQuickView, lang: Locale)
     favoriteCount: listing._count.favorites,
     city: listing.location?.city ?? null,
     governorate: listing.location?.governorate ?? null,
+    locationLabel: formatListingLocation(listing.location, lang),
     latitude: listing.location?.latitude != null ? toNumber(listing.location.latitude) : null,
     longitude: listing.location?.longitude != null ? toNumber(listing.location.longitude) : null,
     conditionRating,

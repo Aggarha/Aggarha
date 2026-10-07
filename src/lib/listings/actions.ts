@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { buildCategoryImageUrl } from "@/lib/marketplace/demo-content";
+import { EGYPT_GOVERNORATE_VALUES } from "@/lib/locations/egypt-governorates";
 import { isOwnedListingPhotoUrl } from "@/lib/storage/r2";
 
 const ERRORS = {
@@ -41,7 +42,9 @@ const listingFieldsSchema = z.object({
   mode: z.enum(["RENT", "SWAP", "BOTH"]),
   minPrice: z.number().positive().nullable(),
   maxPrice: z.number().positive().nullable(),
-  city: z.string().trim(),
+  // Required: one of Egypt's 27 governorates (stored by English name). The area is optional free text.
+  governorate: z.string().refine((value) => EGYPT_GOVERNORATE_VALUES.has(value)),
+  district: z.string().trim().max(80),
   swapPreferences: z.string().trim().max(200).nullable(),
   photos: z.array(photoSchema).min(1).max(4),
   conditionMarks: z.array(
@@ -150,6 +153,14 @@ async function writeListingChildren(
   }
 }
 
+/**
+ * The wizard collects a governorate plus an optional area, not a separate city, so the
+ * governorate doubles as the city and the area goes in `district` (shown as "Area, Governorate").
+ */
+function locationColumns(data: { governorate: string; district: string }) {
+  return { country: "Egypt", governorate: data.governorate, city: data.governorate, district: data.district || null };
+}
+
 export async function createListingAction(input: CreateListingInput): Promise<CreateListingResult> {
   const [session, locale] = await Promise.all([requireSession(), getLocale()]);
   const copy = ERRORS[locale];
@@ -171,18 +182,14 @@ export async function createListingAction(input: CreateListingInput): Promise<Cr
   let listingId: string;
   try {
     const listing = await prisma.$transaction(async (tx) => {
-      // The wizard only collects a free-text city, not a separate governorate, so we
-      // duplicate the typed value into both fields rather than inventing a fake governorate.
-      const location = data.city
-        ? await tx.location.create({ data: { country: "Egypt", city: data.city, governorate: data.city } })
-        : null;
+      const location = await tx.location.create({ data: locationColumns(data) });
 
       const created = await tx.listing.create({
         data: {
           ...listingColumns(data, coverImageUrl),
           ownerId: session.userId,
           categoryId: category.id,
-          locationId: location?.id,
+          locationId: location.id,
           status: ListingStatus.PUBLISHED,
           visibility: ListingVisibility.PUBLIC,
           publishedAt: new Date()
@@ -284,15 +291,10 @@ export async function updateListingAction(listingId: string, input: CreateListin
 
   try {
     await prisma.$transaction(async (tx) => {
-      let locationId = owned.listing.locationId;
-      if (data.city) {
-        const location = { country: "Egypt", city: data.city, governorate: data.city };
-        locationId = locationId
-          ? (await tx.location.update({ where: { id: locationId }, data: location })).id
-          : (await tx.location.create({ data: location })).id;
-      } else {
-        locationId = null;
-      }
+      const location = locationColumns(data);
+      const locationId = owned.listing.locationId
+        ? (await tx.location.update({ where: { id: owned.listing.locationId }, data: location })).id
+        : (await tx.location.create({ data: location })).id;
 
       await tx.listing.update({
         where: { id: listingId },

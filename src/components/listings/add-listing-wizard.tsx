@@ -9,7 +9,8 @@ import { ListingPreviewCard } from "@/components/listings/listing-preview-card";
 import { StepIndicator } from "@/components/listings/step-indicator";
 import { PremiumButton, PremiumCard, PremiumInput, PremiumSelect, PremiumTextarea } from "@/components/premium/system";
 import { createListingAction, updateListingAction } from "@/lib/listings/actions";
-import { buildCategoryLabel } from "@/lib/marketplace/demo-content";
+import { EGYPT_GOVERNORATES, governorateLabel } from "@/lib/locations/egypt-governorates";
+import { buildCategoryLabel, formatListingLocation } from "@/lib/marketplace/demo-content";
 import { uploadListingPhoto } from "@/lib/listings/upload-client";
 import type { Locale } from "@/lib/i18n/types";
 
@@ -24,7 +25,8 @@ export type ListingWizardInitialValues = {
   mode: ListingMode;
   minPrice: number | null;
   maxPrice: number | null;
-  city: string;
+  governorate: string;
+  district: string;
   swapPreferences: string;
   photos: Array<{ url: string; isMain: boolean }>;
   conditionMarks: ConditionMarkDraft[];
@@ -87,8 +89,10 @@ const COPY = {
     priceRangeError: "Max must be greater than or equal to min.",
     swapPreferencesLabel: "What would you swap this for?",
     swapPreferencesPlaceholder: "e.g. Gaming Console, Clothes",
-    cityLabel: "City",
-    cityPlaceholder: "e.g. Cairo",
+    governorateLabel: "Governorate",
+    governoratePlaceholder: "Select a governorate",
+    districtLabel: "Area",
+    districtPlaceholder: "e.g. Nasr City, Sheikh Zayed, North Coast",
     availabilityTitle: "Set availability",
     availabilityHint: "Every day defaults to available. Tap a date to block it — use the arrows to plan further ahead.",
     previewLabel: "Live preview",
@@ -99,6 +103,7 @@ const COPY = {
     optionalTag: "(Optional)",
     titleRequiredError: "Title is required.",
     categoryRequiredError: "Please select a category.",
+    governorateRequiredError: "Please select a governorate.",
     photoRequiredError: "Add at least one photo before publishing.",
     charCount: (count: number, max: number) => `${count}/${max}`
   },
@@ -144,8 +149,10 @@ const COPY = {
     priceRangeError: "يجب أن يكون الحد الأقصى أكبر من أو يساوي الحد الأدنى.",
     swapPreferencesLabel: "بماذا تود استبداله؟",
     swapPreferencesPlaceholder: "مثال: جهاز ألعاب، ملابس",
-    cityLabel: "المدينة",
-    cityPlaceholder: "مثال: القاهرة",
+    governorateLabel: "المحافظة",
+    governoratePlaceholder: "اختر المحافظة",
+    districtLabel: "المنطقة",
+    districtPlaceholder: "مثال: مدينة نصر، الشيخ زايد، الساحل الشمالي",
     availabilityTitle: "حدد التوفر",
     availabilityHint: "كل يوم متاح افتراضيًا. اضغط على تاريخ لحجبه — استخدم الأسهم للتخطيط لوقت أبعد.",
     previewLabel: "معاينة مباشرة",
@@ -156,6 +163,7 @@ const COPY = {
     optionalTag: "(اختياري)",
     titleRequiredError: "العنوان مطلوب.",
     categoryRequiredError: "يرجى اختيار فئة.",
+    governorateRequiredError: "يرجى اختيار المحافظة.",
     photoRequiredError: "أضف صورة واحدة على الأقل قبل النشر.",
     charCount: (count: number, max: number) => `${count}/${max}`
   }
@@ -213,7 +221,8 @@ export function AddListingWizard({
   const [mode, setMode] = useState<ListingMode>(initialValues?.mode ?? "RENT");
   const [minPrice, setMinPrice] = useState(initialValues?.minPrice != null ? String(initialValues.minPrice) : "");
   const [maxPrice, setMaxPrice] = useState(initialValues?.maxPrice != null ? String(initialValues.maxPrice) : "");
-  const [city, setCity] = useState(initialValues?.city ?? "");
+  const [governorate, setGovernorate] = useState(initialValues?.governorate ?? "");
+  const [district, setDistrict] = useState(initialValues?.district ?? "");
   const [swapPreferences, setSwapPreferences] = useState(initialValues?.swapPreferences ?? "");
   const [blockedDates, setBlockedDates] = useState<string[]>(initialValues?.blockedDates ?? []);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -227,7 +236,8 @@ export function AddListingWizard({
   const photoError = uploadedPhotos.length > 0 ? null : copy.photoRequiredError;
   const titleError = title.trim() ? null : copy.titleRequiredError;
   const categoryError = categorySlug ? null : copy.categoryRequiredError;
-  const hasDetailsErrors = Boolean(titleError || categoryError);
+  const governorateError = governorate ? null : copy.governorateRequiredError;
+  const hasDetailsErrors = Boolean(titleError || categoryError || governorateError);
   const priceRangeError =
     minPrice && maxPrice && Number(maxPrice) < Number(minPrice) ? copy.priceRangeError : null;
 
@@ -255,7 +265,8 @@ export function AddListingWizard({
         mode,
         minPrice: minPrice ? Number(minPrice) : null,
         maxPrice: maxPrice ? Number(maxPrice) : null,
-        city,
+        governorate,
+        district,
         swapPreferences: mode === "SWAP" || mode === "BOTH" ? swapPreferences : null,
         photos: uploadedPhotos.map((photo) => ({ url: photo.uploadedUrl, isMain: photo.isMain })),
         conditionMarks: marks.map((mark) => ({
@@ -589,6 +600,36 @@ export function AddListingWizard({
               </label>
               <label className="block space-y-1.5">
                 <span className="text-xs font-semibold text-white/60">
+                  {copy.governorateLabel}
+                  <RequirementTag required optionalLabel={copy.optionalTag} />
+                </span>
+                <PremiumSelect value={governorate} onChange={(event) => setGovernorate(event.target.value)}>
+                  <option value="">{copy.governoratePlaceholder}</option>
+                  {EGYPT_GOVERNORATES.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {governorateLabel(item.value, lang)}
+                    </option>
+                  ))}
+                </PremiumSelect>
+                {detailsStepAttempted && governorateError ? (
+                  <p className="text-xs font-semibold text-[#ff9a8a]">{governorateError}</p>
+                ) : null}
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-semibold text-white/60">
+                  {copy.districtLabel}
+                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
+                </span>
+                <PremiumInput
+                  type="text"
+                  maxLength={80}
+                  value={district}
+                  onChange={(event) => setDistrict(event.target.value)}
+                  placeholder={copy.districtPlaceholder}
+                />
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-semibold text-white/60">
                   {copy.descriptionLabel}
                   <RequirementTag required={false} optionalLabel={copy.optionalTag} />
                 </span>
@@ -664,18 +705,6 @@ export function AddListingWizard({
                   />
                 </label>
               ) : null}
-              <label className="block space-y-1.5">
-                <span className="text-xs font-semibold text-white/60">
-                  {copy.cityLabel}
-                  <RequirementTag required={false} optionalLabel={copy.optionalTag} />
-                </span>
-                <PremiumInput
-                  type="text"
-                  value={city}
-                  onChange={(event) => setCity(event.target.value)}
-                  placeholder={copy.cityPlaceholder}
-                />
-              </label>
             </div>
           ) : null}
 
@@ -724,7 +753,7 @@ export function AddListingWizard({
             mode={mode}
             minPrice={minPrice ? Number(minPrice) : null}
             maxPrice={maxPrice ? Number(maxPrice) : null}
-            city={city}
+            location={formatListingLocation(governorate ? { governorate, city: governorate, district } : null, lang)}
             photoCount={photoCount}
             mainPhotoUrl={mainPhotoUrl}
             lang={lang}

@@ -5,8 +5,8 @@ import { formatPriceRange } from "@/lib/marketplace/format";
 import type { Locale } from "@/lib/i18n/types";
 
 const COPY = {
-  en: { untitled: "Your listing title", noCity: "City", photos: (n: number) => `${n}/4 photos` },
-  ar: { untitled: "عنوان إعلانك", noCity: "المدينة", photos: (n: number) => `${n}/4 صور` }
+  en: { untitled: "Your listing title", noLocation: "Location", photos: (n: number) => `${n}/4 photos` },
+  ar: { untitled: "عنوان إعلانك", noLocation: "الموقع", photos: (n: number) => `${n}/4 صور` }
 };
 
 export function ListingPreviewCard({
@@ -15,7 +15,7 @@ export function ListingPreviewCard({
   mode,
   minPrice,
   maxPrice,
-  city,
+  location,
   photoCount,
   mainPhotoUrl = null,
   lang = "en"
@@ -25,7 +25,7 @@ export function ListingPreviewCard({
   mode: "RENT" | "SWAP" | "BOTH";
   minPrice: number | null;
   maxPrice: number | null;
-  city: string;
+  location: string | null;
   photoCount: number;
   mainPhotoUrl?: string | null;
   lang?: Locale;
@@ -63,7 +63,7 @@ export function ListingPreviewCard({
           {title || copy.untitled}
         </h3>
         <p className="text-sm font-bold text-[#ccff00]">{formatPriceRange(minPrice, maxPrice, "EGP", lang)}</p>
-        <p className={`${isRtl ? "text-right" : "text-left"} truncate text-xs text-white/50`}>{city || copy.noCity}</p>
+        <p className={`${isRtl ? "text-right" : "text-left"} truncate text-xs text-white/50`}>{location || copy.noLocation}</p>
       </div>
     </div>
   );

@@ -54,7 +54,8 @@ export default async function HomePage() {
     titleLang: (isArabicText(listing.title) ? "ar" : "en") as Locale,
     imageUrl: buildDemoImageUrl(listing.id, listing.categorySlug),
     city: listing.city,
-    governorate: listing.governorate
+    governorate: listing.governorate,
+    district: listing.district
   }));
 
   const topRented = take(

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
 import type { Locale } from "@/lib/i18n/types";
+import { formatListingLocation } from "@/lib/marketplace/demo-content";
 
 type BillboardSlide = {
   id: string;
@@ -12,8 +13,9 @@ type BillboardSlide = {
   /** The slide's own content language — independent of the interface language below. */
   titleLang: Locale;
   imageUrl: string;
-  city: string;
-  governorate: string;
+  city: string | null;
+  governorate: string | null;
+  district?: string | null;
 };
 
 const SLIDE_DURATION_MS = 5500;
@@ -29,7 +31,6 @@ export function SponsoredBillboard({ slides, lang = "en" }: { slides: BillboardS
   const sectionRef = useRef<HTMLElement>(null);
   const isRtl = lang === "ar";
   const copy = COPY[lang];
-  const citySeparator = isRtl ? "،" : ",";
 
   useEffect(() => {
     if (slides.length <= 1 || paused) {
@@ -115,10 +116,11 @@ export function SponsoredBillboard({ slides, lang = "en" }: { slides: BillboardS
               >
                 {slide.title}
               </p>
-              <p dir={isRtl ? "rtl" : "ltr"} className={`${isRtl ? "text-right" : "text-left"} text-sm text-white/70`}>
-                {slide.city}
-                {citySeparator} {slide.governorate}
-              </p>
+              {formatListingLocation(slide, lang) ? (
+                <p dir={isRtl ? "rtl" : "ltr"} className={`${isRtl ? "text-right" : "text-left"} text-sm text-white/70`}>
+                  {formatListingLocation(slide, lang)}
+                </p>
+              ) : null}
             </div>
           </Link>
         );
